@@ -3,7 +3,7 @@ import { PrismaClient } from "@/generated/prisma/client";
 import path from "path";
 
 function createClient() {
-  const dbPath = path.resolve(process.cwd(), "prisma/dev.db");
+  const dbPath = path.resolve(process.cwd(), "dev.db");
   const adapter = new PrismaBetterSqlite3({ url: dbPath });
   return new PrismaClient({ adapter });
 }
