@@ -39,6 +39,10 @@ model User {
   feedReactions            FeedReaction[]
   ruleVotes                RuleVote[]
   calendarEvents           CalendarEvent[]
+  chatMessagesSent         ChatMessage[]   @relation("ChatSender")
+  directMessagesSent       DirectMessage[] @relation("DMSender")
+  directMessagesReceived   DirectMessage[] @relation("DMReceiver")
+  callsInitiated           CallSession[]   @relation("CallCaller")
 }
 
 model Apartment {
@@ -64,6 +68,9 @@ model Apartment {
   feedItems     FeedItem[]
   calendarEvents CalendarEvent[]
   sharedAgreements SharedAgreement[]
+  chatMessages   ChatMessage[]
+  directMessages DirectMessage[]
+  callSessions   CallSession[]
 }
 
 model Room {
@@ -432,4 +439,62 @@ model SharedAgreement {
   apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
 
   @@unique([apartmentId, key])
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+
+model ChatMessage {
+  id        String    @id @default(cuid())
+  content   String
+  type      String    @default("TEXT") // TEXT | IMAGE | SYSTEM | EMERGENCY
+  readBy    String    @default("[]")   // JSON: userId[]
+  editedAt  DateTime?
+  createdAt DateTime  @default(now())
+
+  apartmentId String
+  senderId    String
+  replyToId   String?
+
+  apartment Apartment    @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  sender    User         @relation("ChatSender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo   ChatMessage? @relation("ChatReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies   ChatMessage[] @relation("ChatReply")
+}
+
+model DirectMessage {
+  id        String   @id @default(cuid())
+  content   String
+  type      String   @default("TEXT") // TEXT | IMAGE
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  apartmentId String
+  senderId    String
+  receiverId  String
+
+  apartment Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  sender    User      @relation("DMSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver  User      @relation("DMReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+// ── Call Signaling ────────────────────────────────────────────────────────────
+
+model CallSession {
+  id            String    @id @default(cuid())
+  type          String    // VOICE | VIDEO
+  status        String    @default("RINGING") // RINGING | ACTIVE | ENDED | DECLINED
+  offer         String?
+  answer        String?
+  callerIce     String    @default("[]") // JSON: RTCIceCandidate[]
+  receiverIce   String    @default("[]")
+  isEmergency   Boolean   @default(false)
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+
+  apartmentId String
+  callerId    String
+  receiverId  String?   // null = group call
+
+  apartment Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  caller    User      @relation("CallCaller", fields: [callerId], references: [id], onDelete: Cascade)
 }

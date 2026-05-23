@@ -171,12 +171,20 @@ export default function ApartmentPage() {
             <span className="text-sky-200">→</span>
           </Link>
           <Link href={`/apartment/${apt.id}/agreements`}
-            className="col-span-2 flex items-center justify-between bg-slate-700 text-white rounded-xl px-4 py-4 hover:bg-slate-800 transition-colors">
+            className="flex items-center justify-between bg-slate-700 text-white rounded-xl px-4 py-4 hover:bg-slate-800 transition-colors">
             <div>
               <p className="font-semibold text-sm">Shared Agreements</p>
               <p className="text-xs text-slate-300 mt-0.5">Lease, WiFi, emergency contacts</p>
             </div>
             <span className="text-slate-300">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/chat`}
+            className="col-span-2 flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl px-4 py-4 hover:from-indigo-700 hover:to-violet-700 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Chat & Calls</p>
+              <p className="text-xs text-indigo-200 mt-0.5">Group chat, DMs, voice & video</p>
+            </div>
+            <span className="text-indigo-200">→</span>
           </Link>
         </div>
 
