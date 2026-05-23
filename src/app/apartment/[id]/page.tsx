@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
+import NotificationBell from "@/components/NotificationBell";
 
 interface Member {
   id: string; role: string; status: string; joinedAt: string;
@@ -79,7 +80,10 @@ export default function ApartmentPage() {
           {isGuest && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Guest</span>}
           {isAdmin && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Admin</span>}
         </div>
-        <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
+        <div className="flex items-center gap-2">
+          <NotificationBell apartmentId={apt.id} />
+          <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8">
@@ -100,6 +104,30 @@ export default function ApartmentPage() {
               <p className="text-xs text-emerald-200 mt-0.5">Expenses & balances</p>
             </div>
             <span className="text-emerald-200">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/grocery`}
+            className="flex items-center justify-between bg-amber-500 text-white rounded-xl px-4 py-4 hover:bg-amber-600 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Grocery List</p>
+              <p className="text-xs text-amber-100 mt-0.5">Shared shopping list</p>
+            </div>
+            <span className="text-amber-100">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/inventory`}
+            className="flex items-center justify-between bg-teal-600 text-white rounded-xl px-4 py-4 hover:bg-teal-700 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Inventory</p>
+              <p className="text-xs text-teal-200 mt-0.5">Supplies & items</p>
+            </div>
+            <span className="text-teal-200">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/fund`}
+            className="col-span-2 flex items-center justify-between bg-violet-600 text-white rounded-xl px-4 py-4 hover:bg-violet-700 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Apartment Fund</p>
+              <p className="text-xs text-violet-200 mt-0.5">Shared pool for supplies</p>
+            </div>
+            <span className="text-violet-200">→</span>
           </Link>
         </div>
 

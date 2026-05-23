@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import NotificationBell from "@/components/NotificationBell";
 
 const CATEGORIES = ["GENERAL", "GROCERIES", "UTILITIES", "SUPPLIES", "DINING", "TRANSPORT", "OTHER"];
 const METHODS = ["VENMO", "PAYPAL", "CASHAPP", "CASH", "BANK"];
@@ -106,9 +107,12 @@ export default function FinancePage() {
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Finance</span>
         </div>
-        <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-          + Add expense
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell apartmentId={apartmentId} />
+          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            + Add expense
+          </button>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">
