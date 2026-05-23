@@ -26,6 +26,12 @@ model User {
   chorePhotos              ChorePhoto[]       @relation("PhotoTaker")
   swapRequestsFrom         ChoreSwapRequest[] @relation("SwapFrom")
   swapRequestsTo           ChoreSwapRequest[] @relation("SwapTo")
+  expensesPaid             Expense[]          @relation("ExpensePayer")
+  expenseSplits            ExpenseSplit[]
+  settlementsFrom          Settlement[]       @relation("SettlementFrom")
+  settlementsTo            Settlement[]       @relation("SettlementTo")
+  rentCyclesAsPayer        RentCycle[]
+  rentPayments             RentPayment[]
 }
 
 model Apartment {
@@ -39,6 +45,10 @@ model Apartment {
   houseRules HouseRule[]
   rooms      Room[]
   chores     Chore[]
+  expenses   Expense[]
+  settlements Settlement[]
+  rentConfig RentConfig?
+  rentCycles RentCycle[]
 }
 
 model Room {
@@ -145,4 +155,104 @@ model HouseRuleAcknowledgment {
   houseRule   HouseRule @relation(fields: [houseRuleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, houseRuleId])
+}
+
+// ── Finance ──────────────────────────────────────────────────────────────────
+
+model Expense {
+  id          String   @id @default(cuid())
+  title       String
+  amount      Float
+  category    String   @default("GENERAL")
+  splitMethod String   @default("EQUAL")  // EQUAL | CUSTOM | PER_PERSON
+  isRecurring Boolean  @default(false)
+  frequency   String?                     // WEEKLY | MONTHLY
+  status      String   @default("ACTIVE") // ACTIVE | SETTLED | DISPUTED
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  apartmentId String
+  paidById    String
+  apartment   Apartment    @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  paidBy      User         @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Cascade)
+  splits      ExpenseSplit[]
+}
+
+model ExpenseSplit {
+  id         String    @id @default(cuid())
+  amount     Float
+  status     String    @default("PENDING") // PENDING | PAID
+  settledAt  DateTime?
+
+  expenseId String
+  userId    String
+  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+}
+
+model Settlement {
+  id          String   @id @default(cuid())
+  amount      Float
+  method      String   @default("CASH") // VENMO | PAYPAL | CASHAPP | CASH | BANK
+  confirmedAt DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  apartmentId String
+  fromUserId  String
+  toUserId    String
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  fromUser    User      @relation("SettlementFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser      User      @relation("SettlementTo", fields: [toUserId], references: [id], onDelete: Cascade)
+}
+
+// ── Rent ─────────────────────────────────────────────────────────────────────
+
+model RentConfig {
+  id            String   @id @default(cuid())
+  totalAmount   Float
+  dueDay        Int      @default(1)   // day of month rent is due
+  landlordName  String?
+  autoRotate    Boolean  @default(false)
+  shares        String   @default("{}") // JSON: { userId: amount }
+  updatedAt     DateTime @updatedAt
+
+  apartmentId String    @unique
+  rentPayerId String?
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+}
+
+model RentCycle {
+  id           String    @id @default(cuid())
+  month        String    // YYYY-MM
+  totalAmount  Float
+  markedPaidAt DateTime?
+  createdAt    DateTime  @default(now())
+
+  apartmentId String
+  rentPayerId String
+  apartment   Apartment   @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  rentPayer   User        @relation(fields: [rentPayerId], references: [id], onDelete: Cascade)
+  payments    RentPayment[]
+
+  @@unique([apartmentId, month])
+}
+
+model RentPayment {
+  id          String    @id @default(cuid())
+  amount      Float
+  status      String    @default("PENDING") // PENDING | PAID | CONFIRMED
+  method      String?                        // VENMO | PAYPAL | CASHAPP | CASH | BANK
+  paidAt      DateTime?
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  rentCycleId String
+  userId      String
+  rentCycle   RentCycle @relation(fields: [rentCycleId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([rentCycleId, userId])
 }

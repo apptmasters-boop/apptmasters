@@ -1,0 +1,52 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { getTokenFromRequest } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+
+const schema = z.object({ method: z.enum(["VENMO", "PAYPAL", "CASHAPP", "CASH", "BANK"]).default("CASH") });
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string; expenseId: string }> }
+) {
+  const payload = getTokenFromRequest(req);
+  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { expenseId } = await params;
+  const body = await req.json().catch(() => ({}));
+  const parsed = schema.safeParse(body);
+
+  const split = await prisma.expenseSplit.findUnique({
+    where: { expenseId_userId: { expenseId, userId: payload.userId } },
+  });
+  if (!split) return NextResponse.json({ error: "No split found for you" }, { status: 404 });
+  if (split.status === "PAID") return NextResponse.json({ error: "Already paid" }, { status: 409 });
+
+  const updated = await prisma.expenseSplit.update({
+    where: { expenseId_userId: { expenseId, userId: payload.userId } },
+    data: { status: "PAID", settledAt: new Date() },
+  });
+
+  // Check if all splits are settled → mark expense settled
+  const allSplits = await prisma.expenseSplit.findMany({ where: { expenseId } });
+  if (allSplits.every(s => s.status === "PAID")) {
+    await prisma.expense.update({ where: { id: expenseId }, data: { status: "SETTLED" } });
+  }
+
+  // Create settlement record
+  const expense = await prisma.expense.findUnique({ where: { id: expenseId } });
+  if (expense) {
+    await prisma.settlement.create({
+      data: {
+        apartmentId: expense.apartmentId,
+        fromUserId: payload.userId,
+        toUserId: expense.paidById,
+        amount: split.amount,
+        method: parsed.success ? parsed.data.method : "CASH",
+        confirmedAt: new Date(),
+      },
+    });
+  }
+
+  return NextResponse.json(updated);
+}

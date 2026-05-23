@@ -84,14 +84,24 @@ export default function ApartmentPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-8">
         {/* Quick nav */}
-        <Link href={`/apartment/${apt.id}/rooms`}
-          className="flex items-center justify-between bg-indigo-600 text-white rounded-xl px-5 py-4 mb-4 hover:bg-indigo-700 transition-colors">
-          <div>
-            <p className="font-semibold">Rooms & Chores</p>
-            <p className="text-xs text-indigo-200 mt-0.5">View all rooms and manage chore assignments</p>
-          </div>
-          <span className="text-indigo-200">→</span>
-        </Link>
+        <div className="grid grid-cols-2 gap-3 mb-2">
+          <Link href={`/apartment/${apt.id}/rooms`}
+            className="flex items-center justify-between bg-indigo-600 text-white rounded-xl px-4 py-4 hover:bg-indigo-700 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Rooms & Chores</p>
+              <p className="text-xs text-indigo-200 mt-0.5">Manage chores</p>
+            </div>
+            <span className="text-indigo-200">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/finance`}
+            className="flex items-center justify-between bg-emerald-600 text-white rounded-xl px-4 py-4 hover:bg-emerald-700 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Finance & Rent</p>
+              <p className="text-xs text-emerald-200 mt-0.5">Expenses & balances</p>
+            </div>
+            <span className="text-emerald-200">→</span>
+          </Link>
+        </div>
 
         {/* Invite code */}
         <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-4 mb-6 flex items-center justify-between">
