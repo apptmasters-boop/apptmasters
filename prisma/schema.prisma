@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  password       String
+  photo          String?
+  roomAssignment String?
+  moveInDate     DateTime?
+  dietaryFlags   String    @default("[]")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  memberships              ApartmentMember[]
+  houseRuleAcknowledgments HouseRuleAcknowledgment[]
+}
+
+model Apartment {
+  id         String   @id @default(cuid())
+  name       String
+  inviteCode String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  members    ApartmentMember[]
+  houseRules HouseRule[]
+}
+
+model ApartmentMember {
+  id         String    @id @default(cuid())
+  role       String    @default("MEMBER")
+  status     String    @default("ACTIVE")
+  joinedAt   DateTime  @default(now())
+  movedOutAt DateTime?
+
+  userId      String
+  apartmentId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, apartmentId])
+}
+
+model HouseRule {
+  id         String    @id @default(cuid())
+  content    String
+  version    Int       @default(1)
+  createdAt  DateTime  @default(now())
+  archivedAt DateTime?
+
+  apartmentId     String
+  apartment       Apartment               @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  acknowledgments HouseRuleAcknowledgment[]
+}
+
+model HouseRuleAcknowledgment {
+  id             String   @id @default(cuid())
+  acknowledgedAt DateTime @default(now())
+
+  userId      String
+  houseRuleId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  houseRule   HouseRule @relation(fields: [houseRuleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, houseRuleId])
+}
