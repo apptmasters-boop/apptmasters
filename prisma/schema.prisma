@@ -35,6 +35,10 @@ model User {
   notifications            Notification[]
   groceryItemsAdded        GroceryItem[]
   fundContributions        FundTransaction[]
+  feedItems                FeedItem[]
+  feedReactions            FeedReaction[]
+  ruleVotes                RuleVote[]
+  calendarEvents           CalendarEvent[]
 }
 
 model Apartment {
@@ -57,6 +61,9 @@ model Apartment {
   inventoryItems InventoryItem[]
   fund          ApartmentFund?
   fundTransactions FundTransaction[]
+  feedItems     FeedItem[]
+  calendarEvents CalendarEvent[]
+  sharedAgreements SharedAgreement[]
 }
 
 model Room {
@@ -148,9 +155,14 @@ model HouseRule {
   createdAt  DateTime  @default(now())
   archivedAt DateTime?
 
+  proposedAt  DateTime  @default(now())
+  votingEndsAt DateTime?
+  status      String    @default("ACTIVE") // PROPOSED | ACTIVE | ARCHIVED
+
   apartmentId     String
   apartment       Apartment               @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   acknowledgments HouseRuleAcknowledgment[]
+  votes           RuleVote[]
 }
 
 model HouseRuleAcknowledgment {
@@ -341,4 +353,83 @@ model FundTransaction {
   fund        ApartmentFund @relation(fields: [fundId], references: [id], onDelete: Cascade)
   apartment   Apartment     @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Activity Feed ─────────────────────────────────────────────────────────────
+
+model FeedItem {
+  id          String   @id @default(cuid())
+  type        String   // EXPENSE | CHORE_DONE | MEMBER_JOINED | RULE_ADDED | ANNOUNCEMENT | RENT | GROCERY | FUND
+  title       String
+  body        String
+  isAnnouncement Boolean @default(false)
+  link        String?
+  createdAt   DateTime @default(now())
+
+  apartmentId String
+  userId      String
+  apartment   Apartment  @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions   FeedReaction[]
+}
+
+model FeedReaction {
+  id        String   @id @default(cuid())
+  emoji     String   // THUMBS_UP | NOTED | QUESTION
+  createdAt DateTime @default(now())
+
+  feedItemId String
+  userId     String
+  feedItem   FeedItem @relation(fields: [feedItemId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([feedItemId, userId])
+}
+
+// ── House Rules Voting ────────────────────────────────────────────────────────
+
+model RuleVote {
+  id        String   @id @default(cuid())
+  vote      String   // YES | NO
+  createdAt DateTime @default(now())
+
+  houseRuleId String
+  userId      String
+  houseRule   HouseRule @relation(fields: [houseRuleId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([houseRuleId, userId])
+}
+
+// ── Calendar ──────────────────────────────────────────────────────────────────
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  type        String   @default("EVENT") // EVENT | MAINTENANCE | GUEST | RENT | TRAVEL
+  startDate   DateTime
+  endDate     DateTime?
+  allDay      Boolean  @default(true)
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  apartmentId String
+  userId      String
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Shared Agreements ─────────────────────────────────────────────────────────
+
+model SharedAgreement {
+  id          String   @id @default(cuid())
+  key         String   // LEASE_START | LEASE_END | RENT_DUE_DAY | WIFI_NAME | WIFI_PASSWORD | EMERGENCY_CONTACT | CUSTOM
+  label       String
+  value       String
+  updatedAt   DateTime @updatedAt
+
+  apartmentId String
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+
+  @@unique([apartmentId, key])
 }

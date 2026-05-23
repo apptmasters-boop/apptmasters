@@ -9,7 +9,12 @@ interface Member {
   id: string; role: string; status: string; joinedAt: string;
   user: { id: string; name: string; email: string; photo: string | null; roomAssignment: string | null; dietaryFlags: string };
 }
-interface HouseRule { id: string; content: string; version: number }
+interface RuleVote { id: string; vote: string; user: { id: string; name: string } }
+interface HouseRule {
+  id: string; content: string; version: number; status: string;
+  votingEndsAt: string | null;
+  votes: RuleVote[];
+}
 interface Apartment {
   id: string; name: string; inviteCode: string;
   members: Member[]; houseRules: HouseRule[]; currentUserRole: string;
@@ -24,13 +29,19 @@ export default function ApartmentPage() {
 
   const [newRule, setNewRule] = useState("");
   const [addingRule, setAddingRule] = useState(false);
+  const [proposeMode, setProposeMode] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState("");
 
   async function load() {
-    const res = await apiFetch(`/api/apartments/${id}`);
-    if (res.status === 401) { router.replace("/login"); return; }
-    if (!res.ok) { router.replace("/dashboard"); return; }
-    setApt(await res.json());
+    const [aptRes, meRes] = await Promise.all([
+      apiFetch(`/api/apartments/${id}`),
+      apiFetch("/api/auth/me"),
+    ]);
+    if (aptRes.status === 401) { router.replace("/login"); return; }
+    if (!aptRes.ok) { router.replace("/dashboard"); return; }
+    setApt(await aptRes.json());
+    if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); }
     setLoading(false);
   }
 
@@ -39,9 +50,23 @@ export default function ApartmentPage() {
   async function addRule(e: React.FormEvent) {
     e.preventDefault();
     setAddingRule(true);
-    await apiFetch(`/api/apartments/${id}/rules`, { method: "POST", body: JSON.stringify({ content: newRule }) });
+    await apiFetch(`/api/apartments/${id}/rules`, {
+      method: "POST",
+      body: JSON.stringify({ content: newRule, propose: proposeMode }),
+    });
     setNewRule("");
     setAddingRule(false);
+    load();
+  }
+
+  async function voteRule(ruleId: string, vote: "YES" | "NO") {
+    await apiFetch(`/api/apartments/${id}/rules/${ruleId}/vote`, { method: "POST", body: JSON.stringify({ vote }) });
+    load();
+  }
+
+  async function archiveRule(ruleId: string) {
+    if (!confirm("Archive this rule?")) return;
+    await apiFetch(`/api/apartments/${id}/rules/${ruleId}/archive`, { method: "POST" });
     load();
   }
 
@@ -122,12 +147,36 @@ export default function ApartmentPage() {
             <span className="text-teal-200">→</span>
           </Link>
           <Link href={`/apartment/${apt.id}/fund`}
-            className="col-span-2 flex items-center justify-between bg-violet-600 text-white rounded-xl px-4 py-4 hover:bg-violet-700 transition-colors">
+            className="flex items-center justify-between bg-violet-600 text-white rounded-xl px-4 py-4 hover:bg-violet-700 transition-colors">
             <div>
               <p className="font-semibold text-sm">Apartment Fund</p>
               <p className="text-xs text-violet-200 mt-0.5">Shared pool for supplies</p>
             </div>
             <span className="text-violet-200">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/feed`}
+            className="flex items-center justify-between bg-rose-500 text-white rounded-xl px-4 py-4 hover:bg-rose-600 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Activity Feed</p>
+              <p className="text-xs text-rose-200 mt-0.5">Events & announcements</p>
+            </div>
+            <span className="text-rose-200">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/calendar`}
+            className="flex items-center justify-between bg-sky-600 text-white rounded-xl px-4 py-4 hover:bg-sky-700 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Calendar</p>
+              <p className="text-xs text-sky-200 mt-0.5">Guests, maintenance, events</p>
+            </div>
+            <span className="text-sky-200">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/agreements`}
+            className="col-span-2 flex items-center justify-between bg-slate-700 text-white rounded-xl px-4 py-4 hover:bg-slate-800 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Shared Agreements</p>
+              <p className="text-xs text-slate-300 mt-0.5">Lease, WiFi, emergency contacts</p>
+            </div>
+            <span className="text-slate-300">→</span>
           </Link>
         </div>
 
@@ -182,26 +231,66 @@ export default function ApartmentPage() {
 
         {/* Rules tab */}
         {tab === "rules" && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {apt.houseRules.length === 0 && (
               <p className="text-sm text-gray-400 text-center py-6">No house rules yet.</p>
             )}
-            {apt.houseRules.map((rule, i) => (
-              <div key={rule.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4 text-sm text-gray-700">
-                <span className="font-medium text-gray-400 mr-2">{i + 1}.</span>{rule.content}
-              </div>
-            ))}
-            {isAdmin && !isGuest && (
-              <form onSubmit={addRule} className="flex gap-2 mt-4">
-                <input
-                  type="text" required placeholder="Add a house rule…"
-                  value={newRule} onChange={e => setNewRule(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <button type="submit" disabled={addingRule}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-                  {addingRule ? "…" : "Add"}
-                </button>
+            {apt.houseRules.map((rule, i) => {
+              const isProposed = rule.status === "PROPOSED";
+              const myVote = rule.votes.find(v => v.user.id === currentUserId);
+              const yesCount = rule.votes.filter(v => v.vote === "YES").length;
+              const noCount = rule.votes.filter(v => v.vote === "NO").length;
+              return (
+                <div key={rule.id} className={`bg-white border rounded-xl px-5 py-4 ${isProposed ? "border-amber-300" : "border-gray-200"}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        {!isProposed && <span className="text-sm font-medium text-gray-400">{i + 1}.</span>}
+                        <p className="text-sm text-gray-700">{rule.content}</p>
+                        {isProposed && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Proposed</span>}
+                      </div>
+                      {isProposed && rule.votingEndsAt && (
+                        <p className="text-xs text-gray-400">Voting ends {new Date(rule.votingEndsAt).toLocaleDateString()}</p>
+                      )}
+                    </div>
+                    {isAdmin && !isProposed && (
+                      <button onClick={() => archiveRule(rule.id)} className="text-xs text-gray-300 hover:text-red-400 transition-colors">Archive</button>
+                    )}
+                  </div>
+                  {isProposed && !isGuest && (
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
+                      <button onClick={() => voteRule(rule.id, "YES")}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${myVote?.vote === "YES" ? "bg-emerald-600 text-white border-emerald-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                        ✓ Yes ({yesCount})
+                      </button>
+                      <button onClick={() => voteRule(rule.id, "NO")}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${myVote?.vote === "NO" ? "bg-red-500 text-white border-red-500" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                        ✗ No ({noCount})
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {!isGuest && (
+              <form onSubmit={addRule} className="space-y-2 mt-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text" required placeholder={isAdmin ? "Add a house rule…" : "Propose a rule…"}
+                    value={newRule} onChange={e => setNewRule(e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <button type="submit" disabled={addingRule}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                    {addingRule ? "…" : isAdmin ? "Add" : "Propose"}
+                  </button>
+                </div>
+                {isAdmin && (
+                  <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                    <input type="checkbox" checked={proposeMode} onChange={e => setProposeMode(e.target.checked)} />
+                    Put to a vote (48h) instead of adding directly
+                  </label>
+                )}
               </form>
             )}
           </div>
