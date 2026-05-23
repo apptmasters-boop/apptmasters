@@ -21,6 +21,11 @@ model User {
 
   memberships              ApartmentMember[]
   houseRuleAcknowledgments HouseRuleAcknowledgment[]
+  assignedChores           Chore[]            @relation("ChoreAssignee")
+  completedChores          Chore[]            @relation("ChoreCompleter")
+  chorePhotos              ChorePhoto[]       @relation("PhotoTaker")
+  swapRequestsFrom         ChoreSwapRequest[] @relation("SwapFrom")
+  swapRequestsTo           ChoreSwapRequest[] @relation("SwapTo")
 }
 
 model Apartment {
@@ -32,6 +37,75 @@ model Apartment {
 
   members    ApartmentMember[]
   houseRules HouseRule[]
+  rooms      Room[]
+  chores     Chore[]
+}
+
+model Room {
+  id                String   @id @default(cuid())
+  name              String
+  type              String   @default("CUSTOM")
+  cleanlinessStatus String   @default("CLEAN")
+  maintenanceFlag   Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  apartmentId String
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  chores      Chore[]
+  photos      ChorePhoto[]
+}
+
+model Chore {
+  id             String    @id @default(cuid())
+  title          String
+  assignmentType String    @default("ROTATING")
+  frequency      String    @default("WEEKLY")
+  dueDate        DateTime?
+  status         String    @default("PENDING")
+  completedAt    DateTime?
+  points         Int       @default(2)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  apartmentId    String
+  roomId         String?
+  assignedUserId String?
+  completedById  String?
+
+  apartment   Apartment  @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  room        Room?      @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  assignedTo  User?      @relation("ChoreAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  completedBy User?      @relation("ChoreCompleter", fields: [completedById], references: [id], onDelete: SetNull)
+  photos      ChorePhoto[]
+  swapRequests ChoreSwapRequest[]
+}
+
+model ChorePhoto {
+  id        String   @id @default(cuid())
+  url       String
+  takenAt   DateTime @default(now())
+
+  choreId   String?
+  roomId    String?
+  takenById String
+
+  chore   Chore?  @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  room    Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  takenBy User    @relation("PhotoTaker", fields: [takenById], references: [id], onDelete: Cascade)
+}
+
+model ChoreSwapRequest {
+  id        String   @id @default(cuid())
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  choreId        String
+  fromUserId     String
+  toUserId       String
+
+  chore    Chore @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  fromUser User  @relation("SwapFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User  @relation("SwapTo", fields: [toUserId], references: [id], onDelete: Cascade)
 }
 
 model ApartmentMember {
