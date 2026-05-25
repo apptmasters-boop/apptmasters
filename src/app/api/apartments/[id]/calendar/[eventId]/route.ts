@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verifyToken, getTokenFromRequest } from "@/lib/auth";
+import { getTokenFromRequest } from "@/lib/auth";
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string; eventId: string }> }) {
   const { id: apartmentId, eventId } = await params;
-  const token = getTokenFromRequest(req);
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const payload = verifyToken(token);
+  const payload = getTokenFromRequest(req);
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const event = await prisma.calendarEvent.findFirst({ where: { id: eventId, apartmentId } });
@@ -23,9 +21,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string; eventId: string }> }) {
   const { id: apartmentId, eventId } = await params;
-  const token = getTokenFromRequest(req);
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const payload = verifyToken(token);
+  const payload = getTokenFromRequest(req);
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const event = await prisma.calendarEvent.findFirst({ where: { id: eventId, apartmentId } });

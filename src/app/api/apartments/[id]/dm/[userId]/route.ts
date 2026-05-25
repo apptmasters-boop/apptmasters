@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verifyToken, getTokenFromRequest } from "@/lib/auth";
+import { getTokenFromRequest } from "@/lib/auth";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   const { id: apartmentId, userId: otherUserId } = await params;
-  const token = getTokenFromRequest(req);
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const payload = verifyToken(token);
+  const payload = getTokenFromRequest(req);
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const messages = await prisma.directMessage.findMany({
@@ -33,9 +31,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   const { id: apartmentId, userId: receiverId } = await params;
-  const token = getTokenFromRequest(req);
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const payload = verifyToken(token);
+  const payload = getTokenFromRequest(req);
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const member = await prisma.apartmentMember.findFirst({ where: { apartmentId, userId: payload.userId } });

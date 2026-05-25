@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { verifyToken, getTokenFromRequest } from "@/lib/auth";
+import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { createFeedItem } from "@/lib/feed";
 import { notifyApartment } from "@/lib/notify";
@@ -8,9 +8,7 @@ import { notifyApartment } from "@/lib/notify";
 const schema = z.object({ content: z.string().min(1), propose: z.boolean().optional() });
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const token = getTokenFromRequest(req);
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const payload = verifyToken(token);
+  const payload = getTokenFromRequest(req);
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id: apartmentId } = await params;

@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verifyToken, getTokenFromRequest } from "@/lib/auth";
+import { getTokenFromRequest } from "@/lib/auth";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string; itemId: string }> }) {
   const { id: apartmentId, itemId } = await params;
-  const token = getTokenFromRequest(req);
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const payload = verifyToken(token);
+  const payload = getTokenFromRequest(req);
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const groceryItem = await prisma.groceryItem.findFirst({ where: { id: itemId, apartmentId } });
