@@ -43,6 +43,7 @@ model User {
   directMessagesSent       DirectMessage[] @relation("DMSender")
   directMessagesReceived   DirectMessage[] @relation("DMReceiver")
   callsInitiated           CallSession[]   @relation("CallCaller")
+  borrowRequests           BorrowRequest[]
 }
 
 model Apartment {
@@ -71,6 +72,8 @@ model Apartment {
   chatMessages   ChatMessage[]
   directMessages DirectMessage[]
   callSessions   CallSession[]
+  borrowRequests BorrowRequest[]
+  purchaseRotations PurchaseRotation[]
 }
 
 model Room {
@@ -332,7 +335,8 @@ model InventoryItem {
   updatedAt        DateTime  @updatedAt
 
   apartmentId String
-  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  apartment   Apartment      @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  borrows     BorrowRequest[]
 }
 
 // ── Apartment Fund ────────────────────────────────────────────────────────────
@@ -497,4 +501,36 @@ model CallSession {
 
   apartment Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   caller    User      @relation("CallCaller", fields: [callerId], references: [id], onDelete: Cascade)
+}
+
+// ── Phase 7: Inventory Polish ─────────────────────────────────────────────────
+
+model BorrowRequest {
+  id          String    @id @default(cuid())
+  status      String    @default("ACTIVE")  // ACTIVE | RETURNED
+  notes       String?
+  borrowedAt  DateTime  @default(now())
+  returnedAt  DateTime?
+
+  inventoryItemId String
+  borrowerId      String
+  apartmentId     String
+
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  borrower      User          @relation(fields: [borrowerId], references: [id], onDelete: Cascade)
+  apartment     Apartment     @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+}
+
+model PurchaseRotation {
+  id           String   @id @default(cuid())
+  itemName     String
+  frequency    String   @default("MONTHLY") // WEEKLY | BIWEEKLY | MONTHLY
+  currentIndex Int      @default(0)
+  memberOrder  String   // JSON: userId[]
+  lastBought   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  apartmentId String
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
 }

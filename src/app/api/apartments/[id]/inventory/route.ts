@@ -13,6 +13,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const items = await prisma.inventoryItem.findMany({
     where: { apartmentId },
     orderBy: [{ category: "asc" }, { name: "asc" }],
+    include: {
+      borrows: {
+        where: { status: "ACTIVE" },
+        include: { borrower: { select: { id: true, name: true } } },
+      },
+    },
   });
 
   return NextResponse.json(items);
