@@ -328,7 +328,10 @@ export default function ApartmentPage() {
               <div key={m.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-medium text-gray-900">{m.user.name}</p>
-                  <button onClick={() => removeMember(m.id)} className="text-xs text-red-400 hover:text-red-600">Remove</button>
+                  <div className="flex items-center gap-3">
+                    <Link href={`/apartment/${id}/moveout/${m.user.id}`} className="text-xs text-indigo-500 hover:underline">Report</Link>
+                    <button onClick={() => removeMember(m.id)} className="text-xs text-red-400 hover:text-red-600">Remove</button>
+                  </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {(["ADMIN", "MEMBER", "GUEST"] as const).map(r => (

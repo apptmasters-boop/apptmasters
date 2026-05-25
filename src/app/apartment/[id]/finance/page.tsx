@@ -94,6 +94,32 @@ export default function FinancePage() {
     load();
   }
 
+  function exportCSV() {
+    const rows = [
+      ["Date", "Title", "Category", "Amount", "Paid By", "My Share", "My Status"],
+      ...expenses.map(e => {
+        const myShare = e.splits.find(s => s.userId === currentUserId);
+        return [
+          new Date(e.date).toLocaleDateString(),
+          e.title,
+          e.category,
+          e.amount.toFixed(2),
+          e.paidBy.name,
+          myShare ? myShare.amount.toFixed(2) : "0.00",
+          myShare ? myShare.status : "N/A",
+        ];
+      }),
+    ];
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `expenses-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
 
   const myOwed = balance.filter(b => b.direction === "you_owe").reduce((s, b) => s + b.amount, 0);
@@ -109,6 +135,11 @@ export default function FinancePage() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell apartmentId={apartmentId} />
+          {expenses.length > 0 && (
+            <button onClick={exportCSV} className="text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+              Export CSV
+            </button>
+          )}
           <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
             + Add expense
           </button>

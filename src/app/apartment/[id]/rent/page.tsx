@@ -97,6 +97,31 @@ export default function RentPage() {
     load();
   }
 
+  function exportRentCSV() {
+    const rows = [
+      ["Month", "Total", "My Share", "My Status", "Paid At"],
+      ...cycles.flatMap(cycle =>
+        cycle.payments
+          .filter(p => p.user.id === currentUserId)
+          .map(p => [
+            cycle.month,
+            cycle.totalAmount.toFixed(2),
+            p.amount.toFixed(2),
+            p.status,
+            p.paidAt ? new Date(p.paidAt).toLocaleDateString() : "",
+          ])
+      ),
+    ];
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rent-history-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
 
   const currentCycle = cycles[0];
@@ -110,11 +135,18 @@ export default function RentPage() {
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Rent</span>
         </div>
-        {isAdmin && (
-          <button onClick={() => setShowSetup(s => !s)} className="text-sm text-indigo-600 font-medium hover:underline">
-            {config ? "Edit setup" : "Setup rent"}
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {cycles.length > 0 && (
+            <button onClick={exportRentCSV} className="text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+              Export CSV
+            </button>
+          )}
+          {isAdmin && (
+            <button onClick={() => setShowSetup(s => !s)} className="text-sm text-indigo-600 font-medium hover:underline">
+              {config ? "Edit setup" : "Setup rent"}
+            </button>
+          )}
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">

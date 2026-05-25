@@ -4,7 +4,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
-const DIETARY_OPTIONS = ["Vegetarian", "Vegan", "Gluten-free", "Halal", "Kosher", "Nut allergy", "Dairy-free"];
+const DIETARY_OPTIONS: { key: string; label: string }[] = [
+  { key: "VEGAN", label: "🌱 Vegan" },
+  { key: "VEGETARIAN", label: "🥦 Vegetarian" },
+  { key: "GLUTEN_FREE", label: "🌾 Gluten-free" },
+  { key: "DAIRY_FREE", label: "🥛 Dairy-free" },
+  { key: "NUT_FREE", label: "🥜 Nut-free" },
+  { key: "HALAL", label: "☪️ Halal" },
+  { key: "KOSHER", label: "✡️ Kosher" },
+];
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -29,12 +37,12 @@ export default function ProfilePage() {
     });
   }, [router]);
 
-  function toggleFlag(flag: string) {
+  function toggleFlag(key: string) {
     setForm(f => ({
       ...f,
-      dietaryFlags: f.dietaryFlags.includes(flag)
-        ? f.dietaryFlags.filter(x => x !== flag)
-        : [...f.dietaryFlags, flag],
+      dietaryFlags: f.dietaryFlags.includes(key)
+        ? f.dietaryFlags.filter(x => x !== key)
+        : [...f.dietaryFlags, key],
     }));
   }
 
@@ -87,10 +95,10 @@ export default function ProfilePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Dietary flags</label>
             <div className="flex flex-wrap gap-2">
-              {DIETARY_OPTIONS.map(flag => (
-                <button key={flag} type="button" onClick={() => toggleFlag(flag)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${form.dietaryFlags.includes(flag) ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
-                  {flag}
+              {DIETARY_OPTIONS.map(({ key, label }) => (
+                <button key={key} type="button" onClick={() => toggleFlag(key)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${form.dietaryFlags.includes(key) ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                  {label}
                 </button>
               ))}
             </div>

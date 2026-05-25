@@ -16,7 +16,7 @@ export async function PATCH(
   const payload = getTokenFromRequest(req);
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { cycleId, paymentId } = await params;
+  const { id: apartmentId, cycleId, paymentId } = await params;
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -48,7 +48,6 @@ export async function PATCH(
 
   // Award score points when rent payment is confirmed
   if (parsed.data.status === "CONFIRMED") {
-    const { id: apartmentId } = await params;
     await adjustScore(payment.userId, apartmentId, 5, "Rent payment confirmed").catch(() => {});
   }
 
