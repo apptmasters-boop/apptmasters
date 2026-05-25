@@ -1,18 +1,24 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
-export default function JoinApartmentPage() {
+function JoinForm() {
   const router = useRouter();
-  const [code, setCode] = useState("");
+  const searchParams = useSearchParams();
+  const [code, setCode] = useState(searchParams.get("code")?.toUpperCase() ?? "");
   const [role, setRole] = useState<"MEMBER" | "GUEST">("MEMBER");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [pendingRules, setPendingRules] = useState<{ id: string; content: string }[] | null>(null);
   const [apartmentId, setApartmentId] = useState<string | null>(null);
   const [acknowledging, setAcknowledging] = useState(false);
+
+  useEffect(() => {
+    const c = searchParams.get("code");
+    if (c) setCode(c.toUpperCase());
+  }, [searchParams]);
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
@@ -104,5 +110,13 @@ export default function JoinApartmentPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function JoinApartmentPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>}>
+      <JoinForm />
+    </Suspense>
   );
 }

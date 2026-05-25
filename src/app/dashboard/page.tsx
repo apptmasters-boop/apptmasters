@@ -5,7 +5,7 @@ import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
 
 interface Apartment { id: string; name: string; inviteCode: string; role: string }
-interface User { id: string; name: string; email: string; memberships: { role: string; apartment: Apartment }[] }
+interface User { id: string; name: string; email: string; photo: string | null; memberships: { role: string; apartment: Apartment }[] }
 interface AptStats {
   pendingGrocery: number;
   lowInventory: number;
@@ -75,8 +75,18 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <span className="text-lg font-bold text-indigo-600">ApptMasters</span>
-        <div className="flex items-center gap-4">
-          <Link href="/profile" className="text-sm text-gray-600 hover:text-gray-900 font-medium">{user?.name}</Link>
+        <div className="flex items-center gap-3">
+          <Link href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            {user?.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.photo} alt={user.name} className="w-7 h-7 rounded-full object-cover border border-gray-200" />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+                {user?.name?.[0]?.toUpperCase() ?? "?"}
+              </div>
+            )}
+            <span className="text-sm text-gray-600 font-medium">{user?.name}</span>
+          </Link>
           <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
         </div>
       </header>

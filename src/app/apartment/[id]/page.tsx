@@ -36,6 +36,7 @@ export default function ApartmentPage() {
   const [today, setToday] = useState<{ overdueChores: { id: string; title: string }[]; upcomingEvents: { id: string; title: string; startDate: string }[] } | null>(null);
   const [announcementEdit, setAnnouncementEdit] = useState(false);
   const [announcementText, setAnnouncementText] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
 
   async function load() {
     const [aptRes, meRes] = await Promise.all([
@@ -118,6 +119,13 @@ export default function ApartmentPage() {
     load();
   }
 
+  function copyInviteLink() {
+    const url = `${window.location.origin}/apartment/join?code=${apt!.inviteCode}`;
+    navigator.clipboard.writeText(url);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  }
+
   async function clearAnnouncement() {
     await apiFetch(`/api/apartments/${id}`, { method: "PATCH", body: JSON.stringify({ announcement: null }) });
     load();
@@ -140,6 +148,13 @@ export default function ApartmentPage() {
           {isAdmin && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Admin</span>}
         </div>
         <div className="flex items-center gap-2">
+          <Link href={`/apartment/${apt.id}/search`}
+            className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+            aria-label="Search">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </Link>
           <NotificationBell apartmentId={apt.id} />
           <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
         </div>
@@ -320,9 +335,14 @@ export default function ApartmentPage() {
             <p className="text-xs font-medium text-indigo-400 mb-0.5">Invite code</p>
             <p className="text-2xl font-mono font-bold text-indigo-700 tracking-widest">{apt.inviteCode}</p>
           </div>
-          <button onClick={copyCode} className="text-sm text-indigo-600 font-medium hover:underline">
-            {copied ? "Copied!" : "Copy"}
-          </button>
+          <div className="flex flex-col items-end gap-1.5">
+            <button onClick={copyCode} className="text-sm text-indigo-600 font-medium hover:underline">
+              {copied ? "Copied!" : "Copy code"}
+            </button>
+            <button onClick={copyInviteLink} className="text-xs text-indigo-400 hover:text-indigo-600">
+              {linkCopied ? "Link copied!" : "Copy invite link"}
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}

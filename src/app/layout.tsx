@@ -15,12 +15,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ApptMasters",
   description: "Roommate management made simple",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ApptMasters",
+  },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: "#4f46e5",
 };
 
 export default function RootLayout({
