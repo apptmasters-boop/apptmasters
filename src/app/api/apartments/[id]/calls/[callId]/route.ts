@@ -32,7 +32,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.iceCandidate) {
     const isCallee = call.callerId !== payload.userId;
     const field = isCallee ? "receiverIce" : "callerIce";
-    const existing: unknown[] = JSON.parse((call as Record<string, string>)[field] || "[]");
+    const existing: unknown[] = JSON.parse((call as unknown as Record<string, string>)[field] || "[]");
     existing.push(body.iceCandidate);
     data[field] = JSON.stringify(existing);
   }

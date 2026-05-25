@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
 interface Notification {
@@ -69,7 +70,7 @@ export default function NotificationBell({ apartmentId }: { apartmentId: string 
           <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
             {notifications.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-6">No notifications yet.</p>
-            ) : notifications.map(n => (
+            ) : notifications.slice(0, 8).map(n => (
               <button key={n.id} onClick={() => handleClick(n)}
                 className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${!n.read ? "bg-indigo-50/50" : ""}`}>
                 <div className="flex items-start gap-2">
@@ -83,6 +84,12 @@ export default function NotificationBell({ apartmentId }: { apartmentId: string 
                 </div>
               </button>
             ))}
+          </div>
+          <div className="border-t border-gray-100 px-4 py-2.5 text-center">
+            <Link href={`/apartment/${apartmentId}/notifications`} onClick={() => setOpen(false)}
+              className="text-xs text-indigo-600 font-medium hover:underline">
+              See all notifications →
+            </Link>
           </div>
         </div>
       )}

@@ -51,11 +51,13 @@ model User {
 }
 
 model Apartment {
-  id         String   @id @default(cuid())
-  name       String
-  inviteCode String   @unique
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id               String    @id @default(cuid())
+  name             String
+  inviteCode       String    @unique
+  announcement     String?
+  announcementAt   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   members    ApartmentMember[]
   houseRules HouseRule[]
