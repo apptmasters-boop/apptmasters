@@ -29,6 +29,7 @@ export default function GroceryPage() {
   const [currentUserId, setCurrentUserId] = useState("");
   const [convertModal, setConvertModal] = useState<ConvertModal | null>(null);
   const [converting, setConverting] = useState(false);
+  const [shoppingMode, setShoppingMode] = useState(false);
 
   // Aggregate dietary restrictions across all members
   const allFlags = Array.from(new Set(
@@ -128,7 +129,15 @@ export default function GroceryPage() {
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Grocery List</span>
         </div>
-        <NotificationBell apartmentId={apartmentId} />
+        <div className="flex items-center gap-2">
+          {pending.length > 0 && (
+            <button onClick={() => setShoppingMode(true)}
+              className="text-sm bg-amber-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-amber-600 transition-colors">
+              Shop
+            </button>
+          )}
+          <NotificationBell apartmentId={apartmentId} />
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">
@@ -220,6 +229,53 @@ export default function GroceryPage() {
           </div>
         )}
       </main>
+
+      {/* Shopping mode overlay */}
+      {shoppingMode && (
+        <div className="fixed inset-0 bg-white z-40 flex flex-col">
+          <div className="bg-amber-500 px-5 py-4 flex items-center justify-between">
+            <div>
+              <p className="text-white font-bold text-lg">Shopping mode</p>
+              <p className="text-amber-100 text-xs">{pending.filter(i => !i.purchased).length} items left</p>
+            </div>
+            <button onClick={() => setShoppingMode(false)}
+              className="text-white text-sm font-medium bg-amber-600 px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors">
+              Done
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+            {pending.map(item => (
+              <button key={item.id} onClick={() => togglePurchased(item)}
+                className={`w-full flex items-center gap-4 px-5 py-5 text-left transition-colors ${item.purchased ? "bg-green-50" : "bg-white hover:bg-gray-50"}`}>
+                <div className={`w-8 h-8 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${item.purchased ? "bg-amber-500 border-amber-500" : "border-gray-300"}`}>
+                  {item.purchased && (
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className={`text-lg font-medium ${item.purchased ? "text-gray-400 line-through" : "text-gray-900"}`}>
+                    {item.name}
+                  </p>
+                  <p className="text-sm text-gray-400">Qty: {item.quantity}</p>
+                </div>
+              </button>
+            ))}
+            {purchased.map(item => (
+              <button key={item.id} onClick={() => togglePurchased(item)}
+                className="w-full flex items-center gap-4 px-5 py-5 text-left bg-green-50 transition-colors hover:bg-green-100">
+                <div className="w-8 h-8 rounded-full bg-amber-500 border-2 border-amber-500 flex-shrink-0 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-lg font-medium text-gray-400 line-through">{item.name}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Convert-to-inventory modal */}
       {convertModal && (

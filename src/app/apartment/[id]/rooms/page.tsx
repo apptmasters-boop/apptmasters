@@ -26,6 +26,7 @@ export default function RoomsPage() {
   const router = useRouter();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", type: "CUSTOM" as typeof ROOM_TYPES[number] });
   const [adding, setAdding] = useState(false);
@@ -33,9 +34,13 @@ export default function RoomsPage() {
   const [notesText, setNotesText] = useState("");
 
   async function load() {
-    const res = await apiFetch(`/api/apartments/${apartmentId}/rooms`);
-    if (res.status === 401) { router.replace("/login"); return; }
-    setRooms(await res.json());
+    const [roomsRes, aptRes] = await Promise.all([
+      apiFetch(`/api/apartments/${apartmentId}/rooms`),
+      apiFetch(`/api/apartments/${apartmentId}`),
+    ]);
+    if (roomsRes.status === 401) { router.replace("/login"); return; }
+    setRooms(await roomsRes.json());
+    if (aptRes.ok) { const apt = await aptRes.json(); setIsAdmin(apt.currentUserRole === "ADMIN"); }
     setLoading(false);
   }
 
@@ -70,6 +75,12 @@ export default function RoomsPage() {
     } else {
       setEditingNotes(null);
     }
+    load();
+  }
+
+  async function deleteRoom(roomId: string) {
+    if (!confirm("Delete this room and all its chores?")) return;
+    await apiFetch(`/api/apartments/${apartmentId}/rooms/${roomId}`, { method: "DELETE" });
     load();
   }
 
@@ -150,6 +161,9 @@ export default function RoomsPage() {
                     <option key={val} value={val}>{label}</option>
                   ))}
                 </select>
+                {isAdmin && (
+                  <button onClick={() => deleteRoom(room.id)} className="text-xs text-gray-300 hover:text-red-400 transition-colors px-1">✕</button>
+                )}
               </div>
             </div>
 

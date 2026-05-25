@@ -10,7 +10,8 @@ interface AptStats {
   pendingGrocery: number;
   lowInventory: number;
   activeDisputes: number;
-  pendingRent: boolean;
+  overdueChores: number;
+  myChoresCount: number;
 }
 
 export default function DashboardPage() {
@@ -27,24 +28,33 @@ export default function DashboardPage() {
       setLoading(false);
 
       // Load quick stats for each apartment in parallel
+      const userId = data.id;
       const apts: Apartment[] = data.memberships.map((m: { apartment: Apartment }) => m.apartment);
       await Promise.all(apts.map(async apt => {
         try {
-          const [grocRes, invRes, dispRes] = await Promise.all([
+          const [grocRes, invRes, dispRes, choresRes] = await Promise.all([
             apiFetch(`/api/apartments/${apt.id}/grocery`),
             apiFetch(`/api/apartments/${apt.id}/inventory`),
             apiFetch(`/api/apartments/${apt.id}/disputes`),
+            apiFetch(`/api/apartments/${apt.id}/chores`),
           ]);
           const grocery = grocRes.ok ? await grocRes.json() : [];
           const inventory = invRes.ok ? await invRes.json() : [];
           const disputes = dispRes.ok ? await dispRes.json() : [];
+          const chores = choresRes.ok ? await choresRes.json() : [];
+          const now = new Date();
           setStats(prev => ({
             ...prev,
             [apt.id]: {
               pendingGrocery: grocery.filter((g: { purchased: boolean }) => !g.purchased).length,
               lowInventory: inventory.filter((i: { quantity: number; reorderThreshold: number }) => i.quantity <= i.reorderThreshold).length,
               activeDisputes: disputes.filter((d: { status: string }) => d.status === "OPEN").length,
-              pendingRent: false,
+              overdueChores: chores.filter((c: { status: string; dueDate: string | null }) =>
+                c.status === "PENDING" && c.dueDate && new Date(c.dueDate) < now
+              ).length,
+              myChoresCount: chores.filter((c: { assignedTo: { id: string } | null; status: string }) =>
+                c.assignedTo?.id === userId && c.status !== "DONE"
+              ).length,
             },
           }));
         } catch { /* stats are optional */ }
@@ -97,10 +107,12 @@ export default function DashboardPage() {
               const s = stats[apartment.id];
               const alerts = s
                 ? [
-                    s.pendingGrocery > 0 && `${s.pendingGrocery} grocery`,
-                    s.lowInventory > 0 && `${s.lowInventory} low stock`,
-                    s.activeDisputes > 0 && `${s.activeDisputes} dispute${s.activeDisputes > 1 ? "s" : ""}`,
-                  ].filter(Boolean)
+                    s.overdueChores > 0 && { label: `${s.overdueChores} overdue`, color: "bg-red-50 text-red-700 border-red-200" },
+                    s.myChoresCount > 0 && { label: `${s.myChoresCount} my chore${s.myChoresCount > 1 ? "s" : ""}`, color: "bg-blue-50 text-blue-700 border-blue-200" },
+                    s.pendingGrocery > 0 && { label: `${s.pendingGrocery} grocery`, color: "bg-amber-50 text-amber-700 border-amber-200" },
+                    s.lowInventory > 0 && { label: `${s.lowInventory} low stock`, color: "bg-amber-50 text-amber-700 border-amber-200" },
+                    s.activeDisputes > 0 && { label: `${s.activeDisputes} dispute${s.activeDisputes > 1 ? "s" : ""}`, color: "bg-orange-50 text-orange-700 border-orange-200" },
+                  ].filter(Boolean) as { label: string; color: string }[]
                 : [];
 
               return (
@@ -109,18 +121,21 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-semibold text-gray-900">{apartment.name}</p>
-                      <p className="text-sm text-gray-400 mt-0.5">Code: {apartment.inviteCode} · {role}</p>
+                      <p className="text-sm text-gray-400 mt-0.5">{role}</p>
                     </div>
                     <span className="text-gray-300 text-lg">→</span>
                   </div>
                   {alerts.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-3">
                       {alerts.map(a => (
-                        <span key={String(a)} className="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
-                          {a}
+                        <span key={a.label} className={`text-[11px] border px-2 py-0.5 rounded-full font-medium ${a.color}`}>
+                          {a.label}
                         </span>
                       ))}
                     </div>
+                  )}
+                  {!s && (
+                    <p className="text-xs text-gray-300 mt-2">Loading…</p>
                   )}
                 </Link>
               );

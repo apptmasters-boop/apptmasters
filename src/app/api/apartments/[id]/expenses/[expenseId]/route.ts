@@ -5,6 +5,10 @@ import { prisma } from "@/lib/db";
 
 const updateSchema = z.object({
   status: z.enum(["ACTIVE", "SETTLED", "DISPUTED"]).optional(),
+  title: z.string().min(1).optional(),
+  amount: z.number().positive().optional(),
+  category: z.string().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 export async function PATCH(
@@ -20,12 +24,21 @@ export async function PATCH(
   });
   if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  // Only payer or admin can edit fields beyond status
+  const expense = await prisma.expense.findUnique({ where: { id: expenseId } });
+  if (!expense) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
-  const expense = await prisma.expense.update({ where: { id: expenseId }, data: parsed.data });
-  return NextResponse.json(expense);
+  const isEditing = parsed.data.title !== undefined || parsed.data.amount !== undefined || parsed.data.category !== undefined || parsed.data.notes !== undefined;
+  if (isEditing && expense.paidById !== payload.userId && membership.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const updated = await prisma.expense.update({ where: { id: expenseId }, data: parsed.data });
+  return NextResponse.json(updated);
 }
 
 export async function DELETE(

@@ -39,6 +39,8 @@ export default function FinancePage() {
   const [adding, setAdding] = useState(false);
   const [settling, setSettling] = useState<string | null>(null);
   const [renewing, setRenewing] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", amount: "", category: "", notes: "" });
 
   async function load() {
     const [expRes, balRes, aptRes, meRes] = await Promise.all([
@@ -96,6 +98,20 @@ export default function FinancePage() {
     setRenewing(false);
     if (data.count > 0) { alert(`Created ${data.count} recurring expense${data.count > 1 ? "s" : ""} for this month.`); load(); }
     else { alert("No new recurring expenses to create this month."); }
+  }
+
+  async function saveEdit(expenseId: string) {
+    await apiFetch(`/api/apartments/${apartmentId}/expenses/${expenseId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        title: editForm.title,
+        amount: parseFloat(editForm.amount),
+        category: editForm.category,
+        notes: editForm.notes || null,
+      }),
+    });
+    setEditingExpense(null);
+    load();
   }
 
   async function deleteExpense(expenseId: string) {
@@ -294,55 +310,84 @@ export default function FinancePage() {
             {expenses.map(exp => {
               const mySplit = exp.splits.find(s => s.userId === currentUserId);
               const isPayer = exp.paidBy.id === currentUserId;
+              const isEditing = editingExpense === exp.id;
               return (
                 <div key={exp.id} className={`bg-white border rounded-xl px-5 py-4 ${exp.status === "DISPUTED" ? "border-orange-300" : "border-gray-200"}`}>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-gray-900">{exp.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {exp.category} · Paid by {exp.paidBy.name} · ${exp.amount.toFixed(2)}
-                        {exp.isRecurring && " · Recurring"}
-                      </p>
-                      {exp.notes && <p className="text-xs text-gray-500 mt-1 italic">{exp.notes}</p>}
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <input type="text" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      <div className="grid grid-cols-2 gap-2">
+                        <input type="number" min="0.01" step="0.01" value={editForm.amount} onChange={e => setEditForm(f => ({ ...f, amount: e.target.value }))}
+                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <select value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
+                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <input type="text" placeholder="Notes (optional)" value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      <div className="flex gap-2">
+                        <button onClick={() => saveEdit(exp.id)} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">Save</button>
+                        <button onClick={() => setEditingExpense(null)} className="text-xs text-gray-500 px-3 py-1.5">Cancel</button>
+                      </div>
                     </div>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      exp.status === "SETTLED" ? "bg-green-100 text-green-700" :
-                      exp.status === "DISPUTED" ? "bg-orange-100 text-orange-700" :
-                      "bg-blue-100 text-blue-700"}`}>
-                      {exp.status}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-400 mb-3 space-y-1">
-                    {exp.splits.map(s => (
-                      <div key={s.userId} className="flex justify-between">
-                        <span>{s.user.name}</span>
-                        <span className={s.status === "PAID" ? "text-green-600" : "text-gray-400"}>
-                          ${s.amount.toFixed(2)} {s.status === "PAID" ? "✓" : ""}
+                  ) : (
+                    <>
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="font-medium text-gray-900">{exp.title}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {exp.category} · Paid by {exp.paidBy.name} · ${exp.amount.toFixed(2)}
+                            {exp.isRecurring && " · Recurring"}
+                          </p>
+                          {exp.notes && <p className="text-xs text-gray-500 mt-1 italic">{exp.notes}</p>}
+                        </div>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          exp.status === "SETTLED" ? "bg-green-100 text-green-700" :
+                          exp.status === "DISPUTED" ? "bg-orange-100 text-orange-700" :
+                          "bg-blue-100 text-blue-700"}`}>
+                          {exp.status}
                         </span>
                       </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {mySplit && mySplit.status === "PENDING" && exp.status !== "DISPUTED" && (
-                      <>
-                        {METHODS.map(method => (
-                          <button key={method} onClick={() => settle(exp.id, method)}
-                            disabled={settling === exp.id}
-                            className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-lg font-medium hover:bg-green-100 disabled:opacity-50 transition-colors">
-                            {settling === exp.id ? "…" : `Pay via ${method}`}
-                          </button>
+                      <div className="text-xs text-gray-400 mb-3 space-y-1">
+                        {exp.splits.map(s => (
+                          <div key={s.userId} className="flex justify-between">
+                            <span>{s.user.name}</span>
+                            <span className={s.status === "PAID" ? "text-green-600" : "text-gray-400"}>
+                              ${s.amount.toFixed(2)} {s.status === "PAID" ? "✓" : ""}
+                            </span>
+                          </div>
                         ))}
-                        <button onClick={() => dispute(exp.id)}
-                          className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-3 py-1 rounded-lg font-medium hover:bg-orange-100 transition-colors">
-                          Dispute
-                        </button>
-                      </>
-                    )}
-                    {isPayer && (
-                      <button onClick={() => deleteExpense(exp.id)}
-                        className="text-xs text-red-400 hover:text-red-600 ml-auto px-2">Delete</button>
-                    )}
-                  </div>
+                      </div>
+                      <div className="flex gap-2 flex-wrap items-center">
+                        {mySplit && mySplit.status === "PENDING" && exp.status !== "DISPUTED" && (
+                          <>
+                            {METHODS.map(method => (
+                              <button key={method} onClick={() => settle(exp.id, method)}
+                                disabled={settling === exp.id}
+                                className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-lg font-medium hover:bg-green-100 disabled:opacity-50 transition-colors">
+                                {settling === exp.id ? "…" : `Pay via ${method}`}
+                              </button>
+                            ))}
+                            <button onClick={() => dispute(exp.id)}
+                              className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-3 py-1 rounded-lg font-medium hover:bg-orange-100 transition-colors">
+                              Dispute
+                            </button>
+                          </>
+                        )}
+                        <div className="flex-1" />
+                        {isPayer && exp.status === "ACTIVE" && (
+                          <button onClick={() => { setEditingExpense(exp.id); setEditForm({ title: exp.title, amount: exp.amount.toString(), category: exp.category, notes: exp.notes ?? "" }); }}
+                            className="text-xs text-indigo-400 hover:text-indigo-600 font-medium">Edit</button>
+                        )}
+                        {isPayer && (
+                          <button onClick={() => deleteExpense(exp.id)}
+                            className="text-xs text-red-400 hover:text-red-600 px-1">Delete</button>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               );
             })}
