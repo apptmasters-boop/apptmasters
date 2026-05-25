@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import NotificationBell from "@/components/NotificationBell";
 
 const ROOM_TYPES = ["KITCHEN", "LIVING_ROOM", "BATHROOM", "HALLWAY", "LAUNDRY", "BALCONY", "BEDROOM", "CUSTOM"] as const;
 const STATUS_COLORS: Record<string, string> = {
@@ -15,7 +16,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 interface Chore { id: string; title: string; status: string; dueDate: string | null; assignedTo: { name: string } | null }
-interface Room { id: string; name: string; type: string; cleanlinessStatus: string; maintenanceFlag: boolean; chores: Chore[] }
+interface Room {
+  id: string; name: string; type: string; cleanlinessStatus: string;
+  maintenanceFlag: boolean; maintenanceNotes: string | null; chores: Chore[];
+}
 
 export default function RoomsPage() {
   const { id: apartmentId } = useParams<{ id: string }>();
@@ -25,6 +29,8 @@ export default function RoomsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", type: "CUSTOM" as typeof ROOM_TYPES[number] });
   const [adding, setAdding] = useState(false);
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [notesText, setNotesText] = useState("");
 
   async function load() {
     const res = await apiFetch(`/api/apartments/${apartmentId}/rooms`);
@@ -52,10 +58,26 @@ export default function RoomsPage() {
     load();
   }
 
-  async function toggleMaintenance(roomId: string, current: boolean) {
-    await apiFetch(`/api/apartments/${apartmentId}/rooms/${roomId}`, {
-      method: "PATCH", body: JSON.stringify({ maintenanceFlag: !current }),
+  async function toggleMaintenance(room: Room) {
+    const turning = !room.maintenanceFlag;
+    await apiFetch(`/api/apartments/${apartmentId}/rooms/${room.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ maintenanceFlag: turning, ...(turning ? {} : { maintenanceNotes: null }) }),
     });
+    if (turning) {
+      setEditingNotes(room.id);
+      setNotesText(room.maintenanceNotes ?? "");
+    } else {
+      setEditingNotes(null);
+    }
+    load();
+  }
+
+  async function saveNotes(roomId: string) {
+    await apiFetch(`/api/apartments/${apartmentId}/rooms/${roomId}`, {
+      method: "PATCH", body: JSON.stringify({ maintenanceNotes: notesText }),
+    });
+    setEditingNotes(null);
     load();
   }
 
@@ -69,9 +91,12 @@ export default function RoomsPage() {
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Rooms & Chores</span>
         </div>
-        <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-          + Add room
-        </button>
+        <div className="flex items-center gap-3">
+          <NotificationBell apartmentId={apartmentId} />
+          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            + Add room
+          </button>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">
@@ -115,7 +140,7 @@ export default function RoomsPage() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => toggleMaintenance(room.id, room.maintenanceFlag)}
+                <button onClick={() => toggleMaintenance(room)}
                   className="text-xs text-gray-400 hover:text-orange-500 transition-colors">
                   {room.maintenanceFlag ? "Clear flag" : "Flag"}
                 </button>
@@ -127,17 +152,41 @@ export default function RoomsPage() {
                 </select>
               </div>
             </div>
+
+            {/* Maintenance notes */}
+            {room.maintenanceFlag && (
+              <div className="border-t border-red-50 bg-red-50 px-5 py-3">
+                {editingNotes === room.id ? (
+                  <div className="flex gap-2">
+                    <input type="text" value={notesText} onChange={e => setNotesText(e.target.value)}
+                      placeholder="Describe the issue…"
+                      className="flex-1 border border-red-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-red-400" />
+                    <button onClick={() => saveNotes(room.id)} className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-red-700 transition-colors">Save</button>
+                    <button onClick={() => setEditingNotes(null)} className="text-xs text-gray-500 px-2">✕</button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setEditingNotes(room.id); setNotesText(room.maintenanceNotes ?? ""); }}
+                    className="text-xs text-red-600 hover:underline">
+                    {room.maintenanceNotes ? room.maintenanceNotes : "Add maintenance notes…"}
+                  </button>
+                )}
+              </div>
+            )}
+
             {room.chores.length > 0 && (
               <div className="border-t border-gray-100 px-5 py-3 space-y-2">
                 {room.chores.slice(0, 3).map(chore => (
                   <div key={chore.id} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">{chore.title}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">{chore.title}</span>
+                      {chore.status === "OVERDUE" && <span className="text-xs text-red-500">Overdue</span>}
+                    </div>
                     <span className="text-gray-400">{chore.assignedTo?.name ?? "Unassigned"}</span>
                   </div>
                 ))}
                 {room.chores.length > 3 && (
                   <Link href={`/apartment/${apartmentId}/rooms/${room.id}`} className="text-xs text-indigo-500 hover:underline">
-                    +{room.chores.length - 3} more
+                    +{room.chores.length - 3} more →
                   </Link>
                 )}
               </div>

@@ -150,6 +150,14 @@ export default function ApartmentPage() {
             </div>
             <span className="text-emerald-200">→</span>
           </Link>
+          <Link href={`/apartment/${apt.id}/chores`}
+            className="col-span-2 flex items-center justify-between bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-xl px-4 py-3 hover:bg-indigo-100 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">All Chores</p>
+              <p className="text-xs text-indigo-400 mt-0.5">View & filter all pending chores</p>
+            </div>
+            <span className="text-indigo-400">→</span>
+          </Link>
           <Link href={`/apartment/${apt.id}/grocery`}
             className="flex items-center justify-between bg-amber-500 text-white rounded-xl px-4 py-4 hover:bg-amber-600 transition-colors">
             <div>
@@ -241,7 +249,7 @@ export default function ApartmentPage() {
                 <p className="text-xs text-gray-500 mb-1.5">Overdue chores</p>
                 <div className="space-y-1">
                   {today.overdueChores.map(c => (
-                    <Link key={c.id} href={`/apartment/${apt.id}/rooms`}
+                    <Link key={c.id} href={`/apartment/${apt.id}/chores?status=OVERDUE`}
                       className="flex items-center gap-2 text-sm text-red-600 hover:underline">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
                       {c.title}

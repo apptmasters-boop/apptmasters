@@ -88,6 +88,7 @@ model Room {
   type              String   @default("CUSTOM")
   cleanlinessStatus String   @default("CLEAN")
   maintenanceFlag   Boolean  @default(false)
+  maintenanceNotes  String?
   createdAt         DateTime @default(now())
 
   apartmentId String

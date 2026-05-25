@@ -7,6 +7,7 @@ const updateSchema = z.object({
   name: z.string().min(1).optional(),
   cleanlinessStatus: z.enum(["CLEAN", "NEEDS_ATTENTION", "DIRTY"]).optional(),
   maintenanceFlag: z.boolean().optional(),
+  maintenanceNotes: z.string().optional(),
 });
 
 export async function PATCH(

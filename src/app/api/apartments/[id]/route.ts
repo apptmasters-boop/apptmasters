@@ -32,5 +32,5 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
 
   if (!apartment) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ ...apartment, currentUserRole: membership.role });
+  return NextResponse.json({ ...apartment, currentUserRole: membership.role, currentUserId: payload.userId });
 }

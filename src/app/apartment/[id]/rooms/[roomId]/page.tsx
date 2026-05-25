@@ -3,15 +3,17 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import NotificationBell from "@/components/NotificationBell";
 
 interface Member { id: string; name: string }
+interface SwapRequest { id: string; fromUser: { id: string; name: string }; toUser: { id: string; name: string }; status: string }
 interface Chore {
   id: string; title: string; status: string; assignmentType: string; frequency: string;
-  dueDate: string | null; points: number;
+  dueDate: string | null; points: number; roomId: string | null;
   assignedTo: { id: string; name: string } | null;
   completedBy: { name: string } | null;
   photos: { id: string; url: string; takenAt: string }[];
-  swapRequests: { id: string; fromUser: { name: string }; toUser: { name: string }; status: string }[];
+  swapRequests: SwapRequest[];
 }
 
 const FREQ_LABELS: Record<string, string> = { DAILY: "Daily", WEEKLY: "Weekly", BIWEEKLY: "Every 2 weeks", MONTHLY: "Monthly" };
@@ -22,10 +24,13 @@ export default function RoomDetailPage() {
   const router = useRouter();
   const [chores, setChores] = useState<Chore[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
   const [roomName, setRoomName] = useState("");
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [nudged, setNudged] = useState<string | null>(null);
+  const [swapTarget, setSwapTarget] = useState<string | null>(null); // choreId being swapped
+  const [swapToUserId, setSwapToUserId] = useState("");
   const [form, setForm] = useState({
     title: "", assignmentType: "ROTATING", frequency: "WEEKLY", assignedUserId: "", dueDate: "", points: 2,
   });
@@ -41,9 +46,10 @@ export default function RoomDetailPage() {
     const room = rooms.find((r: { id: string; name: string }) => r.id === roomId);
     if (room) setRoomName(room.name);
     const allChores: Chore[] = await choresRes.json();
-    setChores(allChores.filter(c => c.status !== "DONE"));
+    setChores(allChores.filter(c => c.status !== "DONE" && c.roomId === roomId));
     const apt = await aptRes.json();
     setMembers(apt.members.map((m: { user: Member }) => m.user));
+    setCurrentUserId(apt.currentUserId ?? "");
     setLoading(false);
   }
 
@@ -84,9 +90,26 @@ export default function RoomDetailPage() {
     load();
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
+  async function requestSwap(choreId: string) {
+    if (!swapToUserId) return;
+    await apiFetch(`/api/apartments/${apartmentId}/chores/${choreId}/swap`, {
+      method: "POST",
+      body: JSON.stringify({ toUserId: swapToUserId }),
+    });
+    setSwapTarget(null);
+    setSwapToUserId("");
+    load();
+  }
 
-  const roomChores = chores.filter(c => (c as unknown as { roomId: string }).roomId === roomId || true);
+  async function respondSwap(choreId: string, swapId: string, accept: boolean) {
+    await apiFetch(`/api/apartments/${apartmentId}/chores/${choreId}/swap`, {
+      method: "POST",
+      body: JSON.stringify({ swapId, accept }),
+    });
+    load();
+  }
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,9 +119,12 @@ export default function RoomDetailPage() {
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">{roomName}</span>
         </div>
-        <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-          + Add chore
-        </button>
+        <div className="flex items-center gap-3">
+          <NotificationBell apartmentId={apartmentId} />
+          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            + Add chore
+          </button>
+        </div>
       </header>
 
       {nudged && (
@@ -140,6 +166,11 @@ export default function RoomDetailPage() {
                 <input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Points (1–10)</label>
+                <input type="number" min={1} max={10} value={form.points} onChange={e => setForm(f => ({ ...f, points: Number(e.target.value) }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
             </div>
             <div className="flex gap-2">
               <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Add chore</button>
@@ -148,50 +179,113 @@ export default function RoomDetailPage() {
           </form>
         )}
 
-        {roomChores.length === 0 && !showAdd && (
+        {chores.length === 0 && !showAdd && (
           <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
             <p className="text-gray-400">No active chores in this room.</p>
           </div>
         )}
 
-        {roomChores.map(chore => (
-          <div key={chore.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <p className="font-medium text-gray-900">{chore.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {TYPE_LABELS[chore.assignmentType]} · {FREQ_LABELS[chore.frequency]} · {chore.points} pts
-                  {chore.dueDate && ` · Due ${new Date(chore.dueDate).toLocaleDateString()}`}
-                </p>
+        {chores.map(chore => {
+          const isMyChore = chore.assignedTo?.id === currentUserId;
+          const incomingSwap = chore.swapRequests.find(s => s.toUser.id === currentUserId && s.status === "PENDING");
+          const outgoingSwap = chore.swapRequests.find(s => s.fromUser.id === currentUserId && s.status === "PENDING");
+
+          return (
+            <div key={chore.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <p className="font-medium text-gray-900">{chore.title}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {TYPE_LABELS[chore.assignmentType]} · {FREQ_LABELS[chore.frequency]} · {chore.points} pts
+                    {chore.dueDate && ` · Due ${new Date(chore.dueDate).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${chore.status === "OVERDUE" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"}`}>
+                  {chore.status}
+                </span>
               </div>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${chore.status === "OVERDUE" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"}`}>
-                {chore.status}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 mt-3">
-              <span className="text-xs text-gray-500">{chore.assignedTo?.name ?? "Unassigned"}</span>
-              <div className="flex-1" />
-              <button onClick={() => completeChore(chore.id)}
-                className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-lg font-medium hover:bg-green-100 transition-colors">
-                Mark done
-              </button>
-              {chore.assignedTo && (
-                <button onClick={() => nudge(chore.id)}
-                  className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-3 py-1 rounded-lg font-medium hover:bg-yellow-100 transition-colors">
-                  Nudge
-                </button>
+
+              <p className="text-xs text-gray-500 mb-3">{chore.assignedTo?.name ?? "Unassigned"}</p>
+
+              {/* Incoming swap request */}
+              {incomingSwap && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3 flex items-center justify-between">
+                  <p className="text-xs text-amber-700 font-medium">
+                    {incomingSwap.fromUser.name} wants you to take this chore
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={() => respondSwap(chore.id, incomingSwap.id, true)}
+                      className="text-xs bg-green-600 text-white px-2.5 py-1 rounded-md font-medium hover:bg-green-700 transition-colors">
+                      Accept
+                    </button>
+                    <button onClick={() => respondSwap(chore.id, incomingSwap.id, false)}
+                      className="text-xs bg-white text-red-600 border border-red-200 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 transition-colors">
+                      Decline
+                    </button>
+                  </div>
+                </div>
               )}
-              <button onClick={() => deleteChore(chore.id)} className="text-xs text-red-400 hover:text-red-600 px-2">✕</button>
-            </div>
-            {chore.photos.length > 0 && (
-              <div className="mt-3 flex gap-2">
-                {chore.photos.map(p => (
-                  <img key={p.id} src={p.url} alt="Chore photo" className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
-                ))}
+
+              {/* Outgoing pending swap */}
+              {outgoingSwap && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2 mb-3">
+                  <p className="text-xs text-indigo-700">Swap requested → {outgoingSwap.toUser.name} (pending)</p>
+                </div>
+              )}
+
+              {/* Swap request form */}
+              {swapTarget === chore.id && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 mb-3 space-y-2">
+                  <p className="text-xs font-medium text-gray-700">Request swap with:</p>
+                  <select value={swapToUserId} onChange={e => setSwapToUserId(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Pick a roommate…</option>
+                    {members.filter(m => m.id !== currentUserId).map(m => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </select>
+                  <div className="flex gap-2">
+                    <button onClick={() => requestSwap(chore.id)} disabled={!swapToUserId}
+                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+                      Send request
+                    </button>
+                    <button onClick={() => { setSwapTarget(null); setSwapToUserId(""); }}
+                      className="text-xs text-gray-500 px-3 py-1.5">Cancel</button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <div className="flex-1" />
+                <button onClick={() => completeChore(chore.id)}
+                  className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-lg font-medium hover:bg-green-100 transition-colors">
+                  Mark done
+                </button>
+                {chore.assignedTo && (
+                  <button onClick={() => nudge(chore.id)}
+                    className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-3 py-1 rounded-lg font-medium hover:bg-yellow-100 transition-colors">
+                    Nudge
+                  </button>
+                )}
+                {isMyChore && !outgoingSwap && !incomingSwap && swapTarget !== chore.id && (
+                  <button onClick={() => { setSwapTarget(chore.id); setSwapToUserId(""); }}
+                    className="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1 rounded-lg font-medium hover:bg-purple-100 transition-colors">
+                    Swap
+                  </button>
+                )}
+                <button onClick={() => deleteChore(chore.id)} className="text-xs text-red-400 hover:text-red-600 px-2">✕</button>
               </div>
-            )}
-          </div>
-        ))}
+
+              {chore.photos.length > 0 && (
+                <div className="mt-3 flex gap-2">
+                  {chore.photos.map(p => (
+                    <img key={p.id} src={p.url} alt="Chore photo" className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </main>
     </div>
   );
