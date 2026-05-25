@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { sendPushToUsers } from "@/lib/push";
 
 interface NotifyParams {
   apartmentId: string;
@@ -14,6 +15,8 @@ export async function notify({ apartmentId, userIds, type, title, body, link }: 
   await prisma.notification.createMany({
     data: userIds.map(userId => ({ apartmentId, userId, type, title, body, link: link ?? null })),
   });
+  // Fire-and-forget push — don't block the API response
+  sendPushToUsers(userIds, title, body, link).catch(() => {});
 }
 
 export async function notifyApartment(

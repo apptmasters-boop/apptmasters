@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import PushNotificationButton from "@/components/PushNotificationButton";
 
 interface Notification {
   id: string;
@@ -81,7 +82,11 @@ export default function NotificationsPage() {
         )}
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-2">
+      <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">
+        <div className="flex justify-end">
+          <PushNotificationButton />
+        </div>
+
         {notifications.length === 0 && (
           <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center">
             <p className="text-4xl mb-3">🔔</p>

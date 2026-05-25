@@ -48,6 +48,7 @@ model User {
   disputesRaised           Dispute[]       @relation("DisputeRaiser")
   disputesAgainst          Dispute[]       @relation("DisputeAgainst")
   disputeComments          DisputeComment[]
+  pushSubscriptions        PushSubscription[]
 }
 
 model Apartment {
@@ -601,4 +602,17 @@ model DisputeComment {
   userId    String
   dispute   Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Web Push Subscriptions ────────────────────────────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
