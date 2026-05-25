@@ -44,6 +44,10 @@ model User {
   directMessagesReceived   DirectMessage[] @relation("DMReceiver")
   callsInitiated           CallSession[]   @relation("CallCaller")
   borrowRequests           BorrowRequest[]
+  roommateScore            RoommateScore[]
+  disputesRaised           Dispute[]       @relation("DisputeRaiser")
+  disputesAgainst          Dispute[]       @relation("DisputeAgainst")
+  disputeComments          DisputeComment[]
 }
 
 model Apartment {
@@ -74,6 +78,8 @@ model Apartment {
   callSessions   CallSession[]
   borrowRequests BorrowRequest[]
   purchaseRotations PurchaseRotation[]
+  roommateScores RoommateScore[]
+  disputes       Dispute[]
 }
 
 model Room {
@@ -533,4 +539,62 @@ model PurchaseRotation {
 
   apartmentId String
   apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+}
+
+// ── Phase 8: Scores & Disputes ────────────────────────────────────────────────
+
+model RoommateScore {
+  id         String   @id @default(cuid())
+  score      Int      @default(50)
+  visibility String   @default("TIER") // EXACT | TIER | PRIVATE
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId      String
+  apartmentId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  logs        ScoreLog[]
+
+  @@unique([userId, apartmentId])
+}
+
+model ScoreLog {
+  id        String   @id @default(cuid())
+  delta     Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  scoreId String
+  score   RoommateScore @relation(fields: [scoreId], references: [id], onDelete: Cascade)
+}
+
+model Dispute {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  status      String    @default("OPEN") // OPEN | RESOLVED | DISMISSED
+  resolution  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  apartmentId String
+  raisedById  String
+  againstId   String?
+
+  apartment Apartment        @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  raisedBy  User             @relation("DisputeRaiser", fields: [raisedById], references: [id], onDelete: Cascade)
+  against   User?            @relation("DisputeAgainst", fields: [againstId], references: [id], onDelete: SetNull)
+  comments  DisputeComment[]
+}
+
+model DisputeComment {
+  id        String   @id @default(cuid())
+  body      String
+  createdAt DateTime @default(now())
+
+  disputeId String
+  userId    String
+  dispute   Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

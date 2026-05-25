@@ -186,6 +186,22 @@ export default function ApartmentPage() {
             </div>
             <span className="text-indigo-200">→</span>
           </Link>
+          <Link href={`/apartment/${apt.id}/scores`}
+            className="flex items-center justify-between bg-emerald-600 text-white rounded-xl px-4 py-4 hover:bg-emerald-700 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Roommate Scores</p>
+              <p className="text-xs text-emerald-200 mt-0.5">Points, history & move-out</p>
+            </div>
+            <span className="text-emerald-200">→</span>
+          </Link>
+          <Link href={`/apartment/${apt.id}/disputes`}
+            className="flex items-center justify-between bg-red-500 text-white rounded-xl px-4 py-4 hover:bg-red-600 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Disputes</p>
+              <p className="text-xs text-red-200 mt-0.5">Raise & resolve conflicts</p>
+            </div>
+            <span className="text-red-200">→</span>
+          </Link>
         </div>
 
         {/* Invite code */}

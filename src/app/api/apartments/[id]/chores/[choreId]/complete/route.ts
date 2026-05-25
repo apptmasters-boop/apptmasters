@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { adjustScore } from "@/lib/score";
 
 const schema = z.object({ photoUrl: z.string().optional() });
 
@@ -65,6 +66,9 @@ export async function POST(
       },
     });
   }
+
+  // Award score points for completing a chore
+  await adjustScore(payload.userId, apartmentId, chore.points, `Completed chore: ${chore.title}`).catch(() => {});
 
   return NextResponse.json(chore);
 }

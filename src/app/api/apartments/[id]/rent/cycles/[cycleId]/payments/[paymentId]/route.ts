@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { adjustScore } from "@/lib/score";
 
 const schema = z.object({
   status: z.enum(["PAID", "CONFIRMED"]),
@@ -44,6 +45,12 @@ export async function PATCH(
     },
     include: { user: { select: { id: true, name: true } } },
   });
+
+  // Award score points when rent payment is confirmed
+  if (parsed.data.status === "CONFIRMED") {
+    const { id: apartmentId } = await params;
+    await adjustScore(payment.userId, apartmentId, 5, "Rent payment confirmed").catch(() => {});
+  }
 
   return NextResponse.json(updated);
 }
