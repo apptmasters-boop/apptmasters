@@ -38,6 +38,7 @@ export default function FinancePage() {
   });
   const [adding, setAdding] = useState(false);
   const [settling, setSettling] = useState<string | null>(null);
+  const [renewing, setRenewing] = useState(false);
 
   async function load() {
     const [expRes, balRes, aptRes, meRes] = await Promise.all([
@@ -88,6 +89,15 @@ export default function FinancePage() {
     load();
   }
 
+  async function renewRecurring() {
+    setRenewing(true);
+    const res = await apiFetch(`/api/apartments/${apartmentId}/expenses/renew-recurring`, { method: "POST" });
+    const data = await res.json();
+    setRenewing(false);
+    if (data.count > 0) { alert(`Created ${data.count} recurring expense${data.count > 1 ? "s" : ""} for this month.`); load(); }
+    else { alert("No new recurring expenses to create this month."); }
+  }
+
   async function deleteExpense(expenseId: string) {
     if (!confirm("Delete this expense?")) return;
     await apiFetch(`/api/apartments/${apartmentId}/expenses/${expenseId}`, { method: "DELETE" });
@@ -135,6 +145,12 @@ export default function FinancePage() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell apartmentId={apartmentId} />
+          {expenses.some(e => e.isRecurring) && (
+            <button onClick={renewRecurring} disabled={renewing}
+              className="text-sm border border-amber-300 text-amber-700 px-3 py-1.5 rounded-lg font-medium hover:bg-amber-50 transition-colors disabled:opacity-50">
+              {renewing ? "…" : "Renew recurring"}
+            </button>
+          )}
           {expenses.length > 0 && (
             <button onClick={exportCSV} className="text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
               Export CSV

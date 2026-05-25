@@ -32,6 +32,7 @@ export default function ApartmentPage() {
   const [proposeMode, setProposeMode] = useState(false);
   const [copied, setCopied] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
+  const [today, setToday] = useState<{ overdueChores: { id: string; title: string }[]; upcomingEvents: { id: string; title: string; startDate: string }[] } | null>(null);
 
   async function load() {
     const [aptRes, meRes] = await Promise.all([
@@ -43,6 +44,25 @@ export default function ApartmentPage() {
     setApt(await aptRes.json());
     if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); }
     setLoading(false);
+
+    // Load today's snapshot in the background
+    const now = new Date();
+    const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const [choresRes, eventsRes] = await Promise.all([
+      apiFetch(`/api/apartments/${id}/chores`),
+      apiFetch(`/api/apartments/${id}/calendar`),
+    ]);
+    const chores = choresRes.ok ? await choresRes.json() : [];
+    const events = eventsRes.ok ? await eventsRes.json() : [];
+    setToday({
+      overdueChores: chores.filter((c: { status: string; dueDate: string | null }) =>
+        c.status === "PENDING" && c.dueDate && new Date(c.dueDate) < now
+      ).slice(0, 3),
+      upcomingEvents: events.filter((e: { startDate: string }) => {
+        const d = new Date(e.startDate);
+        return d >= now && d <= in7Days;
+      }).slice(0, 3),
+    });
   }
 
   useEffect(() => { load(); }, [id]);
@@ -202,7 +222,50 @@ export default function ApartmentPage() {
             </div>
             <span className="text-red-200">→</span>
           </Link>
+          <Link href={`/apartment/${apt.id}/stats`}
+            className="col-span-2 flex items-center justify-between bg-gray-800 text-white rounded-xl px-4 py-4 hover:bg-gray-900 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Stats & Analytics</p>
+              <p className="text-xs text-gray-400 mt-0.5">Spending, chores, rent history</p>
+            </div>
+            <span className="text-gray-400">→</span>
+          </Link>
         </div>
+
+        {/* Today at a glance */}
+        {today && (today.overdueChores.length > 0 || today.upcomingEvents.length > 0) && (
+          <div className="bg-white border border-amber-200 rounded-xl px-5 py-4 mb-2 space-y-3">
+            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Today at a glance</p>
+            {today.overdueChores.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1.5">Overdue chores</p>
+                <div className="space-y-1">
+                  {today.overdueChores.map(c => (
+                    <Link key={c.id} href={`/apartment/${apt.id}/rooms`}
+                      className="flex items-center gap-2 text-sm text-red-600 hover:underline">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                      {c.title}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {today.upcomingEvents.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1.5">Coming up (next 7 days)</p>
+                <div className="space-y-1">
+                  {today.upcomingEvents.map(e => (
+                    <Link key={e.id} href={`/apartment/${apt.id}/calendar`}
+                      className="flex items-center gap-2 text-sm text-gray-700 hover:underline">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 flex-shrink-0" />
+                      {e.title} · {new Date(e.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Invite code */}
         <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-4 mb-6 flex items-center justify-between">
