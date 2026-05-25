@@ -12,6 +12,7 @@ const schema = z.object({
   perPersonAmounts: z.record(z.string(), z.number()).optional(),
   isRecurring: z.boolean().default(false),
   frequency: z.enum(["WEEKLY", "MONTHLY"]).optional(),
+  notes: z.string().optional(),
   date: z.string().optional(),
 });
 

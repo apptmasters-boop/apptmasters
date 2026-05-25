@@ -205,6 +205,7 @@ model Expense {
   isRecurring Boolean  @default(false)
   frequency   String?                     // WEEKLY | MONTHLY
   status      String   @default("ACTIVE") // ACTIVE | SETTLED | DISPUTED
+  notes       String?
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
 

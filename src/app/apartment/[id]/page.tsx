@@ -302,7 +302,8 @@ export default function ApartmentPage() {
             {apt.members.map(m => {
               const flags: string[] = JSON.parse(m.user.dietaryFlags || "[]");
               return (
-                <div key={m.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between">
+                <Link key={m.id} href={`/apartment/${apt.id}/members/${m.user.id}`}
+                  className="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between hover:border-indigo-300 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-semibold text-indigo-600">
                       {m.user.name[0].toUpperCase()}
@@ -315,10 +316,13 @@ export default function ApartmentPage() {
                       </p>
                     </div>
                   </div>
-                  {m.status === "VACATION" && (
-                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">On vacation</span>
-                  )}
-                </div>
+                  <div className="flex items-center gap-2">
+                    {m.status === "VACATION" && (
+                      <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">On vacation</span>
+                    )}
+                    <span className="text-gray-300 text-sm">→</span>
+                  </div>
+                </Link>
               );
             })}
           </div>

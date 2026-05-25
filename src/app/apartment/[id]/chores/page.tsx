@@ -33,6 +33,7 @@ export default function AllChoresPage() {
   const [nudged, setNudged] = useState<string | null>(null);
   const [swapTarget, setSwapTarget] = useState<string | null>(null);
   const [swapToUserId, setSwapToUserId] = useState("");
+  const [view, setView] = useState<"active" | "history">("active");
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -127,6 +128,7 @@ export default function AllChoresPage() {
         <div className="bg-indigo-600 text-white text-sm text-center py-2 px-4">{nudged}</div>
       )}
 
+
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-5">
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3">
@@ -144,103 +146,151 @@ export default function AllChoresPage() {
           </div>
         </div>
 
-        {/* Pending swap requests banner */}
-        {pendingSwaps.length > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3">
-            <p className="text-sm font-semibold text-amber-800 mb-2">
-              {pendingSwaps.length} pending swap request{pendingSwaps.length > 1 ? "s" : ""}
-            </p>
-            {pendingSwaps.map(chore => {
-              const swap = chore.swapRequests.find(s => s.toUser.id === currentUserId && s.status === "PENDING")!;
-              return (
-                <div key={chore.id} className="flex items-center justify-between py-1">
-                  <p className="text-sm text-amber-700">
-                    <span className="font-medium">{swap.fromUser.name}</span> → "{chore.title}"
-                  </p>
-                  <div className="flex gap-2">
-                    <button onClick={() => respondSwap(chore.id, swap.id, true)}
-                      className="text-xs bg-green-600 text-white px-2.5 py-1 rounded-md font-medium hover:bg-green-700 transition-colors">
-                      Accept
-                    </button>
-                    <button onClick={() => respondSwap(chore.id, swap.id, false)}
-                      className="text-xs bg-white text-red-600 border border-red-200 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 transition-colors">
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Filters */}
-        <div className="flex gap-2 flex-wrap">
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="all">All statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="OVERDUE">Overdue</option>
-          </select>
-          <select value={filterMember} onChange={e => setFilterMember(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="all">All members</option>
-            <option value={currentUserId}>My chores</option>
-            {members.filter(m => m.id !== currentUserId).map(m => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
+        {/* View toggle */}
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+          {(["active", "history"] as const).map(v => (
+            <button key={v} onClick={() => setView(v)}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${view === v ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+              {v === "active" ? "Active" : "History"}
+            </button>
+          ))}
         </div>
 
-        {filtered.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
-            <p className="text-gray-400">No chores match your filters.</p>
+        {/* History view */}
+        {view === "history" && (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <select value={filterMember} onChange={e => setFilterMember(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">All members</option>
+                <option value={currentUserId}>My chores</option>
+                {members.filter(m => m.id !== currentUserId).map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+            {chores.filter(c => c.status === "DONE" && (filterMember === "all" || (c as unknown as { completedBy: { id: string } | null }).completedBy?.id === filterMember || c.assignedTo?.id === filterMember)).length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
+                <p className="text-gray-400">No completed chores yet.</p>
+              </div>
+            ) : (
+              chores
+                .filter(c => c.status === "DONE" && (filterMember === "all" || (c as unknown as { completedBy: { id: string } | null }).completedBy?.id === filterMember || c.assignedTo?.id === filterMember))
+                .map(chore => (
+                  <div key={chore.id} className="bg-white border border-green-100 rounded-xl px-5 py-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-800">{chore.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {FREQ_LABELS[chore.frequency]} · {chore.points} pts
+                        {chore.room && ` · ${chore.room.name}`}
+                        {chore.completedBy && ` · Done by ${chore.completedBy.name}`}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">Done</span>
+                  </div>
+                ))
+            )}
           </div>
         )}
 
-        {/* Overdue section */}
-        {overdue.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-red-500 uppercase tracking-wide mb-3">Overdue</p>
-            <div className="space-y-3">
-              {overdue.map(chore => (
-                <ChoreCard key={chore.id} chore={chore} currentUserId={currentUserId} members={members}
-                  swapTarget={swapTarget} swapToUserId={swapToUserId}
-                  onComplete={() => completeChore(chore.id)}
-                  onNudge={() => nudge(chore)}
-                  onDelete={() => deleteChore(chore.id)}
-                  onSwapRequest={() => requestSwap(chore.id)}
-                  onSwapRespond={(swapId, accept) => respondSwap(chore.id, swapId, accept)}
-                  onSwapOpen={() => { setSwapTarget(chore.id); setSwapToUserId(""); }}
-                  onSwapClose={() => { setSwapTarget(null); setSwapToUserId(""); }}
-                  onSwapToChange={setSwapToUserId}
-                  apartmentId={apartmentId}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Active view */}
+        {view === "active" && (
+          <>
+            {pendingSwaps.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3">
+                <p className="text-sm font-semibold text-amber-800 mb-2">
+                  {pendingSwaps.length} pending swap request{pendingSwaps.length > 1 ? "s" : ""}
+                </p>
+                {pendingSwaps.map(chore => {
+                  const swap = chore.swapRequests.find(s => s.toUser.id === currentUserId && s.status === "PENDING")!;
+                  return (
+                    <div key={chore.id} className="flex items-center justify-between py-1">
+                      <p className="text-sm text-amber-700">
+                        <span className="font-medium">{swap.fromUser.name}</span> → "{chore.title}"
+                      </p>
+                      <div className="flex gap-2">
+                        <button onClick={() => respondSwap(chore.id, swap.id, true)}
+                          className="text-xs bg-green-600 text-white px-2.5 py-1 rounded-md font-medium hover:bg-green-700 transition-colors">
+                          Accept
+                        </button>
+                        <button onClick={() => respondSwap(chore.id, swap.id, false)}
+                          className="text-xs bg-white text-red-600 border border-red-200 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 transition-colors">
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
-        {/* Pending section */}
-        {pending.length > 0 && (
-          <div>
-            {overdue.length > 0 && <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Pending</p>}
-            <div className="space-y-3">
-              {pending.map(chore => (
-                <ChoreCard key={chore.id} chore={chore} currentUserId={currentUserId} members={members}
-                  swapTarget={swapTarget} swapToUserId={swapToUserId}
-                  onComplete={() => completeChore(chore.id)}
-                  onNudge={() => nudge(chore)}
-                  onDelete={() => deleteChore(chore.id)}
-                  onSwapRequest={() => requestSwap(chore.id)}
-                  onSwapRespond={(swapId, accept) => respondSwap(chore.id, swapId, accept)}
-                  onSwapOpen={() => { setSwapTarget(chore.id); setSwapToUserId(""); }}
-                  onSwapClose={() => { setSwapTarget(null); setSwapToUserId(""); }}
-                  onSwapToChange={setSwapToUserId}
-                  apartmentId={apartmentId}
-                />
-              ))}
+            <div className="flex gap-2 flex-wrap">
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">All statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="OVERDUE">Overdue</option>
+              </select>
+              <select value={filterMember} onChange={e => setFilterMember(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">All members</option>
+                <option value={currentUserId}>My chores</option>
+                {members.filter(m => m.id !== currentUserId).map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
             </div>
-          </div>
+
+            {filtered.length === 0 && (
+              <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
+                <p className="text-gray-400">No chores match your filters.</p>
+              </div>
+            )}
+
+            {overdue.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-red-500 uppercase tracking-wide mb-3">Overdue</p>
+                <div className="space-y-3">
+                  {overdue.map(chore => (
+                    <ChoreCard key={chore.id} chore={chore} currentUserId={currentUserId} members={members}
+                      swapTarget={swapTarget} swapToUserId={swapToUserId}
+                      onComplete={() => completeChore(chore.id)}
+                      onNudge={() => nudge(chore)}
+                      onDelete={() => deleteChore(chore.id)}
+                      onSwapRequest={() => requestSwap(chore.id)}
+                      onSwapRespond={(swapId, accept) => respondSwap(chore.id, swapId, accept)}
+                      onSwapOpen={() => { setSwapTarget(chore.id); setSwapToUserId(""); }}
+                      onSwapClose={() => { setSwapTarget(null); setSwapToUserId(""); }}
+                      onSwapToChange={setSwapToUserId}
+                      apartmentId={apartmentId}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {pending.length > 0 && (
+              <div>
+                {overdue.length > 0 && <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Pending</p>}
+                <div className="space-y-3">
+                  {pending.map(chore => (
+                    <ChoreCard key={chore.id} chore={chore} currentUserId={currentUserId} members={members}
+                      swapTarget={swapTarget} swapToUserId={swapToUserId}
+                      onComplete={() => completeChore(chore.id)}
+                      onNudge={() => nudge(chore)}
+                      onDelete={() => deleteChore(chore.id)}
+                      onSwapRequest={() => requestSwap(chore.id)}
+                      onSwapRespond={(swapId, accept) => respondSwap(chore.id, swapId, accept)}
+                      onSwapOpen={() => { setSwapTarget(chore.id); setSwapToUserId(""); }}
+                      onSwapClose={() => { setSwapTarget(null); setSwapToUserId(""); }}
+                      onSwapToChange={setSwapToUserId}
+                      apartmentId={apartmentId}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

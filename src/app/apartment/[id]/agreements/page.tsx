@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
+import { QRCodeSVG } from "qrcode.react";
 
 const PRESET_KEYS = [
   { key: "LEASE_START", label: "Lease start date", placeholder: "e.g. 2025-09-01" },
@@ -29,6 +30,7 @@ export default function AgreementsPage() {
   const [customLabel, setCustomLabel] = useState("");
   const [customValue, setCustomValue] = useState("");
   const [showCustom, setShowCustom] = useState(false);
+  const [showWifiQR, setShowWifiQR] = useState(false);
 
   async function load() {
     const [agrRes, aptRes] = await Promise.all([
@@ -92,6 +94,29 @@ export default function AgreementsPage() {
         <p className="text-sm text-gray-500 mb-4">
           Key info everyone in the apartment should know.{!isAdmin && " Contact an admin to update these."}
         </p>
+
+        {/* WiFi QR code */}
+        {agreementMap["WIFI_NAME"] && agreementMap["WIFI_PASSWORD"] && (
+          <div className="bg-white border border-gray-200 rounded-xl px-5 py-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">WiFi Quick Connect</p>
+              <button onClick={() => setShowWifiQR(s => !s)}
+                className="text-xs text-indigo-500 hover:underline font-medium">
+                {showWifiQR ? "Hide QR" : "Show QR code"}
+              </button>
+            </div>
+            {showWifiQR && (
+              <div className="mt-4 flex flex-col items-center gap-3">
+                <QRCodeSVG
+                  value={`WIFI:T:WPA;S:${agreementMap["WIFI_NAME"].value};P:${agreementMap["WIFI_PASSWORD"].value};;`}
+                  size={180}
+                  includeMargin
+                />
+                <p className="text-xs text-gray-400">Scan to join <span className="font-semibold text-gray-700">{agreementMap["WIFI_NAME"].value}</span></p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Preset agreements */}
         {PRESET_KEYS.map(({ key, label, placeholder }) => {

@@ -16,7 +16,7 @@ const PAYMENT_LINKS: Record<string, (name: string, amount: number) => string> = 
 interface Split { userId: string; amount: number; status: string; user: { id: string; name: string } }
 interface Expense {
   id: string; title: string; amount: number; category: string; splitMethod: string;
-  status: string; date: string; isRecurring: boolean;
+  status: string; date: string; isRecurring: boolean; notes: string | null;
   paidBy: { id: string; name: string };
   splits: Split[];
 }
@@ -34,7 +34,7 @@ export default function FinancePage() {
   const [tab, setTab] = useState<"expenses" | "balance">("balance");
   const [form, setForm] = useState({
     title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL",
-    isRecurring: false, frequency: "MONTHLY", date: "",
+    isRecurring: false, frequency: "MONTHLY", date: "", notes: "",
   });
   const [adding, setAdding] = useState(false);
   const [settling, setSettling] = useState<string | null>(null);
@@ -67,7 +67,7 @@ export default function FinancePage() {
       method: "POST",
       body: JSON.stringify({ ...form, amount: parseFloat(form.amount) }),
     });
-    setForm({ title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL", isRecurring: false, frequency: "MONTHLY", date: "" });
+    setForm({ title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL", isRecurring: false, frequency: "MONTHLY", date: "", notes: "" });
     setShowAdd(false);
     setAdding(false);
     load();
@@ -220,6 +220,9 @@ export default function FinancePage() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
             </div>
+            <textarea placeholder="Notes (optional)" value={form.notes}
+              onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
             <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
               <input type="checkbox" checked={form.isRecurring} onChange={e => setForm(f => ({ ...f, isRecurring: e.target.checked }))} />
               Recurring expense
@@ -300,6 +303,7 @@ export default function FinancePage() {
                         {exp.category} · Paid by {exp.paidBy.name} · ${exp.amount.toFixed(2)}
                         {exp.isRecurring && " · Recurring"}
                       </p>
+                      {exp.notes && <p className="text-xs text-gray-500 mt-1 italic">{exp.notes}</p>}
                     </div>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       exp.status === "SETTLED" ? "bg-green-100 text-green-700" :
