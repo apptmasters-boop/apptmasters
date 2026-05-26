@@ -4,17 +4,27 @@ import { apiFetch } from "@/lib/api";
 
 const STUN_SERVERS = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
 
+type CallSessionData = {
+  id: string;
+  type: "VOICE" | "VIDEO";
+  status: string;
+  offer: string;
+  callerId: string;
+  receiverId: string | null;
+};
+
 interface Props {
   apartmentId: string;
-  callerId: string;
+  currentUserId: string;
   receiverId: string | null;
   callType: "VOICE" | "VIDEO";
   onClose: () => void;
+  incomingCall?: CallSessionData;
 }
 
-export default function CallOverlay({ apartmentId, callerId, receiverId, callType, onClose }: Props) {
+export default function CallOverlay({ apartmentId, currentUserId, receiverId, callType, incomingCall, onClose }: Props) {
   const [status, setStatus] = useState<"connecting" | "ringing" | "active" | "ended">("connecting");
-  const [callId, setCallId] = useState<string | null>(null);
+  const [callId, setCallId] = useState<string | null>(incomingCall?.id ?? null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(callType === "VIDEO");
   const [duration, setDuration] = useState(0);
@@ -35,7 +45,8 @@ export default function CallOverlay({ apartmentId, callerId, receiverId, callTyp
   async function hangUp() {
     if (callId) {
       await apiFetch(`/api/apartments/${apartmentId}/calls/${callId}`, {
-        method: "PATCH", body: JSON.stringify({ status: "ENDED" }),
+        method: "PATCH",
+        body: JSON.stringify({ status: "ENDED" }),
       });
     }
     cleanup();
@@ -43,29 +54,91 @@ export default function CallOverlay({ apartmentId, callerId, receiverId, callTyp
     setTimeout(onClose, 1000);
   }
 
-  async function initCall() {
-    try {
-      const constraints = { audio: true, video: callType === "VIDEO" };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      localStreamRef.current = stream;
-      if (localRef.current) { localRef.current.srcObject = stream; }
+  async function declineCall() {
+    if (callId) {
+      await apiFetch(`/api/apartments/${apartmentId}/calls/${callId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "DECLINED" }),
+      });
+    }
+    cleanup();
+    setStatus("ended");
+    setTimeout(onClose, 500);
+  }
 
-      const pc = new RTCPeerConnection(STUN_SERVERS);
-      pcRef.current = pc;
+  async function startMedia() {
+    const constraints = { audio: true, video: (incomingCall ? incomingCall.type : callType) === "VIDEO" };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    localStreamRef.current = stream;
+    if (localRef.current) localRef.current.srcObject = stream;
+    return stream;
+  }
+
+  async function createPeerConnection() {
+    const pc = new RTCPeerConnection(STUN_SERVERS);
+    pcRef.current = pc;
+    pc.ontrack = e => {
+      if (remoteRef.current) remoteRef.current.srcObject = e.streams[0];
+    };
+    pc.onicecandidate = async e => {
+      if (e.candidate && callId) {
+        await apiFetch(`/api/apartments/${apartmentId}/calls/${callId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ iceCandidate: e.candidate }),
+        });
+      }
+    };
+    return pc;
+  }
+
+  async function answerIncoming() {
+    if (!incomingCall) return;
+    try {
+      setStatus("connecting");
+      setCallId(incomingCall.id);
+      const stream = await startMedia();
+      const pc = await createPeerConnection();
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
-      pc.ontrack = e => {
-        if (remoteRef.current) remoteRef.current.srcObject = e.streams[0];
-      };
+      await pc.setRemoteDescription(JSON.parse(incomingCall.offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
 
-      pc.onicecandidate = async e => {
-        if (e.candidate && callId) {
-          await apiFetch(`/api/apartments/${apartmentId}/calls/${callId}`, {
-            method: "PATCH",
-            body: JSON.stringify({ iceCandidate: e.candidate }),
-          });
+      await apiFetch(`/api/apartments/${apartmentId}/calls/${incomingCall.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "ACTIVE", answer: JSON.stringify(answer) }),
+      });
+
+      pollRef.current = setInterval(async () => {
+        if (!incomingCall.id) return;
+        const r = await apiFetch(`/api/apartments/${apartmentId}/calls/${incomingCall.id}`);
+        if (!r.ok) return;
+        const updated = await r.json();
+        if (updated.status === "DECLINED" || updated.status === "ENDED") {
+          clearInterval(pollRef.current!);
+          setStatus("ended");
+          setTimeout(onClose, 1500);
+          return;
         }
-      };
+        const ice: RTCIceCandidateInit[] = JSON.parse(updated.callerIce || "[]");
+        for (const c of ice) {
+          try { await pc.addIceCandidate(c); } catch { /* ignore */ }
+        }
+      }, 1500);
+
+      setStatus("active");
+      timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
+    } catch {
+      setStatus("ended");
+      setTimeout(onClose, 1000);
+    }
+  }
+
+  async function initOutgoing() {
+    try {
+      const stream = await startMedia();
+      const pc = await createPeerConnection();
+      stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
@@ -78,7 +151,6 @@ export default function CallOverlay({ apartmentId, callerId, receiverId, callTyp
       setCallId(call.id);
       setStatus("ringing");
 
-      // Poll for answer
       pollRef.current = setInterval(async () => {
         const r = await apiFetch(`/api/apartments/${apartmentId}/calls/${call.id}`);
         if (!r.ok) return;
@@ -107,7 +179,11 @@ export default function CallOverlay({ apartmentId, callerId, receiverId, callTyp
   }
 
   useEffect(() => {
-    initCall();
+    if (incomingCall) {
+      setStatus("ringing");
+      return cleanup;
+    }
+    initOutgoing();
     return cleanup;
   }, []);
 
@@ -126,37 +202,36 @@ export default function CallOverlay({ apartmentId, callerId, receiverId, callTyp
     return `${m}:${String(s % 60).padStart(2, "0")}`;
   }
 
+  const displayType = incomingCall ? incomingCall.type : callType;
+  const isIncoming = Boolean(incomingCall);
+
   return (
     <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-between py-12">
-      {/* Remote video */}
-      {callType === "VIDEO" && (
+      {displayType === "VIDEO" && (
         <video ref={remoteRef} autoPlay playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-80" />
       )}
 
-      {/* Status */}
       <div className="relative z-10 text-center">
         <div className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-3xl font-bold text-white mx-auto mb-4">
-          {receiverId ? "?" : "G"}
+          {incomingCall ? "?" : receiverId ? "?" : "G"}
         </div>
         <p className="text-white font-semibold text-lg">
-          {receiverId ? "Direct call" : "Group call"}
+          {incomingCall ? (incomingCall.receiverId ? "Incoming call" : "Incoming group call") : (receiverId ? "Direct call" : "Group call")}
         </p>
         <p className="text-gray-300 text-sm mt-1">
           {status === "connecting" && "Connecting…"}
-          {status === "ringing" && "Ringing…"}
+          {status === "ringing" && (incomingCall ? "Incoming…" : "Ringing…")}
           {status === "active" && fmt(duration)}
           {status === "ended" && "Call ended"}
         </p>
       </div>
 
-      {/* Local video pip */}
-      {callType === "VIDEO" && (
+      {displayType === "VIDEO" && (
         <video ref={localRef} autoPlay playsInline muted
           className="absolute bottom-32 right-4 w-28 h-36 rounded-xl object-cover border-2 border-white z-10" />
       )}
 
-      {/* Controls */}
       <div className="relative z-10 flex items-center gap-4">
         <button onClick={toggleMic}
           className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${micOn ? "bg-gray-700 text-white" : "bg-white text-gray-900"}`}>
@@ -168,7 +243,7 @@ export default function CallOverlay({ apartmentId, callerId, receiverId, callTyp
           </svg>
         </button>
 
-        {callType === "VIDEO" && (
+        {displayType === "VIDEO" && (
           <button onClick={toggleCam}
             className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${camOn ? "bg-gray-700 text-white" : "bg-white text-gray-900"}`}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,13 +253,26 @@ export default function CallOverlay({ apartmentId, callerId, receiverId, callTyp
           </button>
         )}
 
-        <button onClick={hangUp}
-          className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-colors">
-          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" />
-          </svg>
-        </button>
+        {isIncoming ? (
+          <>
+            <button onClick={declineCall}
+              className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-colors">
+              <span className="text-white text-sm font-semibold">Decline</span>
+            </button>
+            <button onClick={answerIncoming}
+              className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center hover:bg-emerald-600 transition-colors">
+              <span className="text-white text-sm font-semibold">Answer</span>
+            </button>
+          </>
+        ) : (
+          <button onClick={hangUp}
+            className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-colors">
+            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );

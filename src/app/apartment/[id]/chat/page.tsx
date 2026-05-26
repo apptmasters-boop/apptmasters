@@ -13,6 +13,7 @@ interface ChatMessage {
   replyTo: { id: string; content: string; sender: Sender } | null;
 }
 interface Member { id: string; name: string; role: string }
+interface IncomingCall { id: string; type: "VOICE" | "VIDEO"; status: string; offer: string; callerId: string; receiverId: string | null }
 
 export default function ChatPage() {
   const { id: apartmentId } = useParams<{ id: string }>();
@@ -20,6 +21,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [currentUser, setCurrentUser] = useState<Sender | null>(null);
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [isGuest, setIsGuest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState("");
@@ -29,6 +32,7 @@ export default function ChatPage() {
   const [callTarget, setCallTarget] = useState<{ type: "VOICE" | "VIDEO"; receiverId: string | null } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const callPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function loadMessages() {
     const res = await apiFetch(`/api/apartments/${apartmentId}/chat`);
@@ -48,7 +52,11 @@ export default function ChatPage() {
     setMembers(apt.members.map((m: { role: string; user: { id: string; name: string } }) => ({ ...m.user, role: m.role })));
     const role = apt.currentUserRole;
     setIsGuest(role === "GUEST");
-    if (meRes.ok) setCurrentUser(await meRes.json());
+    if (meRes.ok) {
+      const me = await meRes.json();
+      setCurrentUser(me);
+      setCurrentUserId(me.id);
+    }
     await loadMessages();
     setLoading(false);
   }
@@ -58,6 +66,20 @@ export default function ChatPage() {
     intervalRef.current = setInterval(loadMessages, 3000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [apartmentId]);
+
+  useEffect(() => {
+    if (!currentUserId || callTarget || incomingCall) return;
+    callPollRef.current = setInterval(async () => {
+      const res = await apiFetch(`/api/apartments/${apartmentId}/calls`);
+      if (!res.ok) return;
+      const call = await res.json();
+      if (!call || call.status !== "RINGING") return;
+      if (call.callerId === currentUserId) return;
+      if (call.receiverId && call.receiverId !== currentUserId) return;
+      setIncomingCall(call);
+    }, 2500);
+    return () => { if (callPollRef.current) clearInterval(callPollRef.current); };
+  }, [apartmentId, currentUserId, callTarget, incomingCall]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -234,13 +256,17 @@ export default function ChatPage() {
       )}
 
       {/* Call overlay */}
-      {callTarget && (
+      {(incomingCall || callTarget) && (
         <CallOverlay
           apartmentId={apartmentId}
-          callerId={currentUser!.id}
-          receiverId={callTarget.receiverId}
-          callType={callTarget.type}
-          onClose={() => setCallTarget(null)}
+          currentUserId={currentUserId}
+          receiverId={incomingCall?.receiverId ?? callTarget?.receiverId ?? null}
+          callType={incomingCall?.type ?? callTarget?.type ?? "VOICE"}
+          incomingCall={incomingCall ?? undefined}
+          onClose={() => {
+            setIncomingCall(null);
+            setCallTarget(null);
+          }}
         />
       )}
     </div>

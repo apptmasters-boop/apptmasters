@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 
 const requestSchema = z.object({ toUserId: z.string() });
 const respondSchema = z.object({ swapId: z.string(), accept: z.boolean() });
@@ -29,29 +30,25 @@ export async function POST(
       await prisma.chore.update({ where: { id: choreId }, data: { assignedUserId: swap.fromUserId } });
       await prisma.choreSwapRequest.update({ where: { id: swap.id }, data: { status: "ACCEPTED" } });
       // Notify the requester their swap was accepted
-      await prisma.notification.create({
-        data: {
-          userId: swap.fromUserId,
-          apartmentId,
-          type: "NUDGE",
-          title: "Swap accepted",
-          body: `${swap.toUser.name} accepted your swap request for "${swap.chore.title}"`,
-          link: `/apartment/${apartmentId}/rooms`,
-        },
+      await notify({
+        apartmentId,
+        userIds: [swap.fromUserId],
+        type: "NUDGE",
+        title: "Swap accepted",
+        body: `${swap.toUser.name} accepted your swap request for "${swap.chore.title}"`,
+        link: `/apartment/${apartmentId}/rooms`,
       });
       return NextResponse.json({ accepted: true });
     } else {
       await prisma.choreSwapRequest.update({ where: { id: swap.id }, data: { status: "REJECTED" } });
       // Notify the requester their swap was declined
-      await prisma.notification.create({
-        data: {
-          userId: swap.fromUserId,
-          apartmentId,
-          type: "NUDGE",
-          title: "Swap declined",
-          body: `${swap.toUser.name} declined your swap request for "${swap.chore.title}"`,
-          link: `/apartment/${apartmentId}/rooms`,
-        },
+      await notify({
+        apartmentId,
+        userIds: [swap.fromUserId],
+        type: "NUDGE",
+        title: "Swap declined",
+        body: `${swap.toUser.name} declined your swap request for "${swap.chore.title}"`,
+        link: `/apartment/${apartmentId}/rooms`,
       });
       return NextResponse.json({ accepted: false });
     }
@@ -76,15 +73,13 @@ export async function POST(
 
   // Notify the target member
   if (chore && fromUser) {
-    await prisma.notification.create({
-      data: {
-        userId: request.data.toUserId,
-        apartmentId,
-        type: "NUDGE",
-        title: "Chore swap request",
-        body: `${fromUser.name} wants you to take "${chore.title}"`,
-        link: `/apartment/${apartmentId}/rooms`,
-      },
+    await notify({
+      apartmentId,
+      userIds: [request.data.toUserId],
+      type: "NUDGE",
+      title: "Chore swap request",
+      body: `${fromUser.name} wants you to take "${chore.title}"`,
+      link: `/apartment/${apartmentId}/rooms`,
     });
   }
 

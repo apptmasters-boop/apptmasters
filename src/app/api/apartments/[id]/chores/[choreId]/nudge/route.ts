@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 
 export async function POST(
   req: NextRequest,
@@ -15,16 +16,32 @@ export async function POST(
   });
   if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
 
-  const chore = await prisma.chore.findUnique({
-    where: { id: choreId },
-    include: { assignedTo: { select: { id: true, name: true, email: true } } },
-  });
+  const [chore, fromUser] = await Promise.all([
+    prisma.chore.findUnique({
+      where: { id: choreId },
+      include: { assignedTo: { select: { id: true, name: true } } },
+    }),
+    prisma.user.findUnique({ where: { id: payload.userId }, select: { name: true } }),
+  ]);
+
   if (!chore) return NextResponse.json({ error: "Chore not found" }, { status: 404 });
 
-  // In-app nudge — logged as a notification (email/push to be wired in Phase 4)
+  const assigneeName = chore.assignedTo?.name ?? "Unassigned";
+
+  if (chore.assignedTo) {
+    await notify({
+      apartmentId,
+      userIds: [chore.assignedTo.id],
+      type: "NUDGE",
+      title: `${fromUser?.name ?? "Someone"} nudged you`,
+      body: `${fromUser?.name ?? "Someone"} nudged you about "${chore.title}"`,
+      link: `/apartment/${apartmentId}/rooms`,
+    });
+  }
+
   return NextResponse.json({
     nudged: true,
-    assignee: chore.assignedTo?.name ?? "Unassigned",
+    assignee: assigneeName,
     chore: chore.title,
   });
 }

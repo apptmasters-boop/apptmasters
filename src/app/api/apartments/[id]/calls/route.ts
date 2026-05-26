@@ -8,12 +8,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const payload = getTokenFromRequest(req);
   if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Return any active/ringing call for this user in this apartment
+  // Return any active/ringing call for this user in this apartment,
+  // including group calls where receiverId is null.
   const call = await prisma.callSession.findFirst({
     where: {
       apartmentId,
       status: { in: ["RINGING", "ACTIVE"] },
-      OR: [{ callerId: payload.userId }, { receiverId: payload.userId }],
+      OR: [
+        { callerId: payload.userId },
+        { receiverId: payload.userId },
+        { receiverId: null },
+      ],
     },
     orderBy: { startedAt: "desc" },
   });

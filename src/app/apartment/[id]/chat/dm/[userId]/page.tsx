@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/api";
 import CallOverlay from "@/components/CallOverlay";
 
 interface DirectMessage { id: string; content: string; read: boolean; createdAt: string; sender: { id: string; name: string } }
+interface IncomingCall { id: string; type: "VOICE" | "VIDEO"; status: string; offer: string; callerId: string; receiverId: string | null }
 
 export default function DMPage() {
   const { id: apartmentId, userId: otherUserId } = useParams<{ id: string; userId: string }>();
@@ -13,12 +14,14 @@ export default function DMPage() {
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [otherName, setOtherName] = useState("");
   const [currentUserId, setCurrentUserId] = useState("");
+  const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const [callTarget, setCallTarget] = useState<"VOICE" | "VIDEO" | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const callPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function loadMessages() {
     const res = await apiFetch(`/api/apartments/${apartmentId}/dm/${otherUserId}`);
@@ -44,6 +47,20 @@ export default function DMPage() {
     intervalRef.current = setInterval(loadMessages, 3000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [apartmentId, otherUserId]);
+
+  useEffect(() => {
+    if (!currentUserId || callTarget || incomingCall) return;
+    callPollRef.current = setInterval(async () => {
+      const res = await apiFetch(`/api/apartments/${apartmentId}/calls`);
+      if (!res.ok) return;
+      const call = await res.json();
+      if (!call || call.status !== "RINGING") return;
+      if (call.callerId === currentUserId) return;
+      if (call.receiverId && call.receiverId !== currentUserId) return;
+      setIncomingCall(call);
+    }, 2500);
+    return () => { if (callPollRef.current) clearInterval(callPollRef.current); };
+  }, [apartmentId, currentUserId, callTarget, incomingCall]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
@@ -125,13 +142,17 @@ export default function DMPage() {
         </button>
       </form>
 
-      {callTarget && (
+      {(incomingCall || callTarget) && (
         <CallOverlay
           apartmentId={apartmentId}
-          callerId={currentUserId}
-          receiverId={otherUserId}
-          callType={callTarget}
-          onClose={() => setCallTarget(null)}
+          currentUserId={currentUserId}
+          receiverId={incomingCall?.receiverId ?? (callTarget ? otherUserId : null)}
+          callType={incomingCall?.type ?? callTarget ?? "VOICE"}
+          incomingCall={incomingCall ?? undefined}
+          onClose={() => {
+            setIncomingCall(null);
+            setCallTarget(null);
+          }}
         />
       )}
     </div>

@@ -1,16 +1,86 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getToken } from "@/lib/api";
 
 export default function Home() {
   const router = useRouter();
+  const [redirecting, setRedirecting] = useState(true);
+
   useEffect(() => {
-    if (getToken()) {
+    const token = getToken();
+    if (token) {
       router.replace("/dashboard");
     } else {
-      router.replace("/login");
+      setRedirecting(false);
     }
   }, [router]);
-  return null;
+
+  if (redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        <p className="text-sm uppercase tracking-[0.35em] text-slate-400">Checking sign-in status…</p>
+      </div>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-white">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-72 bg-indigo-600/20 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl px-6 py-20 sm:px-10 lg:px-12">
+          <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-sm text-slate-200 shadow-sm shadow-indigo-500/10">
+                <span className="font-semibold text-white">Roommate management</span>
+                <span className="text-slate-400">made simple</span>
+              </div>
+              <div className="space-y-6">
+                <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+                  Keep your household in sync, without the chaos.
+                </h1>
+                <p className="max-w-2xl text-lg leading-8 text-slate-300">
+                  ApptMasters helps roommates share chores, track bills, manage inventory, and stay up to date with notifications — all from one modern home hub.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link href="/register" className="inline-flex items-center justify-center rounded-2xl bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400">
+                  Create account
+                </Link>
+                <Link href="/login" className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/10">
+                  Sign in
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/30 ring-1 ring-white/10">
+              <div className="space-y-5">
+                <div className="rounded-3xl bg-slate-950/80 p-5 shadow-inner shadow-white/5">
+                  <p className="text-sm uppercase tracking-[0.35em] text-slate-500">Dashboard preview</p>
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    {[
+                      { title: "Chores", value: "keep everyone on schedule" },
+                      { title: "Groceries", value: "track items and quantities" },
+                      { title: "Rent", value: "share payments evenly" },
+                      { title: "Messages", value: "chat with your roommates" },
+                    ].map(item => (
+                      <div key={item.title} className="rounded-3xl border border-white/10 bg-slate-900/90 p-4">
+                        <p className="text-sm font-semibold text-white">{item.title}</p>
+                        <p className="mt-2 text-sm text-slate-400">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-slate-950/80 p-5 text-sm text-slate-400">
+                  <p className="font-semibold text-slate-100">Designed for roommates</p>
+                  <p className="mt-2">Instantly create or join an apartment, assign chores, manage shared expenses, and stay in sync with push notifications.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }

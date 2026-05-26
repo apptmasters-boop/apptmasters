@@ -1,13 +1,19 @@
 import webpush from "web-push";
 import { prisma } from "@/lib/db";
 
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!,
-);
+const vapidSubject = process.env.VAPID_SUBJECT;
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+const isPushConfigured = Boolean(vapidSubject && vapidPublicKey && vapidPrivateKey);
+
+if (isPushConfigured) {
+  webpush.setVapidDetails(vapidSubject!, vapidPublicKey!, vapidPrivateKey!);
+} else {
+  console.warn("Web push is not configured. Set VAPID_SUBJECT, VAPID_PUBLIC_KEY, and VAPID_PRIVATE_KEY to enable push notifications.");
+}
 
 export async function sendPushToUser(userId: string, title: string, body: string, link?: string) {
+  if (!isPushConfigured) return;
   const subs = await prisma.pushSubscription.findMany({ where: { userId } });
   const payload = JSON.stringify({ title, body, link: link ?? "/" });
 
