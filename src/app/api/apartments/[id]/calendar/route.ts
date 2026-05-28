@@ -54,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   await notifyApartment(
     apartmentId,
     payload.userId,
-    "EXPENSE_ADDED",
+    "CALENDAR_EVENT",
     "New calendar event",
     `${user?.name} added "${body.title}" on ${new Date(body.startDate).toLocaleDateString()}`,
     `/apartment/${apartmentId}/calendar`,

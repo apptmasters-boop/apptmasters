@@ -41,7 +41,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   await notifyApartment(
-    apartmentId, payload.userId, "EXPENSE_ADDED",
+    apartmentId, payload.userId, "DISPUTE_FILED",
     "New dispute raised",
     `${dispute.raisedBy.name} raised a dispute: "${title}"`,
     `/apartment/${apartmentId}/disputes`,

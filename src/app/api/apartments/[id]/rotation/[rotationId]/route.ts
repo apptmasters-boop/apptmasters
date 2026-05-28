@@ -12,6 +12,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!rotation) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const order: string[] = JSON.parse(rotation.memberOrder);
+  const currentUserId = order[rotation.currentIndex % order.length];
+  if (payload.userId !== currentUserId) {
+    return NextResponse.json({ error: "Not your turn" }, { status: 403 });
+  }
+
   const nextIndex = (rotation.currentIndex + 1) % order.length;
   const nextUserId = order[nextIndex];
 
@@ -24,9 +29,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const next = await prisma.user.findUnique({ where: { id: nextUserId }, select: { name: true } });
 
   await notifyApartment(
-    apartmentId, null, "EXPENSE_ADDED",
+    apartmentId,
+    null,
+    "ROTATION_PURCHASED",
     `${rotation.itemName} purchased`,
-    `${buyer?.name} bought ${rotation.itemName}. Next up: ${next?.name}`,
+    `${buyer?.name ?? "Someone"} bought ${rotation.itemName}. Next up: ${next?.name ?? "someone"}.`,
+    `/apartment/${apartmentId}/rotation`,
   );
 
   return NextResponse.json(updated);

@@ -216,9 +216,9 @@ export default function RotationPage() {
                 </div>
 
                 {/* Mark as bought */}
-                <button onClick={() => advance(rot.id)} disabled={advancing === rot.id}
-                  className={`mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${isMyTurn ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                  {advancing === rot.id ? "Marking…" : isMyTurn ? "✓ I bought it — advance turn" : "Mark as bought (advance turn)"}
+                <button onClick={() => advance(rot.id)} disabled={advancing === rot.id || !isMyTurn}
+                  className={`mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${isMyTurn ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-gray-100 text-gray-600"}`}>
+                  {advancing === rot.id ? "Marking…" : isMyTurn ? "✓ I bought it — advance turn" : "Waiting for current buyer"}
                 </button>
               </div>
             </div>

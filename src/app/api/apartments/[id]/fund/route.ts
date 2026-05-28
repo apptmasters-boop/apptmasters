@@ -60,7 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   await notifyApartment(
     apartmentId,
     payload.userId,
-    type === "CONTRIBUTION" ? "EXPENSE_ADDED" : "FUND_LOW",
+    type === "CONTRIBUTION" ? "FUND_CONTRIBUTION" : "FUND_WITHDRAWAL",
     type === "CONTRIBUTION" ? "Apartment fund contribution" : "Apartment fund withdrawal",
     `${user?.name} ${type === "CONTRIBUTION" ? "added" : "withdrew"} $${amount.toFixed(2)} — ${description}. New balance: $${updatedFund.balance.toFixed(2)}`,
     `/apartment/${apartmentId}/fund`,

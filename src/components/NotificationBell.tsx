@@ -8,6 +8,24 @@ interface Notification {
   id: string; type: string; title: string; body: string; read: boolean; link: string | null; createdAt: string;
 }
 
+const TYPE_ICON: Record<string, string> = {
+  DISPUTE_FILED: "⚖️",
+  DISPUTE_RESOLVED: "🤝",
+  DISPUTE_DISMISSED: "🗑️",
+  DISPUTE_COMMENT: "💬",
+  CHORE_ASSIGNED: "🧹",
+  CHORE_OVERDUE: "⚠️",
+  CHORE_SWAP_REQUEST: "🔄",
+  EXPENSE_ADDED: "💸",
+  FUND_CONTRIBUTION: "💰",
+  GROCERY_ADDED: "🛒",
+  ITEM_BORROWED: "📦",
+  ROOM_DIRTY: "🧽",
+  ROOM_CLEAN: "🧼",
+  ROTATION_PURCHASED: "🛍️",
+  SYSTEM: "🔔",
+};
+
 export default function NotificationBell({ apartmentId }: { apartmentId: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
@@ -34,8 +52,14 @@ export default function NotificationBell({ apartmentId }: { apartmentId: string 
     setNotifications(n => n.map(x => ({ ...x, read: true })));
   }
 
-  function handleClick(n: Notification) {
+  async function markRead(id: string) {
+    await apiFetch(`/api/apartments/${apartmentId}/notifications/${id}/read`, { method: "POST" });
+    setNotifications(n => n.map(x => x.id === id ? { ...x, read: true } : x));
+  }
+
+  async function handleClick(n: Notification) {
     setOpen(false);
+    if (!n.read) await markRead(n.id);
     if (n.link) router.push(n.link);
   }
 
@@ -76,6 +100,7 @@ export default function NotificationBell({ apartmentId }: { apartmentId: string 
                 <div className="flex items-start gap-2">
                   {!n.read && <span className="mt-1.5 w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0" />}
                   {n.read && <span className="mt-1.5 w-2 h-2 flex-shrink-0" />}
+                  <div className="mt-0.5 text-lg">{TYPE_ICON[n.type] ?? "🔔"}</div>
                   <div>
                     <p className="text-xs font-semibold text-gray-900">{n.title}</p>
                     <p className="text-xs text-gray-500 mt-0.5 leading-snug">{n.body}</p>

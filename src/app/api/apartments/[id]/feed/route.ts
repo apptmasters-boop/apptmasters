@@ -43,7 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   await notifyApartment(
     apartmentId,
     payload.userId,
-    "EXPENSE_ADDED",
+    "ANNOUNCEMENT",
     `Announcement from ${user?.name}`,
     title,
     `/apartment/${apartmentId}/feed`,

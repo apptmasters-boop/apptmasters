@@ -26,7 +26,7 @@ export async function PATCH(
   });
 
   await notifyApartment(
-    apartmentId, payload.userId, "EXPENSE_ADDED",
+    apartmentId, payload.userId, status === "RESOLVED" ? "DISPUTE_RESOLVED" : "DISPUTE_DISMISSED",
     `Dispute ${status.toLowerCase()}`,
     `"${dispute.title}" was ${status.toLowerCase()}`,
     `/apartment/${apartmentId}/disputes`,

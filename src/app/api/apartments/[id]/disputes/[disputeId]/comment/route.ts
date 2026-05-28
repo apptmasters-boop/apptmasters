@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/auth";
+import { notifyApartment } from "@/lib/notify";
 
 export async function POST(
   req: NextRequest,
@@ -21,6 +22,15 @@ export async function POST(
     data: { disputeId, userId: payload.userId, body },
     include: { user: { select: { id: true, name: true } } },
   });
+
+  await notifyApartment(
+    apartmentId,
+    payload.userId,
+    "DISPUTE_COMMENT",
+    "New dispute comment",
+    `${comment.user.name} commented on a dispute`,
+    `/apartment/${apartmentId}/disputes?focus=${disputeId}#comment-${comment.id}`,
+  );
 
   return NextResponse.json(comment, { status: 201 });
 }

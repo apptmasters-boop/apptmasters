@@ -16,6 +16,8 @@ interface Notification {
 }
 
 const TYPE_ICON: Record<string, string> = {
+  ANNOUNCEMENT: "📢",
+  CALENDAR_EVENT: "📅",
   CHORE_ASSIGNED: "🧹",
   CHORE_OVERDUE: "⚠️",
   CHORE_SWAP_REQUEST: "🔄",
@@ -23,11 +25,29 @@ const TYPE_ICON: Record<string, string> = {
   CHORE_SWAP_DECLINED: "❌",
   EXPENSE_ADDED: "💸",
   EXPENSE_SETTLED: "💚",
+  FUND_CONTRIBUTION: "💰",
+  FUND_WITHDRAWAL: "💸",
+  FUND_LOW: "⚠️",
+  GROCERY_ADDED: "🛒",
+  ITEM_BORROWED: "📦",
+  ITEM_RETURNED: "🔄",
   NUDGE: "👋",
   DISPUTE_FILED: "⚖️",
   DISPUTE_RESOLVED: "🤝",
+  DISPUTE_DISMISSED: "🗑️",
+  MAINTENANCE_FLAGGED: "🛠️",
+  MAINTENANCE_RESOLVED: "✅",
+  MAINTENANCE_NOTE_UPDATED: "📝",
+  ROOM_CLEAN: "🧼",
+  ROOM_DIRTY: "🧽",
+  ROOM_NEEDS_ATTENTION: "⚠️",
+  ROTATION_CREATED: "🆕",
+  SCORE_ADJUSTED: "📈",
+  DISPUTE_COMMENT: "💬",
+  RULE_ADDED: "📋",
   RULE_PROPOSED: "📋",
   RULE_PASSED: "📌",
+  ROTATION_PURCHASED: "🛍️",
   SYSTEM: "🔔",
 };
 
@@ -50,6 +70,16 @@ export default function NotificationsPage() {
   async function markRead(id: string) {
     await apiFetch(`/api/apartments/${apartmentId}/notifications/${id}/read`, { method: "POST" });
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }
+
+  async function handleNotificationClick(notification: Notification) {
+    if (!notification.read) {
+      await markRead(notification.id);
+    }
+
+    if (notification.link) {
+      router.push(notification.link);
+    }
   }
 
   async function markAllRead() {
@@ -96,14 +126,18 @@ export default function NotificationsPage() {
         )}
 
         {notifications.map(n => (
-          <button key={n.id} onClick={() => !n.read && markRead(n.id)}
+          <button key={n.id} onClick={() => handleNotificationClick(n)}
             className={`w-full text-left bg-white border rounded-xl px-5 py-4 flex items-start gap-4 transition-colors ${n.read ? "border-gray-100 opacity-60" : "border-gray-200 hover:border-indigo-200"}`}>
             <span className="text-2xl flex-shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? "🔔"}</span>
             <div className="flex-1 min-w-0">
-              <p className={`text-sm ${n.read ? "text-gray-500" : "text-gray-900 font-medium"}`}>{n.body}</p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className={`text-sm ${n.read ? "text-gray-500" : "text-gray-900 font-semibold"}`}>{n.title}</p>
+              <p className={`text-sm mt-1 ${n.read ? "text-gray-500" : "text-gray-700"}`}>{n.body}</p>
+              <p className="text-xs text-gray-400 mt-2">
                 {new Date(n.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               </p>
+              {n.link ? (
+                <p className="text-xs text-indigo-600 font-medium mt-2">Open linked item →</p>
+              ) : null}
             </div>
             {!n.read && <span className="w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0 mt-1.5" />}
           </button>

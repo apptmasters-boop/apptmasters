@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/auth";
+import { notifyApartment } from "@/lib/notify";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
@@ -52,6 +53,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       memberOrder: JSON.stringify(memberIds),
     },
   });
+
+  const firstBuyer = await prisma.user.findUnique({ where: { id: memberIds[0] }, select: { name: true } });
+  await notifyApartment(
+    apartmentId,
+    payload.userId,
+    "ROTATION_CREATED",
+    "Rotation added",
+    `${firstBuyer?.name ?? "Someone"} is first up to buy ${itemName}.`,
+    `/apartment/${apartmentId}/rotation`,
+  );
 
   return NextResponse.json(rotation, { status: 201 });
 }

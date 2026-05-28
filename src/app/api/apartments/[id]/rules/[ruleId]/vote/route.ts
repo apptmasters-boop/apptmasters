@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (yesVotes >= majority) {
     await prisma.houseRule.update({ where: { id: ruleId }, data: { status: "ACTIVE" } });
     await notifyApartment(
-      apartmentId, null, "RULE_ADDED", "House rule passed",
+      apartmentId, null, "RULE_PASSED", "House rule passed",
       `"${rule.content}" has been approved by majority vote`,
       `/apartment/${apartmentId}`,
     );

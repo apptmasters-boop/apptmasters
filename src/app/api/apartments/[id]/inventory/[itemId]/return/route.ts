@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const user = await prisma.user.findUnique({ where: { id: payload.userId }, select: { name: true } });
 
   await notifyApartment(
-    apartmentId, payload.userId, "EXPENSE_ADDED",
+    apartmentId, payload.userId, "ITEM_RETURNED",
     "Item returned",
     `${user?.name} returned "${item?.name}"`,
     `/apartment/${apartmentId}/inventory`,

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "seed": "node scripts/seed.js"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.8.0",

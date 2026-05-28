@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
@@ -34,6 +34,7 @@ export default function DisputesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [commentText, setCommentText] = useState<Record<string, string>>({});
   const [commenting, setCommenting] = useState<string | null>(null);
+  const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
   const [resolveModal, setResolveModal] = useState<{ id: string; action: "RESOLVED" | "DISMISSED" } | null>(null);
   const [resolution, setResolution] = useState("");
   const [resolving, setResolving] = useState(false);
@@ -59,7 +60,36 @@ export default function DisputesPage() {
     setLoading(false);
   }
 
+  const searchParams = useSearchParams();
+  const focusDisputeId = searchParams.get("focus");
+
   useEffect(() => { load(); }, [apartmentId]);
+
+  useEffect(() => {
+    if (focusDisputeId) {
+      setExpandedId(focusDisputeId);
+    }
+  }, [focusDisputeId]);
+
+  useEffect(() => {
+    if (!focusDisputeId) return;
+    const disputeEl = document.getElementById(`dispute-${focusDisputeId}`);
+    if (disputeEl) disputeEl.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    const hash = window.location.hash;
+    if (hash.startsWith("#comment-")) {
+      const commentId = hash.replace("#comment-", "");
+      setFocusedCommentId(commentId);
+      const commentEl = document.querySelector(hash) as HTMLElement | null;
+      if (commentEl) commentEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [expandedId, focusDisputeId]);
+
+  useEffect(() => {
+    if (!focusedCommentId) return;
+    const timer = window.setTimeout(() => setFocusedCommentId(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [focusedCommentId]);
 
   async function createDispute(e: React.FormEvent) {
     e.preventDefault();
@@ -161,7 +191,7 @@ export default function DisputesPage() {
         {disputes.map(d => {
           const isExpanded = expandedId === d.id;
           return (
-            <div key={d.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div id={`dispute-${d.id}`} key={d.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="px-5 py-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
@@ -207,17 +237,20 @@ export default function DisputesPage() {
                 <div className="border-t border-gray-50">
                   {d.comments.length > 0 && (
                     <div className="px-5 py-3 space-y-2">
-                      {d.comments.map(c => (
-                        <div key={c.id} className={`flex gap-2 ${c.user.id === currentUserId ? "flex-row-reverse" : ""}`}>
-                          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">
-                            {c.user.name.charAt(0)}
+                      {d.comments.map(c => {
+                        const isFocusedComment = focusedCommentId === c.id;
+                        return (
+                          <div id={`comment-${c.id}`} key={c.id} className={`flex gap-2 ${c.user.id === currentUserId ? "flex-row-reverse" : ""} ${isFocusedComment ? "ring-2 ring-indigo-500/60 bg-indigo-50 rounded-3xl" : ""}`}>
+                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">
+                              {c.user.name.charAt(0)}
+                            </div>
+                            <div className={`max-w-xs px-3 py-2 rounded-xl text-sm ${c.user.id === currentUserId ? "bg-indigo-100 text-indigo-900" : "bg-gray-100 text-gray-900"}`}>
+                              <p className="text-[10px] font-semibold text-gray-500 mb-0.5">{c.user.name}</p>
+                              {c.body}
+                            </div>
                           </div>
-                          <div className={`max-w-xs px-3 py-2 rounded-xl text-sm ${c.user.id === currentUserId ? "bg-indigo-100 text-indigo-900" : "bg-gray-100 text-gray-900"}`}>
-                            <p className="text-[10px] font-semibold text-gray-500 mb-0.5">{c.user.name}</p>
-                            {c.body}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                   {d.status === "OPEN" && (
