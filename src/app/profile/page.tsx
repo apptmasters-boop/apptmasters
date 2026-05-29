@@ -32,6 +32,8 @@ export default function ProfilePage() {
 
   const [notifPrefs, setNotifPrefs] = useState({ pushEnabled: true, emailEnabled: true });
   const [notifSaving, setNotifSaving] = useState(false);
+  const [twoFAEnabled, setTwoFAEnabled] = useState(false);
+  const [twoFASaving, setTwoFASaving] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function ProfilePage() {
         moveInDate: data.moveInDate ? data.moveInDate.slice(0, 10) : "",
         dietaryFlags: JSON.parse(data.dietaryFlags || "[]"),
       });
+      setTwoFAEnabled(data.twoFactorEnabled ?? false);
       setLoading(false);
     });
   }, [router]);
@@ -267,6 +270,20 @@ export default function ProfilePage() {
             <button type="button" onClick={toggleDarkMode}
               className={`relative w-11 h-6 rounded-full transition-colors ${darkMode ? "bg-indigo-600" : "bg-gray-300"}`}>
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? "translate-x-5" : ""}`} />
+            </button>
+          </label>
+          <label className="flex items-center justify-between cursor-pointer">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Two-factor authentication</p>
+              <p className="text-xs text-gray-400">Require a code from your email on each login</p>
+            </div>
+            <button type="button" disabled={twoFASaving} onClick={async () => {
+              setTwoFASaving(true);
+              const res = await apiFetch("/api/users/2fa", { method: "PATCH", body: JSON.stringify({ enabled: !twoFAEnabled }) });
+              if (res.ok) setTwoFAEnabled(!twoFAEnabled);
+              setTwoFASaving(false);
+            }} className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${twoFAEnabled ? "bg-indigo-600" : "bg-gray-300"}`}>
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${twoFAEnabled ? "translate-x-5" : ""}`} />
             </button>
           </label>
           <hr className="border-gray-100" />

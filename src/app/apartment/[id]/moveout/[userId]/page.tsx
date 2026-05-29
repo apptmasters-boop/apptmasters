@@ -53,10 +53,38 @@ export default function MoveOutReportPage() {
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Move-Out Report</span>
         </div>
-        <button onClick={() => window.print()}
-          className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-          Print / Save PDF
-        </button>
+        <div className="flex gap-2">
+          <button onClick={async () => {
+            const { generateMoveOutPDF } = await import("@/lib/pdf");
+            const apt = await apiFetch(`/api/apartments/${apartmentId}`).then(r => r.json());
+            generateMoveOutPDF({
+              memberName: user.name,
+              apartmentName: apt.name,
+              movedOutAt: membership?.movedOutAt ?? new Date().toISOString(),
+              totalPaid: summary.totalExpensePaid,
+              totalOwed: summary.totalExpenseOwed,
+              balance: summary.outstandingBalance,
+              expenses: expenseSplits.map(s => ({
+                title: s.expense.title,
+                amount: s.expense.amount,
+                myShare: s.amount,
+                paidByMe: false,
+                date: s.expense.date,
+              })),
+              rentHistory: rentPayments.map(r => ({
+                month: r.rentCycle.month,
+                amount: r.amount,
+                status: r.status,
+              })),
+            });
+          }} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            Download PDF
+          </button>
+          <button onClick={() => window.print()}
+            className="text-sm border border-gray-300 text-gray-600 px-4 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+            Print
+          </button>
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-6 print:px-0 print:py-4">

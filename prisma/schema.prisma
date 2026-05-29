@@ -18,6 +18,7 @@ model User {
   dietaryFlags   String    @default("[]")
   systemRole     String    @default("USER") // USER | MANAGER | SUPER_ADMIN
   notifPrefs     String    @default("{}") // JSON: { pushEnabled, emailEnabled, types: { [type]: bool } }
+  twoFactorEnabled Boolean @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -53,6 +54,7 @@ model User {
   disputeComments          DisputeComment[]
   pushSubscriptions        PushSubscription[]
   passwordResetTokens      PasswordResetToken[]
+  twoFactorCodes           TwoFactorCode[]
   auditLogs                AuditLog[]
 }
 
@@ -641,6 +643,17 @@ model AuditLog {
   apartmentId String?
   user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
   apartment   Apartment? @relation(fields: [apartmentId], references: [id], onDelete: SetNull)
+}
+
+model TwoFactorCode {
+  id        String   @id @default(cuid())
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PasswordResetToken {

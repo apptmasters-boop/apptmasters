@@ -174,6 +174,10 @@ export default function FinancePage() {
           <Link href={`/apartment/${apartmentId}`} className="text-sm text-gray-400 hover:text-gray-600">← Apartment</Link>
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Finance</span>
+          <Link href={`/apartment/${apartmentId}/analytics`}
+            className="text-xs text-indigo-500 hover:text-indigo-700 transition-colors">
+            Analytics →
+          </Link>
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell apartmentId={apartmentId} />
@@ -184,9 +188,32 @@ export default function FinancePage() {
             </button>
           )}
           {expenses.length > 0 && (
-            <button onClick={exportCSV} className="text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-              Export CSV
-            </button>
+            <div className="flex gap-2">
+              <button onClick={exportCSV} className="text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                CSV
+              </button>
+              <button onClick={async () => {
+                const { generateExpensePDF } = await import("@/lib/pdf");
+                const apt = await apiFetch(`/api/apartments/${apartmentId}`).then(r => r.json());
+                generateExpensePDF({
+                  apartmentName: apt.name,
+                  period: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+                  expenses: expenses.map((e: {title:string;amount:number;category:string;paidBy:{name:string};date:string;splits:{userId:string;amount:number}[]}) => ({
+                    title: e.title,
+                    amount: e.amount,
+                    category: e.category,
+                    paidBy: e.paidBy.name,
+                    date: e.date,
+                    myShare: e.splits?.find((s:{userId:string}) => s.userId === currentUserId)?.amount ?? 0,
+                  })),
+                  totalAmount: expenses.reduce((s: number, e: {amount:number}) => s + e.amount, 0),
+                  myTotal: expenses.reduce((s: number, e: {splits:{userId:string;amount:number}[]}) =>
+                    s + (e.splits?.find((sp:{userId:string}) => sp.userId === currentUserId)?.amount ?? 0), 0),
+                });
+              }} className="text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                PDF
+              </button>
+            </div>
           )}
           <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
             + Add expense

@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
+import BottomNav from "@/components/BottomNav";
 
 interface Member {
   id: string; role: string; status: string; joinedAt: string;
@@ -163,7 +164,7 @@ export default function ApartmentPage() {
   const isGuest = apt.currentUserRole === "GUEST";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-sm text-gray-400 hover:text-gray-600">← Dashboard</Link>
@@ -589,6 +590,7 @@ export default function ApartmentPage() {
           </div>
         )}
       </main>
+      <BottomNav apartmentId={apt.id} />
     </div>
   );
 }

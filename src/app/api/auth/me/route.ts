@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     where: { id: payload.userId },
     select: {
       id: true, name: true, email: true, photo: true, systemRole: true,
-      roomAssignment: true, moveInDate: true, dietaryFlags: true,
+      roomAssignment: true, moveInDate: true, dietaryFlags: true, twoFactorEnabled: true,
       memberships: {
         include: { apartment: true },
         where: { status: { not: "MOVED_OUT" } },
