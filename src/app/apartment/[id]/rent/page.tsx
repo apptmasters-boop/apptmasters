@@ -238,9 +238,24 @@ export default function RentPage() {
                       Rent Payer: {cycle.rentPayer.name} · ${cycle.totalAmount.toFixed(2)}
                     </p>
                   </div>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cycle.markedPaidAt ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                    {cycle.markedPaidAt ? "Paid to landlord" : "Pending"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {isAdmin && cycle.payments.some(p => !p.paidAt) && (
+                      <button
+                        onClick={async () => {
+                          await apiFetch(`/api/apartments/${apartmentId}/rent/remind`, {
+                            method: "POST",
+                            body: JSON.stringify({ cycleId: cycle.id }),
+                          });
+                          alert("Reminders sent to unpaid members.");
+                        }}
+                        className="text-xs text-amber-600 border border-amber-200 bg-amber-50 px-3 py-1 rounded-lg hover:bg-amber-100 transition-colors">
+                        Send reminder
+                      </button>
+                    )}
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cycle.markedPaidAt ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                      {cycle.markedPaidAt ? "Paid to landlord" : "Pending"}
+                    </span>
+                  </div>
                 </div>
                 <div className="divide-y divide-gray-100">
                   {cycle.payments.map(payment => {

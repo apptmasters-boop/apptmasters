@@ -34,9 +34,10 @@ export default function FinancePage() {
   const [tab, setTab] = useState<"expenses" | "balance">("balance");
   const [form, setForm] = useState({
     title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL",
-    isRecurring: false, frequency: "MONTHLY", date: "", notes: "",
+    isRecurring: false, frequency: "MONTHLY", date: "", notes: "", receiptUrl: "",
   });
   const [adding, setAdding] = useState(false);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [settling, setSettling] = useState<string | null>(null);
   const [renewing, setRenewing] = useState(false);
   const [editingExpense, setEditingExpense] = useState<string | null>(null);
@@ -62,6 +63,21 @@ export default function FinancePage() {
 
   useEffect(() => { load(); }, [apartmentId]);
 
+  async function handleReceiptUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingReceipt(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await apiFetch(`/api/apartments/${apartmentId}/expenses/upload-receipt`, { method: "POST", body: fd });
+    if (res.ok) {
+      const { url } = await res.json();
+      setForm(f => ({ ...f, receiptUrl: url }));
+    }
+    setUploadingReceipt(false);
+    e.target.value = "";
+  }
+
   async function addExpense(e: React.FormEvent) {
     e.preventDefault();
     setAdding(true);
@@ -69,7 +85,7 @@ export default function FinancePage() {
       method: "POST",
       body: JSON.stringify({ ...form, amount: parseFloat(form.amount) }),
     });
-    setForm({ title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL", isRecurring: false, frequency: "MONTHLY", date: "", notes: "" });
+    setForm({ title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL", isRecurring: false, frequency: "MONTHLY", date: "", notes: "", receiptUrl: "" });
     setShowAdd(false);
     setAdding(false);
     load();
@@ -239,6 +255,17 @@ export default function FinancePage() {
             <textarea placeholder="Notes (optional)" value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+            <div className="flex items-center gap-3">
+              <label className="flex-1 cursor-pointer border border-dashed border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors text-center">
+                <input type="file" accept="image/*,application/pdf" className="hidden"
+                  onChange={handleReceiptUpload} disabled={uploadingReceipt} />
+                {uploadingReceipt ? "Uploading…" : form.receiptUrl ? "Receipt attached ✓" : "Attach receipt (optional)"}
+              </label>
+              {form.receiptUrl && (
+                <button type="button" onClick={() => setForm(f => ({ ...f, receiptUrl: "" }))}
+                  className="text-xs text-red-400 hover:text-red-600">Remove</button>
+              )}
+            </div>
             <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
               <input type="checkbox" checked={form.isRecurring} onChange={e => setForm(f => ({ ...f, isRecurring: e.target.checked }))} />
               Recurring expense
@@ -342,6 +369,12 @@ export default function FinancePage() {
                             {exp.isRecurring && " · Recurring"}
                           </p>
                           {exp.notes && <p className="text-xs text-gray-500 mt-1 italic">{exp.notes}</p>}
+                          {exp.receiptUrl && (
+                            <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer"
+                              className="text-xs text-indigo-500 hover:underline mt-1 inline-block">
+                              View receipt →
+                            </a>
+                          )}
                         </div>
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           exp.status === "SETTLED" ? "bg-green-100 text-green-700" :

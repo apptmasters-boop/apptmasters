@@ -17,15 +17,28 @@ export async function notify({ apartmentId, userIds, type, title, body, link, se
   await prisma.notification.createMany({
     data: userIds.map(userId => ({ apartmentId, userId, type, title, body, link: link ?? null })),
   });
+  // Respect per-user notification preferences
+  const userPrefs = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, email: true, notifPrefs: true },
+  });
+
+  const pushIds = userPrefs
+    .filter(u => { const p = JSON.parse(u.notifPrefs || "{}"); return p.pushEnabled !== false; })
+    .map(u => u.id);
+
+  const emailIds = (sendEmailTo ?? []).filter(id => {
+    const u = userPrefs.find(u => u.id === id);
+    const p = JSON.parse(u?.notifPrefs || "{}");
+    return p.emailEnabled !== false;
+  });
+
   // Fire-and-forget push and email — don't block the API response
-  sendPushToUsers(userIds, title, body, link).catch(() => {});
-  if (sendEmailTo && sendEmailTo.length > 0) {
-    const users = await prisma.user.findMany({
-      where: { id: { in: sendEmailTo } },
-      select: { email: true },
-    });
+  if (pushIds.length > 0) sendPushToUsers(pushIds, title, body, link).catch(() => {});
+  if (emailIds.length > 0) {
+    const emailUsers = userPrefs.filter(u => emailIds.includes(u.id));
     const actionUrl = link ? `${appUrl}${link}` : undefined;
-    users.forEach(u => {
+    emailUsers.forEach(u => {
       sendEmail(u.email, title, notificationEmail(title, body, actionUrl, "View")).catch(() => {});
     });
   }

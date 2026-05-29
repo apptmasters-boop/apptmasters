@@ -30,7 +30,13 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState("");
   const [pwSaved, setPwSaved] = useState(false);
 
+  const [notifPrefs, setNotifPrefs] = useState({ pushEnabled: true, emailEnabled: true });
+  const [notifSaving, setNotifSaving] = useState(false);
+
   useEffect(() => {
+    apiFetch("/api/users/notification-prefs").then(async res => {
+      if (res.ok) setNotifPrefs(await res.json());
+    });
     apiFetch("/api/auth/me").then(async res => {
       if (res.status === 401) { router.replace("/login"); return; }
       const data = await res.json();
@@ -235,6 +241,40 @@ export default function ProfilePage() {
             {pwSaved ? "Password changed!" : pwSaving ? "Saving…" : "Change password"}
           </button>
         </form>
+
+        {/* Notification preferences */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 space-y-4 mt-6">
+          <h2 className="text-sm font-semibold text-gray-900">Notification preferences</h2>
+          <div className="space-y-3">
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Push notifications</p>
+                <p className="text-xs text-gray-400">Browser / device alerts</p>
+              </div>
+              <button type="button" onClick={() => setNotifPrefs(p => ({ ...p, pushEnabled: !p.pushEnabled }))}
+                className={`relative w-11 h-6 rounded-full transition-colors ${notifPrefs.pushEnabled ? "bg-indigo-600" : "bg-gray-300"}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notifPrefs.pushEnabled ? "translate-x-5" : ""}`} />
+              </button>
+            </label>
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Email notifications</p>
+                <p className="text-xs text-gray-400">Expenses, disputes, messages</p>
+              </div>
+              <button type="button" onClick={() => setNotifPrefs(p => ({ ...p, emailEnabled: !p.emailEnabled }))}
+                className={`relative w-11 h-6 rounded-full transition-colors ${notifPrefs.emailEnabled ? "bg-indigo-600" : "bg-gray-300"}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notifPrefs.emailEnabled ? "translate-x-5" : ""}`} />
+              </button>
+            </label>
+          </div>
+          <button disabled={notifSaving} onClick={async () => {
+            setNotifSaving(true);
+            await apiFetch("/api/users/notification-prefs", { method: "PATCH", body: JSON.stringify(notifPrefs) });
+            setNotifSaving(false);
+          }} className="w-full bg-gray-100 text-gray-700 rounded-lg py-2 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 transition-colors">
+            {notifSaving ? "Saving…" : "Save preferences"}
+          </button>
+        </div>
       </main>
     </div>
   );

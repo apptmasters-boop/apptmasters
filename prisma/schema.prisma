@@ -17,6 +17,7 @@ model User {
   moveInDate     DateTime?
   dietaryFlags   String    @default("[]")
   systemRole     String    @default("USER") // USER | MANAGER | SUPER_ADMIN
+  notifPrefs     String    @default("{}") // JSON: { pushEnabled, emailEnabled, types: { [type]: bool } }
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -215,6 +216,7 @@ model Expense {
   frequency   String?                     // WEEKLY | MONTHLY
   status      String   @default("ACTIVE") // ACTIVE | SETTLED | DISPUTED
   notes       String?
+  receiptUrl  String?
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
 

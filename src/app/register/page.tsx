@@ -19,7 +19,7 @@ export default function RegisterPage() {
     setLoading(false);
     if (!res.ok) return setError(data.error ?? "Registration failed");
     setToken(data.token);
-    router.push("/dashboard");
+    router.push("/onboarding");
   }
 
   return (

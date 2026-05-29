@@ -14,6 +14,7 @@ const schema = z.object({
   isRecurring: z.boolean().default(false),
   frequency: z.enum(["WEEKLY", "MONTHLY"]).optional(),
   notes: z.string().optional(),
+  receiptUrl: z.string().optional(),
   date: z.string().optional(),
 });
 
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
-  const { customSplits, perPersonAmounts, date, ...rest } = parsed.data;
+  const { customSplits, perPersonAmounts, date, receiptUrl, ...rest } = parsed.data;
 
   // Determine splits
   const activeMembers = await prisma.apartmentMember.findMany({
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       apartmentId,
       paidById: payload.userId,
       ...(date ? { date: new Date(date) } : {}),
+      ...(receiptUrl ? { receiptUrl } : {}),
       splits: { create: splits },
     },
     include: {
