@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { sendPushToUsers } from "@/lib/push";
+import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
 
 interface NotifyParams {
   apartmentId: string;
@@ -8,15 +9,26 @@ interface NotifyParams {
   title: string;
   body: string;
   link?: string;
+  sendEmailTo?: string[]; // subset of userIds to also email
 }
 
-export async function notify({ apartmentId, userIds, type, title, body, link }: NotifyParams) {
+export async function notify({ apartmentId, userIds, type, title, body, link, sendEmailTo }: NotifyParams) {
   if (userIds.length === 0) return;
   await prisma.notification.createMany({
     data: userIds.map(userId => ({ apartmentId, userId, type, title, body, link: link ?? null })),
   });
-  // Fire-and-forget push — don't block the API response
+  // Fire-and-forget push and email — don't block the API response
   sendPushToUsers(userIds, title, body, link).catch(() => {});
+  if (sendEmailTo && sendEmailTo.length > 0) {
+    const users = await prisma.user.findMany({
+      where: { id: { in: sendEmailTo } },
+      select: { email: true },
+    });
+    const actionUrl = link ? `${appUrl}${link}` : undefined;
+    users.forEach(u => {
+      sendEmail(u.email, title, notificationEmail(title, body, actionUrl, "View")).catch(() => {});
+    });
+  }
 }
 
 export async function notifyApartment(

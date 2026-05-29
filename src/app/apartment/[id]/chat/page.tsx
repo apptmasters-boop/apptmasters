@@ -63,8 +63,17 @@ export default function ChatPage() {
 
   useEffect(() => {
     load();
-    intervalRef.current = setInterval(loadMessages, 3000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const es = new EventSource(`/api/apartments/${apartmentId}/chat/stream?token=${token}`);
+    es.onmessage = e => {
+      const incoming = JSON.parse(e.data);
+      setMessages((prev: {id: string}[]) => {
+        const existingIds = new Set(prev.map((m: {id: string}) => m.id));
+        const next = incoming.filter((m: {id: string}) => !existingIds.has(m.id));
+        return next.length ? [...prev, ...next] : prev;
+      });
+    };
+    return () => es.close();
   }, [apartmentId]);
 
   useEffect(() => {

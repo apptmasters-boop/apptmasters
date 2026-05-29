@@ -54,6 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     title: message.sender.name,
     body: preview,
     link: `/apartment/${apartmentId}/chat/dm/${payload.userId}`,
+    sendEmailTo: [receiverId],
   });
 
   return NextResponse.json(message, { status: 201 });

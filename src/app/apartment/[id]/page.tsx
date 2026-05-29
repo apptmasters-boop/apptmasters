@@ -37,6 +37,9 @@ export default function ApartmentPage() {
   const [announcementEdit, setAnnouncementEdit] = useState(false);
   const [announcementText, setAnnouncementText] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteSent, setInviteSent] = useState(false);
 
   async function load() {
     const [aptRes, meRes] = await Promise.all([
@@ -135,6 +138,19 @@ export default function ApartmentPage() {
     setTimeout(() => setLinkCopied(false), 2000);
   }
 
+  async function sendInviteEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setInviteSending(true);
+    await apiFetch(`/api/apartments/${id}/invite-email`, {
+      method: "POST",
+      body: JSON.stringify({ email: inviteEmail }),
+    });
+    setInviteEmail("");
+    setInviteSent(true);
+    setTimeout(() => setInviteSent(false), 3000);
+    setInviteSending(false);
+  }
+
   async function clearAnnouncement() {
     await apiFetch(`/api/apartments/${id}`, { method: "PATCH", body: JSON.stringify({ announcement: null }) });
     load();
@@ -205,8 +221,16 @@ export default function ApartmentPage() {
             </div>
             <span className="text-emerald-200">→</span>
           </Link>
+          <Link href={`/apartment/${apt.id}/maintenance`}
+            className="flex items-center justify-between bg-orange-50 border border-orange-200 text-orange-800 rounded-xl px-4 py-3 hover:bg-orange-100 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Maintenance</p>
+              <p className="text-xs text-orange-400 mt-0.5">Room issues & notes</p>
+            </div>
+            <span className="text-orange-300">→</span>
+          </Link>
           <Link href={`/apartment/${apt.id}/chores`}
-            className="col-span-2 flex items-center justify-between bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-xl px-4 py-3 hover:bg-indigo-100 transition-colors">
+            className="flex items-center justify-between bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-xl px-4 py-3 hover:bg-indigo-100 transition-colors">
             <div>
               <p className="font-semibold text-sm">All Chores</p>
               <p className="text-xs text-indigo-400 mt-0.5">View & filter all pending chores</p>
@@ -353,6 +377,21 @@ export default function ApartmentPage() {
             </button>
           </div>
         </div>
+
+        {/* Email invite */}
+        {isAdmin && (
+          <form onSubmit={sendInviteEmail} className="flex gap-2 mb-4">
+            <input
+              type="email" placeholder="Invite by email…" value={inviteEmail}
+              onChange={e => setInviteEmail(e.target.value)} required
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button type="submit" disabled={inviteSending}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+              {inviteSent ? "Sent!" : inviteSending ? "Sending…" : "Send invite"}
+            </button>
+          </form>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">

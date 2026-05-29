@@ -44,8 +44,20 @@ export default function DMPage() {
 
   useEffect(() => {
     load();
-    intervalRef.current = setInterval(loadMessages, 3000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    // SSE for real-time new messages
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const es = new EventSource(
+      `/api/apartments/${apartmentId}/dm/${otherUserId}/stream?token=${token}`
+    );
+    es.onmessage = e => {
+      const incoming: DirectMessage[] = JSON.parse(e.data);
+      setMessages(prev => {
+        const existingIds = new Set(prev.map(m => m.id));
+        const next = incoming.filter(m => !existingIds.has(m.id));
+        return next.length ? [...prev, ...next] : prev;
+      });
+    };
+    return () => es.close();
   }, [apartmentId, otherUserId]);
 
   useEffect(() => {

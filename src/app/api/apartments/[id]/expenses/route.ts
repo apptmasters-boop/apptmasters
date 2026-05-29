@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 
 const schema = z.object({
   title: z.string().min(1),
@@ -88,6 +89,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       splits: { include: { user: { select: { id: true, name: true } } } },
     },
   });
+
+  const othersInSplit = splits.map(s => s.userId).filter(uid => uid !== payload.userId);
+  if (othersInSplit.length > 0) {
+    notify({
+      apartmentId,
+      userIds: othersInSplit,
+      type: "EXPENSE_ADDED",
+      title: `New expense: ${rest.title}`,
+      body: `${expense.paidBy.name} added a $${rest.amount.toFixed(2)} expense split between you.`,
+      link: `/apartment/${apartmentId}/finance`,
+      sendEmailTo: othersInSplit,
+    }).catch(() => {});
+  }
 
   return NextResponse.json(expense, { status: 201 });
 }

@@ -40,12 +40,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
   });
 
+  const members = await prisma.apartmentMember.findMany({
+    where: { apartmentId, status: { not: "MOVED_OUT" } },
+    select: { userId: true },
+  });
+  const notifyIds = members.map(m => m.userId).filter(id => id !== payload.userId);
   await notifyApartment(
     apartmentId, payload.userId, "DISPUTE_FILED",
     "New dispute raised",
     `${dispute.raisedBy.name} raised a dispute: "${title}"`,
     `/apartment/${apartmentId}/disputes`,
   );
+  // Also email the person the dispute is against, if any
+  if (dispute.against?.id && dispute.against.id !== payload.userId) {
+    const { notify } = await import("@/lib/notify");
+    notify({
+      apartmentId, userIds: [], type: "DISPUTE_FILED",
+      title: "A dispute was raised against you",
+      body: `${dispute.raisedBy.name}: "${title}"`,
+      link: `/apartment/${apartmentId}/disputes`,
+      sendEmailTo: [dispute.against.id],
+    }).catch(() => {});
+  }
 
   return NextResponse.json(dispute, { status: 201 });
 }
