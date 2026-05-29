@@ -9,6 +9,7 @@ interface Notification {
 }
 
 const TYPE_ICON: Record<string, string> = {
+  DIRECT_MESSAGE: "💬",
   DISPUTE_FILED: "⚖️",
   DISPUTE_RESOLVED: "🤝",
   DISPUTE_DISMISSED: "🗑️",

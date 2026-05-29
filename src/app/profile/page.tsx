@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
@@ -22,6 +22,13 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState("");
+  const [pwSaved, setPwSaved] = useState(false);
 
   useEffect(() => {
     apiFetch("/api/auth/me").then(async res => {
@@ -45,6 +52,47 @@ export default function ProfilePage() {
         ? f.dietaryFlags.filter(x => x !== key)
         : [...f.dietaryFlags, key],
     }));
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await apiFetch("/api/users/upload-photo", { method: "POST", body: fd });
+    if (res.ok) {
+      const { url } = await res.json();
+      setForm(f => ({ ...f, photo: url }));
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "Upload failed.");
+    }
+    setUploading(false);
+    e.target.value = "";
+  }
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    setPwError("");
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwError("New passwords do not match.");
+      return;
+    }
+    setPwSaving(true);
+    const res = await apiFetch("/api/users/change-password", {
+      method: "POST",
+      body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setPwError(data.error ?? "Something went wrong.");
+    } else {
+      setPwSaved(true);
+      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setTimeout(() => setPwSaved(false), 2000);
+    }
+    setPwSaving(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -78,14 +126,33 @@ export default function ProfilePage() {
                 {form.name ? form.name[0].toUpperCase() : "?"}
               </div>
             )}
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
-              <input
-                type="url" placeholder="https://…" value={form.photo}
-                onChange={e => setForm(f => ({ ...f, photo: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <p className="text-xs text-gray-400 mt-0.5">Paste a link to any image (Gravatar, GitHub, etc.)</p>
+            <div className="flex-1 space-y-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
+                <input
+                  type="text" placeholder="https://… or upload below" value={form.photo}
+                  onChange={e => setForm(f => ({ ...f, photo: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <p className="text-xs text-gray-400 mt-0.5">Paste a link, or upload a file below.</p>
+              </div>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border border-dashed border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                >
+                  {uploading ? "Uploading…" : "Upload from device"}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -130,6 +197,42 @@ export default function ProfilePage() {
             className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
           >
             {saved ? "Saved!" : saving ? "Saving…" : "Save profile"}
+          </button>
+        </form>
+
+        <form onSubmit={handlePasswordChange} className="bg-white rounded-2xl border border-gray-200 p-8 space-y-5 mt-6">
+          <h2 className="text-sm font-semibold text-gray-900">Change password</h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Current password</label>
+            <input
+              type="password" required value={pwForm.currentPassword}
+              onChange={e => setPwForm(f => ({ ...f, currentPassword: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
+            <input
+              type="password" required minLength={8} value={pwForm.newPassword}
+              onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <p className="text-xs text-gray-400 mt-0.5">Minimum 8 characters</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm new password</label>
+            <input
+              type="password" required value={pwForm.confirmPassword}
+              onChange={e => setPwForm(f => ({ ...f, confirmPassword: e.target.value }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          {pwError && <p className="text-sm text-red-500">{pwError}</p>}
+          <button
+            type="submit" disabled={pwSaving}
+            className="w-full bg-gray-800 text-white rounded-lg py-2 text-sm font-medium hover:bg-gray-900 disabled:opacity-50 transition-colors"
+          >
+            {pwSaved ? "Password changed!" : pwSaving ? "Saving…" : "Change password"}
           </button>
         </form>
       </main>

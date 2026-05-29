@@ -16,10 +16,12 @@ model User {
   roomAssignment String?
   moveInDate     DateTime?
   dietaryFlags   String    @default("[]")
+  systemRole     String    @default("USER") // USER | MANAGER | SUPER_ADMIN
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   memberships              ApartmentMember[]
+  managedApartments        Apartment[]       @relation("ManagedApartments")
   houseRuleAcknowledgments HouseRuleAcknowledgment[]
   assignedChores           Chore[]            @relation("ChoreAssignee")
   completedChores          Chore[]            @relation("ChoreCompleter")
@@ -59,6 +61,9 @@ model Apartment {
   announcementAt   DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+
+  managerId  String?
+  manager    User?   @relation("ManagedApartments", fields: [managerId], references: [id], onDelete: SetNull)
 
   members    ApartmentMember[]
   houseRules HouseRule[]

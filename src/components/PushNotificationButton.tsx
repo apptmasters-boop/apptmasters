@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 
-type State = "unsupported" | "loading" | "denied" | "subscribed" | "unsubscribed";
+type State = "unsupported" | "loading" | "denied" | "subscribed" | "unsubscribed" | "error";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -14,6 +14,7 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function PushNotificationButton() {
   const [state, setState] = useState<State>("loading");
   const [working, setWorking] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -34,17 +35,25 @@ export default function PushNotificationButton() {
 
   async function subscribe() {
     setWorking(true);
+    setErrorMsg("");
     try {
       const reg = await navigator.serviceWorker.ready;
-      const { publicKey } = await apiFetch("/api/push/subscribe").then(r => r.json());
+      const keyRes = await apiFetch("/api/push/subscribe");
+      const { publicKey } = await keyRes.json();
+      if (!publicKey) throw new Error("Push notifications are not configured on this server.");
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
       await apiFetch("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) });
       setState("subscribed");
-    } catch {
-      if (Notification.permission === "denied") setState("denied");
+    } catch (err) {
+      if (Notification.permission === "denied") {
+        setState("denied");
+      } else {
+        setErrorMsg(err instanceof Error ? err.message : "Could not enable notifications.");
+        setState("error");
+      }
     }
     setWorking(false);
   }
@@ -69,6 +78,19 @@ export default function PushNotificationButton() {
       <div className="flex items-center gap-2 text-xs text-red-500">
         <span>🔕</span>
         <span>Notifications blocked — enable in browser settings</span>
+      </div>
+    );
+  }
+
+  if (state === "error") {
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2 text-xs text-red-500">
+          <span>⚠️</span>
+          <span>{errorMsg}</span>
+        </div>
+        <button onClick={() => setState("unsubscribed")}
+          className="text-xs text-indigo-600 hover:underline text-left">Try again</button>
       </div>
     );
   }

@@ -63,6 +63,29 @@ export async function DELETE(
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
 
+  // Guard: if the member being removed is an admin, ensure at least one admin remains
+  if (member.role === "ADMIN") {
+    const allMembers = await prisma.apartmentMember.findMany({
+      where: { apartmentId, status: { not: "MOVED_OUT" } },
+    });
+    const otherMembers = allMembers.filter(m => m.id !== memberId);
+
+    if (otherMembers.length === 0) {
+      return NextResponse.json(
+        { error: "You are the only member in this apartment and cannot leave." },
+        { status: 409 }
+      );
+    }
+
+    const remainingAdmins = otherMembers.filter(m => m.role === "ADMIN");
+    if (remainingAdmins.length === 0) {
+      return NextResponse.json(
+        { error: "You must assign the admin role to another member before leaving." },
+        { status: 409 }
+      );
+    }
+  }
+
   await prisma.apartmentMember.delete({ where: { id: memberId } });
   return NextResponse.json({ success: true });
 }

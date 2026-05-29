@@ -25,8 +25,10 @@ export async function POST(req: NextRequest) {
   }
 
   const hashed = await bcrypt.hash(password, 10);
+  const superAdminEmail = process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+  const systemRole = superAdminEmail && email.toLowerCase() === superAdminEmail ? "SUPER_ADMIN" : "USER";
   const user = await prisma.user.create({
-    data: { name, email, password: hashed },
+    data: { name, email, password: hashed, systemRole },
   });
 
   const token = signToken({ userId: user.id, email: user.email });

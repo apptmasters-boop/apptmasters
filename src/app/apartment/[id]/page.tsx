@@ -99,9 +99,18 @@ export default function ApartmentPage() {
     load();
   }
 
-  async function removeMember(memberId: string) {
-    if (!confirm("Remove this member?")) return;
-    await apiFetch(`/api/apartments/${id}/members/${memberId}`, { method: "DELETE" });
+  async function removeMember(memberId: string, isCurrentUser = false) {
+    const msg = isCurrentUser
+      ? "Are you sure you want to leave this apartment? This action cannot be undone."
+      : "Remove this member?";
+    if (!confirm(msg)) return;
+    const res = await apiFetch(`/api/apartments/${id}/members/${memberId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "Could not remove member.");
+      return;
+    }
+    if (isCurrentUser) { router.replace("/dashboard"); return; }
     load();
   }
 
@@ -511,7 +520,9 @@ export default function ApartmentPage() {
                   <p className="font-medium text-gray-900">{m.user.name}</p>
                   <div className="flex items-center gap-3">
                     <Link href={`/apartment/${id}/moveout/${m.user.id}`} className="text-xs text-indigo-500 hover:underline">Report</Link>
-                    <button onClick={() => removeMember(m.id)} className="text-xs text-red-400 hover:text-red-600">Remove</button>
+                    <button onClick={() => removeMember(m.id, m.user.id === currentUserId)} className="text-xs text-red-400 hover:text-red-600">
+                      {m.user.id === currentUserId ? "Leave" : "Remove"}
+                    </button>
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">

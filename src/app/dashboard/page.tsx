@@ -5,7 +5,7 @@ import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
 
 interface Apartment { id: string; name: string; inviteCode: string; role: string }
-interface User { id: string; name: string; email: string; photo: string | null; memberships: { role: string; apartment: Apartment }[] }
+interface User { id: string; name: string; email: string; photo: string | null; systemRole: string; memberships: { role: string; apartment: Apartment }[] }
 interface AptStats {
   pendingGrocery: number;
   lowInventory: number;
@@ -76,6 +76,18 @@ export default function DashboardPage() {
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <span className="text-lg font-bold text-indigo-600">ApptMasters</span>
         <div className="flex items-center gap-3">
+          {user?.systemRole === "SUPER_ADMIN" && (
+            <Link href="/admin"
+              className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg font-medium hover:bg-purple-200 transition-colors">
+              Admin Panel
+            </Link>
+          )}
+          {(user?.systemRole === "MANAGER" || user?.systemRole === "SUPER_ADMIN") && (
+            <Link href="/manager"
+              className="text-xs bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-200 transition-colors">
+              Manager Panel
+            </Link>
+          )}
           <Link href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             {user?.photo ? (
               // eslint-disable-next-line @next/next/no-img-element
