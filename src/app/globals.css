@@ -1,8 +1,27 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --surface: #ffffff;
+  --surface-muted: #f9fafb;
+  --border: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+}
+
+html.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --surface: #1e293b;
+  --surface-muted: #0f172a;
+  --border: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
 }
 
 @theme inline {
@@ -12,15 +31,31 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Dark mode overrides for common Tailwind patterns */
+html.dark .bg-white { background-color: var(--surface) !important; }
+html.dark .bg-gray-50 { background-color: var(--surface-muted) !important; }
+html.dark .bg-gray-100 { background-color: #1e293b !important; }
+html.dark .bg-gray-200 { background-color: #334155 !important; }
+html.dark .border-gray-100 { border-color: #1e293b !important; }
+html.dark .border-gray-200 { border-color: var(--border) !important; }
+html.dark .border-gray-300 { border-color: #475569 !important; }
+html.dark .text-gray-900 { color: var(--text-primary) !important; }
+html.dark .text-gray-800 { color: #e2e8f0 !important; }
+html.dark .text-gray-700 { color: #cbd5e1 !important; }
+html.dark .text-gray-600 { color: var(--text-secondary) !important; }
+html.dark .text-gray-500 { color: #64748b !important; }
+html.dark .text-gray-400 { color: var(--text-muted) !important; }
+html.dark input, html.dark textarea, html.dark select {
+  background-color: #1e293b !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+html.dark input::placeholder, html.dark textarea::placeholder { color: #64748b !important; }
+html.dark .divide-gray-100 > * + * { border-color: #1e293b !important; }
+html.dark .divide-gray-200 > * + * { border-color: var(--border) !important; }

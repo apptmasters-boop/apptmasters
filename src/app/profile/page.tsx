@@ -32,6 +32,18 @@ export default function ProfilePage() {
 
   const [notifPrefs, setNotifPrefs] = useState({ pushEnabled: true, emailEnabled: true });
   const [notifSaving, setNotifSaving] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    setDarkMode(document.documentElement.classList.contains("dark"));
+  }, []);
+
+  function toggleDarkMode() {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  }
 
   useEffect(() => {
     apiFetch("/api/users/notification-prefs").then(async res => {
@@ -244,6 +256,20 @@ export default function ProfilePage() {
 
         {/* Notification preferences */}
         <div className="bg-white rounded-2xl border border-gray-200 p-8 space-y-4 mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-900">Preferences</h2>
+          </div>
+          <label className="flex items-center justify-between cursor-pointer">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Dark mode</p>
+              <p className="text-xs text-gray-400">Switch between light and dark theme</p>
+            </div>
+            <button type="button" onClick={toggleDarkMode}
+              className={`relative w-11 h-6 rounded-full transition-colors ${darkMode ? "bg-indigo-600" : "bg-gray-300"}`}>
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? "translate-x-5" : ""}`} />
+            </button>
+          </label>
+          <hr className="border-gray-100" />
           <h2 className="text-sm font-semibold text-gray-900">Notification preferences</h2>
           <div className="space-y-3">
             <label className="flex items-center justify-between cursor-pointer">

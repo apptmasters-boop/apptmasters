@@ -552,7 +552,12 @@ export default function ApartmentPage() {
               )}
             </div>
 
-            <p className="text-sm text-gray-500">Manage members, roles, and statuses.</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">Manage members, roles, and statuses.</p>
+              <Link href={`/apartment/${id}/audit`} className="text-xs text-gray-400 hover:text-indigo-600 transition-colors">
+                View audit log →
+              </Link>
+            </div>
             {apt.members.map(m => (
               <div key={m.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4">
                 <div className="flex items-center justify-between mb-3">

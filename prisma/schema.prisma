@@ -53,6 +53,7 @@ model User {
   disputeComments          DisputeComment[]
   pushSubscriptions        PushSubscription[]
   passwordResetTokens      PasswordResetToken[]
+  auditLogs                AuditLog[]
 }
 
 model Apartment {
@@ -90,6 +91,7 @@ model Apartment {
   purchaseRotations PurchaseRotation[]
   roommateScores RoommateScore[]
   disputes       Dispute[]
+  auditLogs      AuditLog[]
 }
 
 model Room {
@@ -623,6 +625,22 @@ model PushSubscription {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Audit Log ─────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String   // MEMBER_ADDED | MEMBER_REMOVED | ROLE_CHANGED | DISPUTE_RESOLVED | SCORE_ADJUSTED | APARTMENT_DELETED | ACCOUNT_DELETED | RENT_REMINDED | etc.
+  entityType String   // user | member | apartment | dispute | expense | chore | room
+  entityId   String?
+  meta       String   @default("{}") // JSON: extra context
+  createdAt  DateTime @default(now())
+
+  userId      String?
+  apartmentId String?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  apartment   Apartment? @relation(fields: [apartmentId], references: [id], onDelete: SetNull)
 }
 
 model PasswordResetToken {

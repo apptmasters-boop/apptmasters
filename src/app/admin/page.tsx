@@ -22,20 +22,23 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function AdminPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"users" | "apartments">("users");
+  const [tab, setTab] = useState<"users" | "apartments" | "audit">("users");
   const [users, setUsers] = useState<User[]>([]);
   const [apartments, setApartments] = useState<Apartment[]>([]);
+  const [auditLogs, setAuditLogs] = useState<{id:string;action:string;meta:string;createdAt:string;user:{name:string}|null;apartment:{name:string}|null}[]>([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState<string | null>(null);
 
   async function load() {
-    const [uRes, aRes] = await Promise.all([
+    const [uRes, aRes, auRes] = await Promise.all([
       apiFetch("/api/admin/users"),
       apiFetch("/api/admin/apartments"),
+      apiFetch("/api/admin/audit"),
     ]);
     if (uRes.status === 403) { router.replace("/dashboard"); return; }
     if (uRes.ok) setUsers(await uRes.json());
     if (aRes.ok) setApartments(await aRes.json());
+    if (auRes.ok) setAuditLogs(await auRes.json());
     setLoading(false);
   }
 
@@ -74,10 +77,10 @@ export default function AdminPage() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 w-fit">
-          {(["users", "apartments"] as const).map(t => (
+          {(["users", "apartments", "audit"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${tab === t ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
-              {t} {t === "users" ? `(${users.length})` : `(${apartments.length})`}
+              {t === "users" ? `Users (${users.length})` : t === "apartments" ? `Apartments (${apartments.length})` : `Audit Log`}
             </button>
           ))}
         </div>
@@ -147,6 +150,34 @@ export default function AdminPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Audit Log Tab */}
+        {tab === "audit" && (
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100">
+            {auditLogs.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">No audit entries yet.</p>
+            ) : auditLogs.map(log => {
+              const meta = JSON.parse(log.meta || "{}");
+              return (
+                <div key={log.id} className="px-5 py-3 flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-gray-900">{log.action.replace(/_/g, " ")}</span>
+                      {log.user && <span className="text-xs text-gray-400">by {log.user.name}</span>}
+                      {log.apartment && <span className="text-xs text-indigo-500">{log.apartment.name}</span>}
+                    </div>
+                    {Object.keys(meta).length > 0 && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {Object.entries(meta).map(([k, v]) => `${k}: ${v}`).join(" · ")}
+                      </p>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 flex-shrink-0">{new Date(log.createdAt).toLocaleString()}</p>
+                </div>
+              );
+            })}
           </div>
         )}
 

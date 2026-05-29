@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/auth";
 import { notifyApartment } from "@/lib/notify";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   req: NextRequest,
@@ -31,6 +32,10 @@ export async function PATCH(
     `"${dispute.title}" was ${status.toLowerCase()}`,
     `/apartment/${apartmentId}/disputes`,
   );
+
+  logAudit({ action: `DISPUTE_${status}`, entityType: "dispute", entityId: disputeId,
+    meta: { title: dispute.title, resolution: resolution || null },
+    userId: payload.userId, apartmentId });
 
   return NextResponse.json(dispute);
 }
