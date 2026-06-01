@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Usage: node scripts/make-super-admin.js email@example.com
-const Database = require("better-sqlite3");
-const path = require("path");
+require("dotenv/config");
+const { Client } = require("pg");
 
 const email = process.argv[2];
 if (!email) {
@@ -9,26 +9,37 @@ if (!email) {
   process.exit(1);
 }
 
-const dbPath = path.resolve(process.cwd(), "dev.db");
-const db = new Database(dbPath);
-db.pragma("foreign_keys = ON");
-
-const user = db.prepare("SELECT id, name, systemRole FROM User WHERE email = ?").get(email);
-if (!user) {
-  console.error(`No user found with email: ${email}`);
-  db.close();
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error("DATABASE_URL is not set. Make sure .env.local exists.");
   process.exit(1);
 }
 
-if (user.systemRole === "SUPER_ADMIN") {
-  console.log(`${user.name} (${email}) is already a Super Admin.`);
-  db.close();
-  process.exit(0);
+async function run() {
+  const client = new Client({ connectionString });
+  await client.connect();
+
+  const res = await client.query('SELECT id, name, "systemRole" FROM "User" WHERE email = $1', [email]);
+  if (res.rows.length === 0) {
+    console.error(`No user found with email: ${email}`);
+    await client.end();
+    process.exit(1);
+  }
+
+  const user = res.rows[0];
+  if (user.systemRole === "SUPER_ADMIN") {
+    console.log(`${user.name} (${email}) is already a Super Admin.`);
+    await client.end();
+    process.exit(0);
+  }
+
+  await client.query('UPDATE "User" SET "systemRole" = $1, "updatedAt" = NOW() WHERE email = $2', ["SUPER_ADMIN", email]);
+  console.log(`✓ ${user.name} (${email}) has been granted Super Admin.`);
+  console.log("They will see the Admin Panel on the dashboard after their next login.");
+  await client.end();
 }
 
-db.prepare("UPDATE User SET systemRole = 'SUPER_ADMIN', updatedAt = ? WHERE email = ?")
-  .run(new Date().toISOString(), email);
-
-console.log(`✓ ${user.name} (${email}) has been granted Super Admin.`);
-console.log("They will see the Admin Panel on the dashboard after their next login.");
-db.close();
+run().catch(err => {
+  console.error(err.message);
+  process.exit(1);
+});
