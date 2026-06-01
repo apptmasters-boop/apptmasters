@@ -16,7 +16,7 @@ const PAYMENT_LINKS: Record<string, (name: string, amount: number) => string> = 
 interface Split { userId: string; amount: number; status: string; user: { id: string; name: string } }
 interface Expense {
   id: string; title: string; amount: number; category: string; splitMethod: string;
-  status: string; date: string; isRecurring: boolean; notes: string | null;
+  status: string; date: string; isRecurring: boolean; notes: string | null; receiptUrl: string | null;
   paidBy: { id: string; name: string };
   splits: Split[];
 }
