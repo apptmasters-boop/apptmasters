@@ -6,6 +6,10 @@ import { rateLimit } from "@/lib/rateLimit";
 
 const schema = z.object({ email: z.string().email() });
 
+const isEmailConfigured = () =>
+  Boolean(process.env.RESEND_API_KEY) &&
+  !process.env.RESEND_API_KEY!.startsWith("re_your_");
+
 function generateCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -24,12 +28,13 @@ export async function POST(req: NextRequest) {
     select: { id: true, name: true, twoFactorEnabled: true },
   });
 
-  if (!user?.twoFactorEnabled) {
+  // Skip 2FA if not enabled for this user OR if email is not configured
+  if (!user?.twoFactorEnabled || !isEmailConfigured()) {
     return NextResponse.json({ required: false });
   }
 
   const code = generateCode();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   await prisma.twoFactorCode.create({
     data: { userId: user.id, code, expiresAt },
