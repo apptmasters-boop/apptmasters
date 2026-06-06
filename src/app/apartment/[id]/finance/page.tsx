@@ -390,18 +390,21 @@ export default function FinancePage() {
                     <>
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <p className="font-medium text-gray-900">{exp.title}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-900">{exp.title}</p>
+                            {exp.receiptUrl && (
+                              <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer"
+                                title="View receipt"
+                                className="text-lg leading-none hover:opacity-70 transition-opacity">
+                                🧾
+                              </a>
+                            )}
+                          </div>
                           <p className="text-xs text-gray-400 mt-0.5">
                             {exp.category} · Paid by {exp.paidBy.name} · ${exp.amount.toFixed(2)}
                             {exp.isRecurring && " · Recurring"}
                           </p>
                           {exp.notes && <p className="text-xs text-gray-500 mt-1 italic">{exp.notes}</p>}
-                          {exp.receiptUrl && (
-                            <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer"
-                              className="text-xs text-indigo-500 hover:underline mt-1 inline-block">
-                              View receipt →
-                            </a>
-                          )}
                         </div>
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           exp.status === "SETTLED" ? "bg-green-100 text-green-700" :
