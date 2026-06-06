@@ -207,10 +207,8 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-between py-12">
-      {displayType === "VIDEO" && (
-        <video ref={remoteRef} autoPlay playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-80" />
-      )}
+      <video ref={remoteRef} autoPlay playsInline
+        className={displayType === "VIDEO" ? "absolute inset-0 w-full h-full object-cover opacity-80" : "hidden"} />
 
       <div className="relative z-10 text-center">
         <div className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-3xl font-bold text-white mx-auto mb-4">
