@@ -401,7 +401,8 @@ export default function FinancePage() {
                             )}
                           </div>
                           <p className="text-xs text-gray-400 mt-0.5">
-                            {exp.category} · Paid by {exp.paidBy.name} · ${exp.amount.toFixed(2)}
+                            {new Date(exp.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            {" · "}{exp.category} · Paid by {exp.paidBy.name} · ${exp.amount.toFixed(2)}
                             {exp.isRecurring && " · Recurring"}
                           </p>
                           {exp.notes && <p className="text-xs text-gray-500 mt-1 italic">{exp.notes}</p>}
