@@ -149,15 +149,6 @@ export default function ProfilePage() {
             )}
             <div className="flex-1 space-y-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
-                <input
-                  type="text" placeholder="https://… or upload below" value={form.photo}
-                  onChange={e => setForm(f => ({ ...f, photo: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <p className="text-xs text-gray-400 mt-0.5">Paste a link, or upload a file below.</p>
-              </div>
-              <div>
                 <input
                   ref={fileInputRef}
                   type="file"
