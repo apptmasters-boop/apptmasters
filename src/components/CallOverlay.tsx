@@ -34,6 +34,8 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
   const localStreamRef = useRef<MediaStream | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const addedCallerIce = useRef<Set<string>>(new Set());
+  const addedReceiverIce = useRef<Set<string>>(new Set());
 
   const cleanup = useCallback(() => {
     if (pollRef.current) clearInterval(pollRef.current);
@@ -122,7 +124,11 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
         }
         const ice: RTCIceCandidateInit[] = JSON.parse(updated.callerIce || "[]");
         for (const c of ice) {
-          try { await pc.addIceCandidate(c); } catch { /* ignore */ }
+          const key = JSON.stringify(c);
+          if (!addedCallerIce.current.has(key)) {
+            addedCallerIce.current.add(key);
+            try { await pc.addIceCandidate(c); } catch { /* ignore */ }
+          }
         }
       }, 1500);
 
@@ -165,11 +171,18 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
         if (updated.answer && pc.signalingState === "have-local-offer") {
           await pc.setRemoteDescription(JSON.parse(updated.answer));
-          const ice: RTCIceCandidateInit[] = JSON.parse(updated.receiverIce || "[]");
-          for (const c of ice) { try { await pc.addIceCandidate(c); } catch { /* ignore */ } }
           setStatus("active");
           timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
-          clearInterval(pollRef.current!);
+        }
+        if (pc.remoteDescription) {
+          const ice: RTCIceCandidateInit[] = JSON.parse(updated.receiverIce || "[]");
+          for (const c of ice) {
+            const key = JSON.stringify(c);
+            if (!addedReceiverIce.current.has(key)) {
+              addedReceiverIce.current.add(key);
+              try { await pc.addIceCandidate(c); } catch { /* ignore */ }
+            }
+          }
         }
       }, 1500);
     } catch {
@@ -234,10 +247,8 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
         <button onClick={toggleMic}
           className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${micOn ? "bg-gray-700 text-white" : "bg-white text-gray-900"}`}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {micOn
-              ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-            }
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            {!micOn && <line x1="3" y1="3" x2="21" y2="21" strokeLinecap="round" strokeWidth={2} />}
           </svg>
         </button>
 
