@@ -2,7 +2,17 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 
-const STUN_SERVERS = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
+const STUN_SERVERS = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    {
+      urls: ["turn:100.31.129.115:3478?transport=udp", "turn:100.31.129.115:3478?transport=tcp"],
+      username: "apptmasters",
+      credential: "Turn2024Secure!",
+    },
+  ],
+};
 
 type CallSessionData = {
   id: string;
