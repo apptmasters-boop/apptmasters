@@ -37,6 +37,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
   const [callId, setCallId] = useState<string | null>(incomingCall?.id ?? null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(callType === "VIDEO");
+  const [callError, setCallError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const localRef = useRef<HTMLVideoElement>(null);
   const remoteRef = useRef<HTMLVideoElement>(null);
@@ -80,8 +81,9 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
     setTimeout(onClose, 500);
   }
 
-  async function startMedia() {
-    const constraints = { audio: true, video: (incomingCall ? incomingCall.type : callType) === "VIDEO" };
+  async function startMedia(type: "VOICE" | "VIDEO") {
+    const constraints: MediaStreamConstraints = { audio: true };
+    if (type === "VIDEO") constraints.video = true;
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     localStreamRef.current = stream;
     if (localRef.current) localRef.current.srcObject = stream;
@@ -111,14 +113,32 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
   async function answerIncoming() {
     if (!incomingCall) return;
+    setCallError(null);
+    setStatus("connecting");
+    setCallId(incomingCall.id);
+
+    // Step 1: get mic/camera — handle permission errors separately so we can show a useful message
+    let stream: MediaStream;
     try {
-      setStatus("connecting");
-      setCallId(incomingCall.id);
-      const stream = await startMedia();
+      stream = await startMedia(incomingCall.type);
+    } catch (err) {
+      const name = err instanceof Error ? err.name : "Error";
+      console.error("[Call] getUserMedia failed:", err);
+      const msg = name === "NotAllowedError" || name === "PermissionDeniedError"
+        ? "Microphone access denied — allow mic in browser settings"
+        : `Mic error: ${name}`;
+      setCallError(msg);
+      setStatus("ended");
+      setTimeout(onClose, 4000);
+      return;
+    }
+
+    // Step 2: WebRTC negotiation
+    try {
       const pc = await createPeerConnection();
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
-      await pc.setRemoteDescription(JSON.parse(incomingCall.offer));
+      await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(incomingCall.offer)));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
@@ -128,7 +148,6 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
       });
 
       pollRef.current = setInterval(async () => {
-        if (!incomingCall.id) return;
         const r = await apiFetch(`/api/apartments/${apartmentId}/calls/${incomingCall.id}`);
         if (!r.ok) return;
         const updated = await r.json();
@@ -143,14 +162,17 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
           const key = JSON.stringify(c);
           if (!addedCallerIce.current.has(key)) {
             addedCallerIce.current.add(key);
-            try { await pc.addIceCandidate(c); } catch { /* ignore */ }
+            try { await pc.addIceCandidate(c); } catch { /* stale candidate — safe to ignore */ }
           }
         }
       }, 1500);
 
       setStatus("active");
       timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
-    } catch {
+    } catch (err) {
+      console.error("[Call] answerIncoming WebRTC error:", err);
+      stream.getTracks().forEach(t => t.stop());
+      cleanup();
       setStatus("ended");
       setTimeout(onClose, 1000);
     }
@@ -158,7 +180,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
   async function initOutgoing() {
     try {
-      const stream = await startMedia();
+      const stream = await startMedia(callType);
       const pc = await createPeerConnection();
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
@@ -187,9 +209,13 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
         }
 
         if (updated.answer && pc.signalingState === "have-local-offer") {
-          await pc.setRemoteDescription(JSON.parse(updated.answer));
-          setStatus("active");
-          timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
+          try {
+            await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(updated.answer)));
+            setStatus("active");
+            timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
+          } catch (e) {
+            console.error("[Call] setRemoteDescription (answer) error:", e);
+          }
         }
         if (pc.remoteDescription) {
           const ice: RTCIceCandidateInit[] = JSON.parse(updated.receiverIce || "[]");
@@ -197,12 +223,13 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
             const key = JSON.stringify(c);
             if (!addedReceiverIce.current.has(key)) {
               addedReceiverIce.current.add(key);
-              try { await pc.addIceCandidate(c); } catch { /* ignore */ }
+              try { await pc.addIceCandidate(c); } catch { /* stale candidate — safe to ignore */ }
             }
           }
         }
       }, 1500);
-    } catch {
+    } catch (err) {
+      console.error("[Call] initOutgoing error:", err);
       setStatus("ended");
       setTimeout(onClose, 1000);
     }
@@ -251,7 +278,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
           {status === "connecting" && "Connecting…"}
           {status === "ringing" && (incomingCall ? "Incoming…" : "Ringing…")}
           {status === "active" && fmt(duration)}
-          {status === "ended" && "Call ended"}
+          {status === "ended" && (callError ?? "Call ended")}
         </p>
       </div>
 
