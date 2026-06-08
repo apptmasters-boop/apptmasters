@@ -46,6 +46,8 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const addedCallerIce = useRef<Set<string>>(new Set());
   const addedReceiverIce = useRef<Set<string>>(new Set());
+  // Ref so onicecandidate always has the current call ID (state is stale in closures)
+  const callIdRef = useRef<string | null>(incomingCall?.id ?? null);
 
   const cleanup = useCallback(() => {
     if (pollRef.current) clearInterval(pollRef.current);
@@ -90,11 +92,15 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
     const pc = new RTCPeerConnection(STUN_SERVERS);
     pcRef.current = pc;
     pc.ontrack = e => {
-      if (remoteRef.current) remoteRef.current.srcObject = e.streams[0];
+      if (remoteRef.current) {
+        remoteRef.current.srcObject = e.streams[0];
+        remoteRef.current.play().catch(() => {});
+      }
     };
+    // Use callIdRef (not callId state) — state is stale inside this closure
     pc.onicecandidate = async e => {
-      if (e.candidate && callId) {
-        await apiFetch(`/api/apartments/${apartmentId}/calls/${callId}`, {
+      if (e.candidate && callIdRef.current) {
+        await apiFetch(`/api/apartments/${apartmentId}/calls/${callIdRef.current}`, {
           method: "PATCH",
           body: JSON.stringify({ iceCandidate: e.candidate }),
         });
@@ -164,6 +170,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
         body: JSON.stringify({ type: callType, receiverId, offer: JSON.stringify(offer) }),
       });
       const call = await res.json();
+      callIdRef.current = call.id;  // set ref immediately so onicecandidate can use it
       setCallId(call.id);
       setStatus("ringing");
 
@@ -255,10 +262,17 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
       <div className="relative z-10 flex items-center gap-4">
         <button onClick={toggleMic}
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${micOn ? "bg-gray-700 text-white" : "bg-white text-gray-900"}`}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            {!micOn && <line x1="3" y1="3" x2="21" y2="21" strokeLinecap="round" strokeWidth={2} />}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${micOn ? "bg-gray-700 text-white" : "bg-red-500 text-white"}`}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            {/* Mic capsule */}
+            <rect x="9" y="2" width="6" height="13" rx="3" />
+            {/* Pickup arc */}
+            <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+            {/* Stand */}
+            <line x1="12" y1="18" x2="12" y2="22" />
+            <line x1="8" y1="22" x2="16" y2="22" />
+            {/* Slash when muted */}
+            {!micOn && <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />}
           </svg>
         </button>
 
