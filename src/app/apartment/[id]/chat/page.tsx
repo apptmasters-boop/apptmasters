@@ -12,7 +12,7 @@ interface Sender { id: string; name: string }
 interface ChatMessage {
   id: string; content: string; type: string; readBy: string; createdAt: string;
   sender: Sender;
-  replyTo: { id: string; content: string; sender: Sender } | null;
+  replyTo: { id: string; content: string; type: string; sender: Sender } | null;
 }
 interface Member { id: string; name: string; role: string }
 interface IncomingCall { id: string; type: "VOICE" | "VIDEO"; status: string; offer: string; callerId: string; receiverId: string | null }
