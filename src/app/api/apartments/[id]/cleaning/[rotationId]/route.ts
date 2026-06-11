@@ -30,6 +30,15 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  // Parse optional photo/notes from body
+  let photoUrl: string | undefined;
+  let notes: string | undefined;
+  try {
+    const body = await req.json();
+    photoUrl = body.photoUrl || undefined;
+    notes = body.notes || undefined;
+  } catch { /* body is optional */ }
+
   const now = new Date();
   const travelers = await prisma.travelPeriod.findMany({
     where: {
@@ -50,6 +59,17 @@ export async function POST(
     const candidate = (rotation.currentIndex + i) % order.length;
     if (!travelingIds.has(order[candidate])) { nextIndex = candidate; break; }
   }
+
+  // Create cleaning log for the person who just cleaned
+  await prisma.cleaningLog.create({
+    data: {
+      rotationId,
+      cleanedById: payload.userId,
+      apartmentId,
+      photoUrl: photoUrl ?? null,
+      notes: notes ?? null,
+    },
+  });
 
   const updated = await prisma.cleaningRotation.update({
     where: { id: rotationId },

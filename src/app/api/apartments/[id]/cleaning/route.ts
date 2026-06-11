@@ -23,6 +23,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const rotations = await prisma.cleaningRotation.findMany({
     where: { apartmentId, isActive: true },
     orderBy: { createdAt: "asc" },
+    include: {
+      logs: {
+        orderBy: { cleanedAt: "desc" },
+        take: 3,
+        include: { cleanedBy: { select: { id: true, name: true } } },
+      },
+    },
   });
 
   const now = new Date();
