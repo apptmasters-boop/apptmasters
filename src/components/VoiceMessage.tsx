@@ -13,6 +13,24 @@ function fmt(s: number) {
 }
 
 export default function VoiceMessage({ src, isMe }: Props) {
+  if (!src) {
+    return (
+      <div className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl ${
+        isMe ? "bg-indigo-600" : "bg-white border border-gray-200"
+      }`}>
+        <svg className={`w-4 h-4 flex-shrink-0 ${isMe ? "text-white/50" : "text-gray-300"}`}
+          fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <rect x="9" y="2" width="6" height="13" rx="3" />
+          <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+          <line x1="12" y1="18" x2="12" y2="22" />
+          <line x1="8" y1="22" x2="16" y2="22" />
+        </svg>
+        <span className={`text-xs ${isMe ? "text-white/50" : "text-gray-400"}`}>
+          Voice message expired
+        </span>
+      </div>
+    );
+  }
   const [playing, setPlaying]       = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration]     = useState(0);
