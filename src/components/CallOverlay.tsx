@@ -39,19 +39,25 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
   const [camOn, setCamOn] = useState(callType === "VIDEO");
   const [callError, setCallError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
-  const localRef = useRef<HTMLVideoElement>(null);
+
+  const localRef  = useRef<HTMLVideoElement>(null);
   const remoteRef = useRef<HTMLVideoElement>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const localStreamRef = useRef<MediaStream | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const addedCallerIce = useRef<Set<string>>(new Set());
+  // Dedicated audio element — always in DOM, never display:none, so browser allows autoplay
+  const audioRef  = useRef<HTMLAudioElement>(null);
+
+  const pcRef            = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef   = useRef<MediaStream | null>(null);
+  const pollRef          = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerRef         = useRef<ReturnType<typeof setInterval> | null>(null);
+  const addedCallerIce   = useRef<Set<string>>(new Set());
   const addedReceiverIce = useRef<Set<string>>(new Set());
   // Ref so onicecandidate always has the current call ID (state is stale in closures)
-  const callIdRef = useRef<string | null>(incomingCall?.id ?? null);
+  const callIdRef        = useRef<string | null>(incomingCall?.id ?? null);
+  // Buffer ICE candidates gathered before call ID is known (outgoing only)
+  const iceCandidateQueue = useRef<RTCIceCandidate[]>([]);
 
   const cleanup = useCallback(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
+    if (pollRef.current)  clearInterval(pollRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
     pcRef.current?.close();
     localStreamRef.current?.getTracks().forEach(t => t.stop());
@@ -90,24 +96,48 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
     return stream;
   }
 
-  async function createPeerConnection() {
-    const pc = new RTCPeerConnection(STUN_SERVERS);
-    pcRef.current = pc;
-    pc.ontrack = e => {
+  function attachRemoteStream(stream: MediaStream, type: "VOICE" | "VIDEO") {
+    if (type === "VIDEO") {
       if (remoteRef.current) {
-        remoteRef.current.srcObject = e.streams[0];
+        remoteRef.current.srcObject = stream;
         remoteRef.current.play().catch(() => {});
       }
+    } else {
+      // Use dedicated <audio> element — always in DOM and not display:none,
+      // so browsers don't block autoplay the way they do for hidden <video>.
+      if (audioRef.current) {
+        audioRef.current.srcObject = stream;
+        audioRef.current.play().catch(() => {});
+      }
+    }
+  }
+
+  async function sendIceCandidate(id: string, candidate: RTCIceCandidate) {
+    await apiFetch(`/api/apartments/${apartmentId}/calls/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ iceCandidate: candidate }),
+    });
+  }
+
+  async function createPeerConnection(effectiveType: "VOICE" | "VIDEO") {
+    const pc = new RTCPeerConnection(STUN_SERVERS);
+    pcRef.current = pc;
+
+    pc.ontrack = e => {
+      if (e.streams[0]) attachRemoteStream(e.streams[0], effectiveType);
     };
-    // Use callIdRef (not callId state) — state is stale inside this closure
+
     pc.onicecandidate = async e => {
-      if (e.candidate && callIdRef.current) {
-        await apiFetch(`/api/apartments/${apartmentId}/calls/${callIdRef.current}`, {
-          method: "PATCH",
-          body: JSON.stringify({ iceCandidate: e.candidate }),
-        });
+      if (!e.candidate) return;
+      if (callIdRef.current) {
+        // Call ID already known — send immediately
+        await sendIceCandidate(callIdRef.current, e.candidate);
+      } else {
+        // Call ID not yet known (outgoing: waiting for POST response) — buffer it
+        iceCandidateQueue.current.push(e.candidate);
       }
     };
+
     return pc;
   }
 
@@ -115,9 +145,8 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
     if (!incomingCall) return;
     setCallError(null);
     setStatus("connecting");
-    setCallId(incomingCall.id);
 
-    // Step 1: get mic/camera — handle permission errors separately so we can show a useful message
+    // Step 1: get mic/camera separately so we can show a clear error if denied
     let stream: MediaStream;
     try {
       stream = await startMedia(incomingCall.type);
@@ -135,10 +164,14 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
     // Step 2: WebRTC negotiation
     try {
-      const pc = await createPeerConnection();
+      const pc = await createPeerConnection(incomingCall.type);
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
-      await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(incomingCall.offer)));
+      const offerInit = typeof incomingCall.offer === "string"
+        ? JSON.parse(incomingCall.offer)
+        : incomingCall.offer;
+      await pc.setRemoteDescription(new RTCSessionDescription(offerInit));
+
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
@@ -147,12 +180,16 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
         body: JSON.stringify({ status: "ACTIVE", answer: JSON.stringify(answer) }),
       });
 
+      setStatus("active");
+      timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
+
       pollRef.current = setInterval(async () => {
         const r = await apiFetch(`/api/apartments/${apartmentId}/calls/${incomingCall.id}`);
         if (!r.ok) return;
         const updated = await r.json();
         if (updated.status === "DECLINED" || updated.status === "ENDED") {
           clearInterval(pollRef.current!);
+          cleanup();
           setStatus("ended");
           setTimeout(onClose, 1500);
           return;
@@ -162,39 +199,47 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
           const key = JSON.stringify(c);
           if (!addedCallerIce.current.has(key)) {
             addedCallerIce.current.add(key);
-            try { await pc.addIceCandidate(c); } catch { /* stale candidate — safe to ignore */ }
+            try { await pc.addIceCandidate(c); } catch { /* stale — safe to ignore */ }
           }
         }
       }, 1500);
-
-      setStatus("active");
-      timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
     } catch (err) {
       console.error("[Call] answerIncoming WebRTC error:", err);
       stream.getTracks().forEach(t => t.stop());
       cleanup();
+      setCallError("Connection failed — please try again");
       setStatus("ended");
-      setTimeout(onClose, 1000);
+      setTimeout(onClose, 3000);
     }
   }
 
   async function initOutgoing() {
     try {
       const stream = await startMedia(callType);
-      const pc = await createPeerConnection();
+      const pc = await createPeerConnection(callType);
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
+      // NOTE: ICE candidates may start arriving NOW, before call ID is known.
+      // onicecandidate buffers them in iceCandidateQueue until the ID is set below.
 
       const res = await apiFetch(`/api/apartments/${apartmentId}/calls`, {
         method: "POST",
         body: JSON.stringify({ type: callType, receiverId, offer: JSON.stringify(offer) }),
       });
       const call = await res.json();
-      callIdRef.current = call.id;  // set ref immediately so onicecandidate can use it
+
+      // Set ref first so any future onicecandidate sends immediately
+      callIdRef.current = call.id;
       setCallId(call.id);
       setStatus("ringing");
+
+      // Flush any ICE candidates that were buffered while waiting for the call ID
+      const queued = iceCandidateQueue.current.splice(0);
+      for (const c of queued) {
+        sendIceCandidate(call.id, c).catch(() => {});
+      }
 
       pollRef.current = setInterval(async () => {
         const r = await apiFetch(`/api/apartments/${apartmentId}/calls/${call.id}`);
@@ -203,6 +248,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
         if (updated.status === "DECLINED" || updated.status === "ENDED") {
           clearInterval(pollRef.current!);
+          cleanup();
           setStatus("ended");
           setTimeout(onClose, 1500);
           return;
@@ -210,28 +256,34 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
         if (updated.answer && pc.signalingState === "have-local-offer") {
           try {
-            await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(updated.answer)));
+            const answerInit = typeof updated.answer === "string"
+              ? JSON.parse(updated.answer)
+              : updated.answer;
+            await pc.setRemoteDescription(new RTCSessionDescription(answerInit));
             setStatus("active");
             timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
           } catch (e) {
             console.error("[Call] setRemoteDescription (answer) error:", e);
           }
         }
+
         if (pc.remoteDescription) {
           const ice: RTCIceCandidateInit[] = JSON.parse(updated.receiverIce || "[]");
           for (const c of ice) {
             const key = JSON.stringify(c);
             if (!addedReceiverIce.current.has(key)) {
               addedReceiverIce.current.add(key);
-              try { await pc.addIceCandidate(c); } catch { /* stale candidate — safe to ignore */ }
+              try { await pc.addIceCandidate(c); } catch { /* stale — safe to ignore */ }
             }
           }
         }
       }, 1500);
     } catch (err) {
       console.error("[Call] initOutgoing error:", err);
+      cleanup();
+      setCallError("Could not start call — check mic permissions");
       setStatus("ended");
-      setTimeout(onClose, 1000);
+      setTimeout(onClose, 3000);
     }
   }
 
@@ -260,25 +312,32 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
   }
 
   const displayType = incomingCall ? incomingCall.type : callType;
-  const isIncoming = Boolean(incomingCall);
+  const isIncoming  = Boolean(incomingCall);
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-between py-12">
+      {/* Remote video — only shown for VIDEO calls */}
       <video ref={remoteRef} autoPlay playsInline
         className={displayType === "VIDEO" ? "absolute inset-0 w-full h-full object-cover opacity-80" : "hidden"} />
+
+      {/* Dedicated audio element for VOICE calls — always rendered, never display:none,
+          so browsers don't block autoplay on hidden elements */}
+      <audio ref={audioRef} autoPlay playsInline />
 
       <div className="relative z-10 text-center">
         <div className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-3xl font-bold text-white mx-auto mb-4">
           {incomingCall ? "?" : receiverId ? "?" : "G"}
         </div>
         <p className="text-white font-semibold text-lg">
-          {incomingCall ? (incomingCall.receiverId ? "Incoming call" : "Incoming group call") : (receiverId ? "Direct call" : "Group call")}
+          {incomingCall
+            ? (incomingCall.receiverId ? "Incoming call" : "Incoming group call")
+            : (receiverId ? "Direct call" : "Group call")}
         </p>
         <p className="text-gray-300 text-sm mt-1">
           {status === "connecting" && "Connecting…"}
-          {status === "ringing" && (incomingCall ? "Incoming…" : "Ringing…")}
-          {status === "active" && fmt(duration)}
-          {status === "ended" && (callError ?? "Call ended")}
+          {status === "ringing"    && (incomingCall ? "Incoming…" : "Ringing…")}
+          {status === "active"     && fmt(duration)}
+          {status === "ended"      && (callError ?? "Call ended")}
         </p>
       </div>
 
@@ -291,14 +350,10 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
         <button onClick={toggleMic}
           className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${micOn ? "bg-gray-700 text-white" : "bg-red-500 text-white"}`}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            {/* Mic capsule */}
             <rect x="9" y="2" width="6" height="13" rx="3" />
-            {/* Pickup arc */}
             <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
-            {/* Stand */}
             <line x1="12" y1="18" x2="12" y2="22" />
             <line x1="8" y1="22" x2="16" y2="22" />
-            {/* Slash when muted */}
             {!micOn && <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />}
           </svg>
         </button>
