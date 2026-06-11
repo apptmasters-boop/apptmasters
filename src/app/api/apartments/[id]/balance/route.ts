@@ -34,7 +34,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
   }
 
-  // Simplify debts: net out A→B and B→A
+  // Simplify debts: balances[A][B] is already net (positive = A is owed by B, negative = A owes B)
+  // balances[A][B] === -balances[B][A] by construction, so just use amount directly — don't subtract
+  // the mirror entry or you double the value.
   const simplified: { from: string; to: string; amount: number }[] = [];
   const seen = new Set<string>();
   for (const [fromId, tos] of Object.entries(balances)) {
@@ -42,9 +44,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       const key = [fromId, toId].sort().join(":");
       if (seen.has(key)) continue;
       seen.add(key);
-      const net = amount - (balances[toId]?.[fromId] ?? 0);
-      if (net > 0.01) simplified.push({ from: toId, to: fromId, amount: parseFloat(net.toFixed(2)) });
-      else if (net < -0.01) simplified.push({ from: fromId, to: toId, amount: parseFloat((-net).toFixed(2)) });
+      if (amount > 0.01) simplified.push({ from: toId, to: fromId, amount: parseFloat(amount.toFixed(2)) });
+      else if (amount < -0.01) simplified.push({ from: fromId, to: toId, amount: parseFloat((-amount).toFixed(2)) });
     }
   }
 
