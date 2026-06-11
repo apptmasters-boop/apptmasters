@@ -41,16 +41,23 @@ export default function ApartmentPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteSending, setInviteSending] = useState(false);
   const [inviteSent, setInviteSent] = useState(false);
+  const [travelers, setTravelers] = useState<{ id: string; userId: string; endDate: string | null; user: { id: string; name: string } }[]>([]);
+  const [travelModal, setTravelModal] = useState<string | null>(null); // userId
+  const [travelForm, setTravelForm] = useState({ startDate: "", endDate: "", notes: "" });
+  const [markingTravel, setMarkingTravel] = useState(false);
+  const [markingReturn, setMarkingReturn] = useState<string | null>(null);
 
   async function load() {
-    const [aptRes, meRes] = await Promise.all([
+    const [aptRes, meRes, travRes] = await Promise.all([
       apiFetch(`/api/apartments/${id}`),
       apiFetch("/api/auth/me"),
+      apiFetch(`/api/apartments/${id}/travel`),
     ]);
     if (aptRes.status === 401) { router.replace("/login"); return; }
     if (!aptRes.ok) { router.replace("/dashboard"); return; }
     setApt(await aptRes.json());
     if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); }
+    if (travRes.ok) setTravelers(await travRes.json());
     setLoading(false);
 
     // Load today's snapshot in the background
@@ -154,6 +161,33 @@ export default function ApartmentPage() {
 
   async function clearAnnouncement() {
     await apiFetch(`/api/apartments/${id}`, { method: "PATCH", body: JSON.stringify({ announcement: null }) });
+    load();
+  }
+
+  async function markTraveling(userId: string) {
+    setMarkingTravel(true);
+    await apiFetch(`/api/apartments/${id}/travel`, {
+      method: "POST",
+      body: JSON.stringify({
+        userId,
+        startDate: travelForm.startDate || new Date().toISOString(),
+        endDate: travelForm.endDate || null,
+        notes: travelForm.notes || null,
+      }),
+    });
+    setTravelModal(null);
+    setTravelForm({ startDate: "", endDate: "", notes: "" });
+    setMarkingTravel(false);
+    load();
+  }
+
+  async function markReturned(travelId: string) {
+    setMarkingReturn(travelId);
+    await apiFetch(`/api/apartments/${id}/travel/${travelId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ returned: true }),
+    });
+    setMarkingReturn(null);
     load();
   }
 
@@ -318,6 +352,14 @@ export default function ApartmentPage() {
             </div>
             <span className="text-orange-100">→</span>
           </Link>
+          <Link href={`/apartment/${apt.id}/cleaning`}
+            className="flex items-center justify-between bg-cyan-600 text-white rounded-xl px-4 py-4 hover:bg-cyan-700 transition-colors">
+            <div>
+              <p className="font-semibold text-sm">Cleaning Rotation</p>
+              <p className="text-xs text-cyan-200 mt-0.5">Who cleans next</p>
+            </div>
+            <span className="text-cyan-200">→</span>
+          </Link>
           <Link href={`/apartment/${apt.id}/stats`}
             className="col-span-2 flex items-center justify-between bg-gray-800 text-white rounded-xl px-4 py-4 hover:bg-gray-900 transition-colors">
             <div>
@@ -409,35 +451,99 @@ export default function ApartmentPage() {
           <div className="space-y-3">
             {apt.members.map(m => {
               const flags: string[] = JSON.parse(m.user.dietaryFlags || "[]");
+              const activeTravelPeriod = travelers.find(t => t.userId === m.user.id);
+              const canManageTravel = isAdmin || m.user.id === currentUserId;
               return (
-                <Link key={m.id} href={`/apartment/${apt.id}/members/${m.user.id}`}
-                  className="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between hover:border-indigo-300 transition-colors">
-                  <div className="flex items-center gap-3">
-                    {m.user.photo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.user.photo} alt={m.user.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-semibold text-indigo-600">
-                        {m.user.name[0].toUpperCase()}
+                <div key={m.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <Link href={`/apartment/${apt.id}/members/${m.user.id}`}
+                    className="px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors block">
+                    <div className="flex items-center gap-3">
+                      {m.user.photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={m.user.photo} alt={m.user.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
+                      ) : (
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${activeTravelPeriod ? "bg-amber-100 text-amber-600" : "bg-indigo-100 text-indigo-600"}`}>
+                          {activeTravelPeriod ? "✈" : m.user.name[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-gray-900">{m.user.name}</p>
+                          {activeTravelPeriod && (
+                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                              ✈ Traveling{activeTravelPeriod.endDate ? ` until ${new Date(activeTravelPeriod.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          {m.user.roomAssignment ?? "No room"} · {m.role} · {m.status}
+                          {flags.length > 0 && ` · ${flags.join(", ")}`}
+                        </p>
                       </div>
-                    )}
-                    <div>
-                      <p className="font-medium text-gray-900">{m.user.name}</p>
-                      <p className="text-xs text-gray-400">
-                        {m.user.roomAssignment ?? "No room"} · {m.role} · {m.status}
-                        {flags.length > 0 && ` · ${flags.join(", ")}`}
-                      </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {m.status === "VACATION" && (
-                      <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">On vacation</span>
-                    )}
                     <span className="text-gray-300 text-sm">→</span>
-                  </div>
-                </Link>
+                  </Link>
+                  {canManageTravel && (
+                    <div className="px-5 pb-3 border-t border-gray-50 flex gap-2 pt-2">
+                      {activeTravelPeriod ? (
+                        <button
+                          onClick={() => markReturned(activeTravelPeriod.id)}
+                          disabled={markingReturn === activeTravelPeriod.id}
+                          className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-lg font-medium hover:bg-green-100 disabled:opacity-50 transition-colors">
+                          {markingReturn === activeTravelPeriod.id ? "…" : "Mark returned"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => { setTravelModal(m.user.id); setTravelForm({ startDate: "", endDate: "", notes: "" }); }}
+                          className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-lg font-medium hover:bg-amber-100 transition-colors">
+                          ✈ Mark as traveling
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Travel modal */}
+        {travelModal && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
+              <h3 className="font-bold text-gray-900">Mark as traveling</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Start date</label>
+                  <input type="date" value={travelForm.startDate}
+                    onChange={e => setTravelForm(f => ({ ...f, startDate: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Return date (optional)</label>
+                  <input type="date" value={travelForm.endDate}
+                    onChange={e => setTravelForm(f => ({ ...f, endDate: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Notes (optional)</label>
+                  <input type="text" placeholder="Visiting family, work trip…" value={travelForm.notes}
+                    onChange={e => setTravelForm(f => ({ ...f, notes: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-400">While traveling: cleaning rotation skips this person, and new expenses with equal split exclude them.</p>
+              <div className="flex gap-2">
+                <button onClick={() => markTraveling(travelModal!)} disabled={markingTravel}
+                  className="flex-1 bg-amber-500 text-white py-2.5 rounded-xl font-medium hover:bg-amber-600 disabled:opacity-50 transition-colors">
+                  {markingTravel ? "Saving…" : "Confirm travel"}
+                </button>
+                <button onClick={() => setTravelModal(null)}
+                  className="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

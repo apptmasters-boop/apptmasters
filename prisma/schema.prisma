@@ -34,6 +34,7 @@ model User {
   expenseSplits            ExpenseSplit[]
   expenseEditRequests      ExpenseEditRequest[] @relation("EditRequester")
   expenseEditApprovals     ExpenseEditApproval[] @relation("EditApprover")
+  travelPeriods            TravelPeriod[]        @relation("UserTravels")
   settlementsFrom          Settlement[]       @relation("SettlementFrom")
   settlementsTo            Settlement[]       @relation("SettlementTo")
   rentCyclesAsPayer        RentCycle[]
@@ -78,7 +79,9 @@ model Apartment {
   chores     Chore[]
   expenses   Expense[]
   settlements Settlement[]
-  expenseEditRequests ExpenseEditRequest[]
+  expenseEditRequests   ExpenseEditRequest[]
+  cleaningRotations     CleaningRotation[]
+  travelPeriods         TravelPeriod[]
   rentConfig RentConfig?
   rentCycles RentCycle[]
   notifications Notification[]
@@ -274,6 +277,35 @@ model ExpenseEditApproval {
   approver User               @relation("EditApprover", fields: [approverId], references: [id], onDelete: Cascade)
 
   @@unique([requestId, approverId])
+}
+
+model CleaningRotation {
+  id           String    @id @default(cuid())
+  name         String
+  frequency    String    @default("WEEKLY") // DAILY | WEEKLY | MONTHLY
+  currentIndex Int       @default(0)
+  memberOrder  String    // JSON: userId[]
+  nextDue      DateTime?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  apartmentId String
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+}
+
+model TravelPeriod {
+  id         String    @id @default(cuid())
+  startDate  DateTime
+  endDate    DateTime?
+  returnedAt DateTime?
+  notes      String?
+  createdAt  DateTime  @default(now())
+
+  userId      String
+  apartmentId String
+  user        User      @relation("UserTravels", fields: [userId], references: [id], onDelete: Cascade)
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
 }
 
 model ExpenseSplit {

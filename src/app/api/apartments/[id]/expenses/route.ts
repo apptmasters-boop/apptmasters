@@ -61,7 +61,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     where: { apartmentId, status: "ACTIVE", role: { not: "GUEST" } },
     select: { userId: true },
   });
-  const memberIds = activeMembers.map(m => m.userId);
+  const allMemberIds = activeMembers.map(m => m.userId);
+
+  // Exclude currently-traveling members (except the payer) from EQUAL splits
+  const now = new Date();
+  const travelers = await prisma.travelPeriod.findMany({
+    where: {
+      apartmentId,
+      startDate: { lte: now },
+      returnedAt: null,
+      OR: [{ endDate: null }, { endDate: { gte: now } }],
+      userId: { not: payload.userId }, // never skip payer
+    },
+    select: { userId: true },
+  });
+  const travelingIds = new Set(travelers.map(t => t.userId));
+  const memberIds = allMemberIds.filter(uid => !travelingIds.has(uid));
 
   let splits: { userId: string; amount: number }[] = [];
   if (rest.splitMethod === "EQUAL") {
