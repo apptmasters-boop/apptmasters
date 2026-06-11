@@ -12,8 +12,10 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  return NextResponse.json({ error: "Registration is currently closed. Please check back later." }, { status: 503 });
+
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
-  const { ok } = rateLimit(`register:${ip}`, 5, 60_000); // 5 registrations per minute per IP
+  const { ok } = rateLimit(`register:${ip}`, 5, 60_000);
   if (!ok) return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
 
   const body = await req.json();
