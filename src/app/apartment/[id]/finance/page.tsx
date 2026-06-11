@@ -57,6 +57,7 @@ export default function FinancePage() {
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [approvingRequest, setApprovingRequest] = useState<string | null>(null);
   const [confirmingCash, setConfirmingCash] = useState<string | null>(null); // expenseId:userId
+  const [bulkSettling, setBulkSettling] = useState<string | null>(null); // toUserId:method
 
   async function load() {
     const [expRes, balRes, aptRes, meRes, erRes] = await Promise.all([
@@ -167,6 +168,21 @@ export default function FinancePage() {
     setApprovingRequest(requestId);
     await apiFetch(`/api/apartments/${apartmentId}/edit-requests/${requestId}`, { method: "POST" });
     setApprovingRequest(null);
+    load();
+  }
+
+  async function bulkSettle(toUserId: string, toName: string, amount: number, method: "CASH" | "BANK") {
+    const key = `${toUserId}:${method}`;
+    setBulkSettling(key);
+    if (method === "BANK") {
+      const link = PAYMENT_LINKS["BANK"]?.(toName, amount);
+      if (link) window.open(link, "_blank");
+    }
+    await apiFetch(`/api/apartments/${apartmentId}/balance`, {
+      method: "POST",
+      body: JSON.stringify({ toUserId, method }),
+    });
+    setBulkSettling(null);
     load();
   }
 
@@ -395,17 +411,27 @@ export default function FinancePage() {
                 </div>
                 {b.direction === "you_owe" && (
                   <div className="flex gap-2 flex-wrap">
-                    {METHODS.map(method => {
+                    {["VENMO", "PAYPAL", "CASHAPP"].map(method => {
                       const link = PAYMENT_LINKS[method]?.(b.toName, b.amount);
                       return link ? (
                         <a key={method} href={link} target="_blank" rel="noopener noreferrer"
                           className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-lg font-medium hover:bg-indigo-100 transition-colors">
                           Pay via {method}
                         </a>
-                      ) : (
-                        <span key={method} className="text-xs text-gray-400 px-3 py-1">{method}</span>
-                      );
+                      ) : null;
                     })}
+                    <button
+                      onClick={() => bulkSettle(b.to, b.toName, b.amount, "CASH")}
+                      disabled={bulkSettling === `${b.to}:CASH`}
+                      className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-lg font-medium hover:bg-amber-100 disabled:opacity-50 transition-colors">
+                      {bulkSettling === `${b.to}:CASH` ? "…" : "Mark paid in cash"}
+                    </button>
+                    <button
+                      onClick={() => bulkSettle(b.to, b.toName, b.amount, "BANK")}
+                      disabled={bulkSettling === `${b.to}:BANK`}
+                      className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-lg font-medium hover:bg-indigo-100 disabled:opacity-50 transition-colors">
+                      {bulkSettling === `${b.to}:BANK` ? "…" : "Paid via bank"}
+                    </button>
                   </div>
                 )}
               </div>
