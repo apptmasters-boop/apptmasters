@@ -37,6 +37,12 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // Block direct edits to field content after 24h — require approval workflow instead
+  const ageMs = Date.now() - new Date(expense.createdAt).getTime();
+  if (isEditing && ageMs > 24 * 60 * 60 * 1000) {
+    return NextResponse.json({ error: "expense_locked", message: "Expense is older than 24h — submit an edit request for approval" }, { status: 409 });
+  }
+
   const updated = await prisma.expense.update({ where: { id: expenseId }, data: parsed.data });
   return NextResponse.json(updated);
 }

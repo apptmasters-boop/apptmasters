@@ -32,6 +32,8 @@ model User {
   swapRequestsTo           ChoreSwapRequest[] @relation("SwapTo")
   expensesPaid             Expense[]          @relation("ExpensePayer")
   expenseSplits            ExpenseSplit[]
+  expenseEditRequests      ExpenseEditRequest[] @relation("EditRequester")
+  expenseEditApprovals     ExpenseEditApproval[] @relation("EditApprover")
   settlementsFrom          Settlement[]       @relation("SettlementFrom")
   settlementsTo            Settlement[]       @relation("SettlementTo")
   rentCyclesAsPayer        RentCycle[]
@@ -76,6 +78,7 @@ model Apartment {
   chores     Chore[]
   expenses   Expense[]
   settlements Settlement[]
+  expenseEditRequests ExpenseEditRequest[]
   rentConfig RentConfig?
   rentCycles RentCycle[]
   notifications Notification[]
@@ -229,6 +232,48 @@ model Expense {
   apartment   Apartment    @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   paidBy      User         @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Cascade)
   splits      ExpenseSplit[]
+  editRequests ExpenseEditRequest[]
+}
+
+model ExpenseEditRequest {
+  id     String @id @default(cuid())
+  status String @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED
+
+  proposedTitle    String?
+  proposedAmount   Float?
+  proposedCategory String?
+  proposedNotes    String?
+
+  originalTitle    String
+  originalAmount   Float
+  originalCategory String
+  originalNotes    String?
+
+  requiredApprovals Int
+  appliedAt         DateTime?
+  createdAt         DateTime @default(now())
+
+  expenseId   String
+  requesterId String
+  apartmentId String
+
+  expense   Expense    @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  requester User       @relation("EditRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  apartment Apartment  @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  approvals ExpenseEditApproval[]
+}
+
+model ExpenseEditApproval {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  requestId  String
+  approverId String
+
+  request  ExpenseEditRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approver User               @relation("EditApprover", fields: [approverId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, approverId])
 }
 
 model ExpenseSplit {

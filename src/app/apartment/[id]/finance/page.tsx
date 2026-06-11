@@ -16,11 +16,20 @@ const PAYMENT_LINKS: Record<string, (name: string, amount: number) => string> = 
 interface Split { userId: string; amount: number; status: string; user: { id: string; name: string } }
 interface Expense {
   id: string; title: string; amount: number; category: string; splitMethod: string;
-  status: string; date: string; isRecurring: boolean; notes: string | null; receiptUrl: string | null;
+  status: string; date: string; createdAt: string; isRecurring: boolean; notes: string | null; receiptUrl: string | null;
   paidBy: { id: string; name: string };
   splits: Split[];
 }
 interface Balance { from: string; to: string; fromName: string; toName: string; amount: number; direction: string }
+interface EditApproval { id: string; approver: { id: string; name: string }; createdAt: string }
+interface EditRequest {
+  id: string; status: string; requiredApprovals: number; createdAt: string;
+  requesterId: string; requester: { id: string; name: string };
+  expenseId: string;
+  proposedTitle: string | null; proposedAmount: number | null; proposedCategory: string | null; proposedNotes: string | null;
+  originalTitle: string; originalAmount: number; originalCategory: string; originalNotes: string | null;
+  approvals: EditApproval[];
+}
 
 export default function FinancePage() {
   const { id: apartmentId } = useParams<{ id: string }>();
@@ -31,7 +40,7 @@ export default function FinancePage() {
   const [currentUserId, setCurrentUserId] = useState("");
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
-  const [tab, setTab] = useState<"expenses" | "balance">("balance");
+  const [tab, setTab] = useState<"expenses" | "balance" | "approvals">("balance");
   const [form, setForm] = useState({
     title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL",
     isRecurring: false, frequency: "MONTHLY", date: "", notes: "", receiptUrl: "",
@@ -42,13 +51,19 @@ export default function FinancePage() {
   const [renewing, setRenewing] = useState(false);
   const [editingExpense, setEditingExpense] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ title: "", amount: "", category: "", notes: "" });
+  const [editRequests, setEditRequests] = useState<EditRequest[]>([]);
+  const [requestingEdit, setRequestingEdit] = useState<string | null>(null);
+  const [requestForm, setRequestForm] = useState({ title: "", amount: "", category: "", notes: "" });
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [approvingRequest, setApprovingRequest] = useState<string | null>(null);
 
   async function load() {
-    const [expRes, balRes, aptRes, meRes] = await Promise.all([
+    const [expRes, balRes, aptRes, meRes, erRes] = await Promise.all([
       apiFetch(`/api/apartments/${apartmentId}/expenses`),
       apiFetch(`/api/apartments/${apartmentId}/balance`),
       apiFetch(`/api/apartments/${apartmentId}`),
       apiFetch("/api/auth/me"),
+      apiFetch(`/api/apartments/${apartmentId}/edit-requests`),
     ]);
     if (expRes.status === 401) { router.replace("/login"); return; }
     setExpenses(await expRes.json());
@@ -58,6 +73,7 @@ export default function FinancePage() {
     setMembers(apt.members.map((m: { user: { id: string; name: string } }) => m.user));
     const me = await meRes.json();
     setCurrentUserId(me.id);
+    if (erRes.ok) setEditRequests(await erRes.json());
     setLoading(false);
   }
 
@@ -127,6 +143,29 @@ export default function FinancePage() {
       }),
     });
     setEditingExpense(null);
+    load();
+  }
+
+  async function submitEditRequest(expenseId: string) {
+    setSubmittingRequest(true);
+    const body: Record<string, unknown> = {};
+    if (requestForm.title.trim()) body.title = requestForm.title.trim();
+    if (requestForm.amount && parseFloat(requestForm.amount) > 0) body.amount = parseFloat(requestForm.amount);
+    if (requestForm.category) body.category = requestForm.category;
+    if (requestForm.notes !== undefined) body.notes = requestForm.notes || null;
+    await apiFetch(`/api/apartments/${apartmentId}/expenses/${expenseId}/edit-request`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    setRequestingEdit(null);
+    setSubmittingRequest(false);
+    load();
+  }
+
+  async function approveRequest(requestId: string) {
+    setApprovingRequest(requestId);
+    await apiFetch(`/api/apartments/${apartmentId}/edit-requests/${requestId}`, { method: "POST" });
+    setApprovingRequest(null);
     load();
   }
 
@@ -315,10 +354,15 @@ export default function FinancePage() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-          {(["balance", "expenses"] as const).map(t => (
+          {(["balance", "expenses", "approvals"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+              className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors relative ${tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
               {t}
+              {t === "approvals" && editRequests.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+                  {editRequests.length}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -357,6 +401,66 @@ export default function FinancePage() {
           </div>
         )}
 
+        {/* Approvals tab */}
+        {tab === "approvals" && (
+          <div className="space-y-3">
+            {editRequests.length === 0 && <p className="text-sm text-gray-400 text-center py-6">No pending edit requests.</p>}
+            {editRequests.map(req => {
+              const alreadyApproved = req.approvals.some(a => a.approver.id === currentUserId);
+              const isRequester = req.requesterId === currentUserId;
+              return (
+                <div key={req.id} className="bg-white border border-amber-200 rounded-xl px-5 py-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{req.requester.name} wants to edit an expense</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{new Date(req.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                    </div>
+                    <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                      {req.approvals.length}/{req.requiredApprovals} approved
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-gray-50 rounded-lg p-2.5">
+                      <p className="text-gray-400 font-medium mb-1">Original</p>
+                      <p className="text-gray-700">{req.originalTitle}</p>
+                      <p className="text-gray-500">${req.originalAmount.toFixed(2)} · {req.originalCategory}</p>
+                      {req.originalNotes && <p className="text-gray-400 italic">{req.originalNotes}</p>}
+                    </div>
+                    <div className="bg-indigo-50 rounded-lg p-2.5">
+                      <p className="text-indigo-500 font-medium mb-1">Proposed</p>
+                      <p className="text-gray-700">{req.proposedTitle ?? req.originalTitle}</p>
+                      <p className="text-gray-500">${(req.proposedAmount ?? req.originalAmount).toFixed(2)} · {req.proposedCategory ?? req.originalCategory}</p>
+                      {(req.proposedNotes !== null && req.proposedNotes !== undefined ? req.proposedNotes : req.originalNotes) && (
+                        <p className="text-gray-400 italic">{req.proposedNotes !== null && req.proposedNotes !== undefined ? req.proposedNotes : req.originalNotes}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {req.approvals.length > 0 && (
+                    <p className="text-xs text-gray-400">
+                      Approved by: {req.approvals.map(a => a.approver.name).join(", ")}
+                    </p>
+                  )}
+
+                  {!isRequester && !alreadyApproved && (
+                    <button onClick={() => approveRequest(req.id)} disabled={approvingRequest === req.id}
+                      className="w-full text-sm bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                      {approvingRequest === req.id ? "Approving…" : "Approve edit"}
+                    </button>
+                  )}
+                  {alreadyApproved && (
+                    <p className="text-xs text-green-600 font-medium text-center">You approved this ✓</p>
+                  )}
+                  {isRequester && (
+                    <p className="text-xs text-gray-400 text-center">Waiting for roommates to approve</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Expenses tab */}
         {tab === "expenses" && (
           <div className="space-y-3">
@@ -365,6 +469,10 @@ export default function FinancePage() {
               const mySplit = exp.splits.find(s => s.userId === currentUserId);
               const isPayer = exp.paidBy.id === currentUserId;
               const isEditing = editingExpense === exp.id;
+              const isRequestingEdit = requestingEdit === exp.id;
+              const ageMs = Date.now() - new Date(exp.createdAt).getTime();
+              const isLocked = ageMs > 24 * 60 * 60 * 1000;
+              const pendingRequest = editRequests.find(r => r.expenseId === exp.id);
               return (
                 <div key={exp.id} className={`bg-white border rounded-xl px-5 py-4 ${exp.status === "DISPUTED" ? "border-orange-300" : "border-gray-200"}`}>
                   {isEditing ? (
@@ -384,6 +492,33 @@ export default function FinancePage() {
                       <div className="flex gap-2">
                         <button onClick={() => saveEdit(exp.id)} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">Save</button>
                         <button onClick={() => setEditingExpense(null)} className="text-xs text-gray-500 px-3 py-1.5">Cancel</button>
+                      </div>
+                    </div>
+                  ) : isRequestingEdit ? (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-indigo-700 mb-1">Request edit — propose changes</p>
+                      <input type="text" placeholder={`Title (current: ${exp.title})`} value={requestForm.title}
+                        onChange={e => setRequestForm(f => ({ ...f, title: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      <div className="grid grid-cols-2 gap-2">
+                        <input type="number" min="0.01" step="0.01" placeholder={`Amount (${exp.amount.toFixed(2)})`}
+                          value={requestForm.amount} onChange={e => setRequestForm(f => ({ ...f, amount: e.target.value }))}
+                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <select value={requestForm.category || exp.category}
+                          onChange={e => setRequestForm(f => ({ ...f, category: e.target.value }))}
+                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <input type="text" placeholder="Notes (optional)" value={requestForm.notes}
+                        onChange={e => setRequestForm(f => ({ ...f, notes: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      <div className="flex gap-2">
+                        <button onClick={() => submitEditRequest(exp.id)} disabled={submittingRequest}
+                          className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                          {submittingRequest ? "Submitting…" : "Submit request"}
+                        </button>
+                        <button onClick={() => setRequestingEdit(null)} className="text-xs text-gray-500 px-3 py-1.5">Cancel</button>
                       </div>
                     </div>
                   ) : (
@@ -441,9 +576,19 @@ export default function FinancePage() {
                           </>
                         )}
                         <div className="flex-1" />
-                        {isPayer && exp.status === "ACTIVE" && (
-                          <button onClick={() => { setEditingExpense(exp.id); setEditForm({ title: exp.title, amount: exp.amount.toString(), category: exp.category, notes: exp.notes ?? "" }); }}
-                            className="text-xs text-indigo-400 hover:text-indigo-600 font-medium">Edit</button>
+                        {pendingRequest && (
+                          <span className="text-xs text-amber-600 font-medium bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                            Edit pending ({pendingRequest.approvals.length}/{pendingRequest.requiredApprovals})
+                          </span>
+                        )}
+                        {isPayer && exp.status === "ACTIVE" && !pendingRequest && (
+                          isLocked ? (
+                            <button onClick={() => { setRequestingEdit(exp.id); setRequestForm({ title: exp.title, amount: exp.amount.toString(), category: exp.category, notes: exp.notes ?? "" }); }}
+                              className="text-xs text-amber-500 hover:text-amber-700 font-medium">Request edit</button>
+                          ) : (
+                            <button onClick={() => { setEditingExpense(exp.id); setEditForm({ title: exp.title, amount: exp.amount.toString(), category: exp.category, notes: exp.notes ?? "" }); }}
+                              className="text-xs text-indigo-400 hover:text-indigo-600 font-medium">Edit</button>
+                          )
                         )}
                         {isPayer && (
                           <button onClick={() => deleteExpense(exp.id)}
