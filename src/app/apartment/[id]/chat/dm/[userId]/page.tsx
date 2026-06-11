@@ -4,23 +4,28 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import CallOverlay from "@/components/CallOverlay";
+import AudioRecorder from "@/components/AudioRecorder";
+import VoiceMessage from "@/components/VoiceMessage";
 
-interface DirectMessage { id: string; content: string; read: boolean; createdAt: string; sender: { id: string; name: string } }
+interface DirectMessage {
+  id: string; content: string; type: string; read: boolean; createdAt: string;
+  sender: { id: string; name: string };
+}
 interface IncomingCall { id: string; type: "VOICE" | "VIDEO"; status: string; offer: string; callerId: string; receiverId: string | null }
 
 export default function DMPage() {
   const { id: apartmentId, userId: otherUserId } = useParams<{ id: string; userId: string }>();
   const router = useRouter();
-  const [messages, setMessages] = useState<DirectMessage[]>([]);
+  const [messages, setMessages]   = useState<DirectMessage[]>([]);
   const [otherName, setOtherName] = useState("");
   const [currentUserId, setCurrentUserId] = useState("");
-  const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [content, setContent] = useState("");
-  const [sending, setSending] = useState(false);
-  const [callTarget, setCallTarget] = useState<"VOICE" | "VIDEO" | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [incomingCall, setIncomingCall]   = useState<IncomingCall | null>(null);
+  const [loading, setLoading]     = useState(true);
+  const [content, setContent]     = useState("");
+  const [sending, setSending]     = useState(false);
+  const [callTarget, setCallTarget]     = useState<"VOICE" | "VIDEO" | null>(null);
+  const [recorderActive, setRecorderActive] = useState(false);
+  const bottomRef   = useRef<HTMLDivElement>(null);
   const callPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function loadMessages() {
@@ -44,11 +49,8 @@ export default function DMPage() {
 
   useEffect(() => {
     load();
-    // SSE for real-time new messages
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    const es = new EventSource(
-      `/api/apartments/${apartmentId}/dm/${otherUserId}/stream?token=${token}`
-    );
+    const es = new EventSource(`/api/apartments/${apartmentId}/dm/${otherUserId}/stream?token=${token}`);
     es.onmessage = e => {
       const incoming: DirectMessage[] = JSON.parse(e.data);
       setMessages(prev => {
@@ -89,11 +91,29 @@ export default function DMPage() {
     await loadMessages();
   }
 
+  async function sendAudio(blob: Blob, mimeType: string) {
+    setSending(true);
+    const form = new FormData();
+    form.append("audio", blob, `voice.${mimeType.includes("mp4") ? "mp4" : "webm"}`);
+    const uploadRes = await apiFetch("/api/upload/audio", { method: "POST", body: form });
+    if (!uploadRes.ok) { setSending(false); return; }
+    const { url } = await uploadRes.json();
+    await apiFetch(`/api/apartments/${apartmentId}/dm/${otherUserId}`, {
+      method: "POST",
+      body: JSON.stringify({ content: url, type: "AUDIO" }),
+    });
+    setSending(false);
+    await loadMessages();
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
+    // h-screen keeps header + footer pinned — only the message list scrolls
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+
+      {/* Sticky header */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
           <Link href={`/apartment/${apartmentId}/chat`} className="text-sm text-gray-400 hover:text-gray-600">←</Link>
           <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-600">
@@ -119,21 +139,27 @@ export default function DMPage() {
         </div>
       </header>
 
+      {/* Messages — this is the only part that scrolls */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
         {messages.length === 0 && (
           <div className="text-center text-gray-400 text-sm py-12">No messages yet.</div>
         )}
         {messages.map(msg => {
-          const isMe = msg.sender.id === currentUserId;
+          const isMe    = msg.sender.id === currentUserId;
+          const isAudio = msg.type === "AUDIO";
           return (
             <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[75%] flex flex-col ${isMe ? "items-end" : "items-start"}`}>
-                <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
-                  {msg.content}
-                </div>
+                {isAudio ? (
+                  <VoiceMessage src={msg.content} isMe={isMe} />
+                ) : (
+                  <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
+                    {msg.content}
+                  </div>
+                )}
                 <p className="text-[10px] text-gray-400 mt-0.5 mx-1">
                   {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  {isMe && <span className="ml-1">{msg.read ? "· Read" : "· Sent"}</span>}
+                  {isMe && !isAudio && <span className="ml-1">{msg.read ? "· Read" : "· Sent"}</span>}
                 </p>
               </div>
             </div>
@@ -142,16 +168,35 @@ export default function DMPage() {
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={send} className="px-4 py-3 bg-white border-t border-gray-200 flex gap-2 flex-shrink-0">
-        <input
-          type="text" placeholder={`Message ${otherName}…`} value={content}
-          onChange={e => setContent(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <button type="submit" disabled={!content.trim() || sending}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors">
-          Send
-        </button>
+      {/* Input */}
+      <form onSubmit={send} className="px-4 py-3 bg-white border-t border-gray-200 flex items-center gap-2 flex-shrink-0">
+        {recorderActive ? (
+          <AudioRecorder
+            sending={sending}
+            onSend={sendAudio}
+            onActiveChange={setRecorderActive}
+          />
+        ) : (
+          <>
+            <input
+              type="text" placeholder={`Message ${otherName}…`} value={content}
+              onChange={e => setContent(e.target.value)}
+              className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            {content.trim() ? (
+              <button type="submit" disabled={sending}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors flex-shrink-0">
+                Send
+              </button>
+            ) : (
+              <AudioRecorder
+                sending={sending}
+                onSend={sendAudio}
+                onActiveChange={setRecorderActive}
+              />
+            )}
+          </>
+        )}
       </form>
 
       {(incomingCall || callTarget) && (
@@ -161,10 +206,7 @@ export default function DMPage() {
           receiverId={incomingCall?.receiverId ?? (callTarget ? otherUserId : null)}
           callType={incomingCall?.type ?? callTarget ?? "VOICE"}
           incomingCall={incomingCall ?? undefined}
-          onClose={() => {
-            setIncomingCall(null);
-            setCallTarget(null);
-          }}
+          onClose={() => { setIncomingCall(null); setCallTarget(null); }}
         />
       )}
     </div>

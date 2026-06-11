@@ -56,13 +56,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
 
   const isEmergency = type === "EMERGENCY";
+  const isAudio     = type === "AUDIO";
 
   const message = await prisma.chatMessage.create({
     data: {
       apartmentId,
       senderId: payload.userId,
       content: content.trim(),
-      type: isEmergency ? "EMERGENCY" : "TEXT",
+      type: isEmergency ? "EMERGENCY" : isAudio ? "AUDIO" : "TEXT",
       replyToId: replyToId ?? null,
       readBy: JSON.stringify([payload.userId]),
     },

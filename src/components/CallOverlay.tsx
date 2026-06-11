@@ -37,6 +37,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
   const [callId, setCallId] = useState<string | null>(incomingCall?.id ?? null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(callType === "VIDEO");
+  const [speakerOn, setSpeakerOn] = useState(false);
   const [callError, setCallError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
 
@@ -97,17 +98,20 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
   }
 
   function attachRemoteStream(stream: MediaStream, type: "VOICE" | "VIDEO") {
-    if (type === "VIDEO") {
-      if (remoteRef.current) {
-        remoteRef.current.srcObject = stream;
-        remoteRef.current.play().catch(() => {});
-      }
-    } else {
-      // Use dedicated <audio> element — always in DOM and not display:none,
-      // so browsers don't block autoplay the way they do for hidden <video>.
-      if (audioRef.current) {
-        audioRef.current.srcObject = stream;
-        audioRef.current.play().catch(() => {});
+    if (remoteRef.current) {
+      remoteRef.current.srcObject = stream;
+      remoteRef.current.play().catch(() => {});
+    }
+    if (type === "VOICE") {
+      // On Android/Desktop: route to communications device (earpiece/headset) by default.
+      // On iOS: routing is handled by using a <video> element instead of <audio> —
+      // iOS Safari routes <video> audio through earpiece + proximity sensor automatically.
+      const el = remoteRef.current as (HTMLVideoElement & { setSinkId?(id: string): Promise<void> }) | null;
+      if (el?.setSinkId) {
+        navigator.mediaDevices.enumerateDevices().then(devices => {
+          const comms = devices.find(d => d.kind === "audiooutput" && d.deviceId === "communications");
+          if (comms) el.setSinkId!(comms.deviceId).catch(() => {});
+        });
       }
     }
   }
@@ -306,6 +310,52 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
     if (track) { track.enabled = !camOn; setCamOn(c => !c); }
   }
 
+  async function toggleSpeaker() {
+    const isVoice = (incomingCall ? incomingCall.type : callType) === "VOICE";
+    const el = remoteRef.current as (HTMLVideoElement & { setSinkId?(id: string): Promise<void> }) | null;
+
+    if (el?.setSinkId) {
+      // Android Chrome / desktop: use setSinkId to switch output device
+      try {
+        if (speakerOn) {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const comms = devices.find(d => d.kind === "audiooutput" && d.deviceId === "communications");
+          await el.setSinkId(comms?.deviceId ?? "");
+          setSpeakerOn(false);
+        } else {
+          await el.setSinkId("default");
+          setSpeakerOn(true);
+        }
+      } catch (err) {
+        console.error("[Call] setSinkId error:", err);
+      }
+      return;
+    }
+
+    // iOS fallback for VOICE calls: switch stream between <video> (earpiece) and <audio> (speaker).
+    // iOS routes <video playsInline> through earpiece+proximity sensor, <audio> through speaker.
+    if (!isVoice) return;
+    if (speakerOn) {
+      // Switch to earpiece: move stream from <audio> back to <video>
+      const stream = audioRef.current?.srcObject as MediaStream | null;
+      if (stream && remoteRef.current) {
+        remoteRef.current.srcObject = stream;
+        remoteRef.current.play().catch(() => {});
+      }
+      if (audioRef.current) audioRef.current.srcObject = null;
+      setSpeakerOn(false);
+    } else {
+      // Switch to speaker: move stream from <video> to <audio>
+      const stream = remoteRef.current?.srcObject as MediaStream | null;
+      if (stream && audioRef.current) {
+        audioRef.current.srcObject = stream;
+        audioRef.current.play().catch(() => {});
+      }
+      if (remoteRef.current) remoteRef.current.srcObject = null;
+      setSpeakerOn(true);
+    }
+  }
+
   function fmt(s: number) {
     const m = Math.floor(s / 60);
     return `${m}:${String(s % 60).padStart(2, "0")}`;
@@ -316,9 +366,11 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-between py-12">
-      {/* Remote video — only shown for VIDEO calls */}
+      {/* Remote video — full screen for VIDEO; invisible 1×1 for VOICE (display:none blocks autoplay on iOS) */}
       <video ref={remoteRef} autoPlay playsInline
-        className={displayType === "VIDEO" ? "absolute inset-0 w-full h-full object-cover opacity-80" : "hidden"} />
+        className={displayType === "VIDEO"
+          ? "absolute inset-0 w-full h-full object-cover opacity-80"
+          : "absolute top-0 left-0 w-px h-px opacity-0 pointer-events-none"} />
 
       {/* Dedicated audio element for VOICE calls — always rendered, never display:none,
           so browsers don't block autoplay on hidden elements */}
@@ -355,6 +407,24 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
             <line x1="12" y1="18" x2="12" y2="22" />
             <line x1="8" y1="22" x2="16" y2="22" />
             {!micOn && <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />}
+          </svg>
+        </button>
+
+        <button onClick={toggleSpeaker}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${speakerOn ? "bg-indigo-500 text-white" : "bg-gray-700 text-white"}`}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            {speakerOn ? (
+              <>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </>
+            ) : (
+              <>
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </>
+            )}
           </svg>
         </button>
 

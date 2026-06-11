@@ -38,11 +38,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const member = await prisma.apartmentMember.findFirst({ where: { apartmentId, userId: payload.userId } });
   if (!member || member.role === "GUEST") return NextResponse.json({ error: "Guests cannot send messages" }, { status: 403 });
 
-  const { content } = await req.json();
+  const { content, type } = await req.json();
   if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
 
   const message = await prisma.directMessage.create({
-    data: { apartmentId, senderId: payload.userId, receiverId, content: content.trim() },
+    data: { apartmentId, senderId: payload.userId, receiverId, content: content.trim(), type: type === "AUDIO" ? "AUDIO" : "TEXT" },
     include: { sender: { select: { id: true, name: true } } },
   });
 

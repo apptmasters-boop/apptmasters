@@ -5,6 +5,8 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
 import CallOverlay from "@/components/CallOverlay";
+import AudioRecorder from "@/components/AudioRecorder";
+import VoiceMessage from "@/components/VoiceMessage";
 
 interface Sender { id: string; name: string }
 interface ChatMessage {
@@ -18,28 +20,25 @@ interface IncomingCall { id: string; type: "VOICE" | "VIDEO"; status: string; of
 export default function ChatPage() {
   const { id: apartmentId } = useParams<{ id: string }>();
   const router = useRouter();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [messages, setMessages]       = useState<ChatMessage[]>([]);
+  const [members, setMembers]         = useState<Member[]>([]);
   const [currentUser, setCurrentUser] = useState<Sender | null>(null);
   const [currentUserId, setCurrentUserId] = useState("");
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
-  const [isGuest, setIsGuest] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [content, setContent] = useState("");
-  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
-  const [sending, setSending] = useState(false);
-  const [showDMs, setShowDMs] = useState(false);
-  const [callTarget, setCallTarget] = useState<{ type: "VOICE" | "VIDEO"; receiverId: string | null } | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const callPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [isGuest, setIsGuest]         = useState(false);
+  const [loading, setLoading]         = useState(true);
+  const [content, setContent]         = useState("");
+  const [replyTo, setReplyTo]         = useState<ChatMessage | null>(null);
+  const [sending, setSending]         = useState(false);
+  const [showDMs, setShowDMs]         = useState(false);
+  const [callTarget, setCallTarget]     = useState<{ type: "VOICE" | "VIDEO"; receiverId: string | null } | null>(null);
+  const [recorderActive, setRecorderActive] = useState(false);
+  const bottomRef    = useRef<HTMLDivElement>(null);
+  const callPollRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function loadMessages() {
     const res = await apiFetch(`/api/apartments/${apartmentId}/chat`);
-    if (res.ok) {
-      const data = await res.json();
-      setMessages(data);
-    }
+    if (res.ok) setMessages(await res.json());
   }
 
   async function load() {
@@ -50,8 +49,7 @@ export default function ChatPage() {
     if (aptRes.status === 401) { router.replace("/login"); return; }
     const apt = await aptRes.json();
     setMembers(apt.members.map((m: { role: string; user: { id: string; name: string } }) => ({ ...m.user, role: m.role })));
-    const role = apt.currentUserRole;
-    setIsGuest(role === "GUEST");
+    setIsGuest(apt.currentUserRole === "GUEST");
     if (meRes.ok) {
       const me = await meRes.json();
       setCurrentUser(me);
@@ -67,9 +65,9 @@ export default function ChatPage() {
     const es = new EventSource(`/api/apartments/${apartmentId}/chat/stream?token=${token}`);
     es.onmessage = e => {
       const incoming = JSON.parse(e.data);
-      setMessages((prev: {id: string}[]) => {
-        const existingIds = new Set(prev.map((m: {id: string}) => m.id));
-        const next = incoming.filter((m: {id: string}) => !existingIds.has(m.id));
+      setMessages(prev => {
+        const existingIds = new Set(prev.map(m => m.id));
+        const next = incoming.filter((m: { id: string }) => !existingIds.has(m.id));
         return next.length ? [...prev, ...next] : prev;
       });
     };
@@ -120,6 +118,22 @@ export default function ChatPage() {
     await loadMessages();
   }
 
+  async function sendAudio(blob: Blob, mimeType: string) {
+    setSending(true);
+    const form = new FormData();
+    form.append("audio", blob, `voice.${mimeType.includes("mp4") ? "mp4" : "webm"}`);
+    const uploadRes = await apiFetch("/api/upload/audio", { method: "POST", body: form });
+    if (!uploadRes.ok) { setSending(false); return; }
+    const { url } = await uploadRes.json();
+    await apiFetch(`/api/apartments/${apartmentId}/chat`, {
+      method: "POST",
+      body: JSON.stringify({ content: url, type: "AUDIO", replyToId: replyTo?.id ?? null }),
+    });
+    setReplyTo(null);
+    setSending(false);
+    await loadMessages();
+  }
+
   async function deleteMessage(id: string) {
     await apiFetch(`/api/apartments/${apartmentId}/chat/${id}`, { method: "DELETE" });
     await loadMessages();
@@ -130,8 +144,11 @@ export default function ChatPage() {
   const otherMembers = members.filter(m => m.id !== currentUser?.id && m.role !== "GUEST");
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
+    // h-screen keeps header + footer pinned — only the message list scrolls
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+
+      {/* Sticky header */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
           <Link href={`/apartment/${apartmentId}`} className="text-sm text-gray-400 hover:text-gray-600">←</Link>
           <span className="font-bold text-gray-900">Group Chat</span>
@@ -181,16 +198,17 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Messages */}
+      {/* Messages — this is the only part that scrolls */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2" onClick={() => setShowDMs(false)}>
         {messages.length === 0 && (
           <div className="text-center text-gray-400 text-sm py-12">No messages yet. Say hello!</div>
         )}
         {messages.map(msg => {
-          const isMe = msg.sender.id === currentUser?.id;
+          const isMe        = msg.sender.id === currentUser?.id;
           const isEmergency = msg.type === "EMERGENCY";
-          const isSystem = msg.type === "SYSTEM";
-          const isAdmin = members.find(m => m.id === currentUser?.id)?.role === "ADMIN";
+          const isSystem    = msg.type === "SYSTEM";
+          const isAudio     = msg.type === "AUDIO";
+          const isAdmin     = members.find(m => m.id === currentUser?.id)?.role === "ADMIN";
 
           if (isSystem) return (
             <div key={msg.id} className="text-center text-xs text-gray-400 py-1">{msg.content}</div>
@@ -202,24 +220,39 @@ export default function ChatPage() {
                 {!isMe && <p className="text-[10px] text-gray-400 mb-1 ml-1">{msg.sender.name}</p>}
                 {msg.replyTo && (
                   <div className={`text-[10px] px-2 py-1 rounded-lg mb-1 border-l-2 ${isMe ? "border-indigo-300 bg-indigo-50 text-indigo-600" : "border-gray-300 bg-gray-100 text-gray-500"}`}>
-                    <span className="font-medium">{msg.replyTo.sender.name}:</span> {msg.replyTo.content.slice(0, 60)}{msg.replyTo.content.length > 60 ? "…" : ""}
+                    <span className="font-medium">{msg.replyTo.sender.name}:</span>{" "}
+                    {msg.replyTo.type === "AUDIO" ? "🎙 Voice message" : msg.replyTo.content.slice(0, 60)}{msg.replyTo.content.length > 60 && msg.replyTo.type !== "AUDIO" ? "…" : ""}
                   </div>
                 )}
-                <div className={`px-4 py-2.5 rounded-2xl text-sm relative ${
-                  isEmergency ? "bg-red-500 text-white font-semibold" :
-                  isMe ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-800"
-                }`}>
-                  {isEmergency && <span className="mr-1">🚨</span>}
-                  {msg.content}
-                  <div className="absolute bottom-1 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setReplyTo(msg)}
-                      className="text-[9px] text-gray-300 hover:text-gray-500 bg-white px-1 rounded">↩</button>
-                    {(isMe || isAdmin) && (
-                      <button onClick={() => deleteMessage(msg.id)}
-                        className="text-[9px] text-gray-300 hover:text-red-400 bg-white px-1 rounded">×</button>
-                    )}
+                {isAudio ? (
+                  <div className="relative group">
+                    <VoiceMessage src={msg.content} isMe={isMe} />
+                    <div className="absolute -top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => setReplyTo(msg)}
+                        className="text-[9px] text-gray-400 hover:text-gray-600 bg-white border border-gray-200 px-1 rounded shadow-sm">↩</button>
+                      {(isMe || isAdmin) && (
+                        <button onClick={() => deleteMessage(msg.id)}
+                          className="text-[9px] text-gray-400 hover:text-red-400 bg-white border border-gray-200 px-1 rounded shadow-sm">×</button>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className={`px-4 py-2.5 rounded-2xl text-sm relative ${
+                    isEmergency ? "bg-red-500 text-white font-semibold" :
+                    isMe ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-800"
+                  }`}>
+                    {isEmergency && <span className="mr-1">🚨</span>}
+                    {msg.content}
+                    <div className="absolute bottom-1 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => setReplyTo(msg)}
+                        className="text-[9px] text-gray-300 hover:text-gray-500 bg-white px-1 rounded">↩</button>
+                      {(isMe || isAdmin) && (
+                        <button onClick={() => deleteMessage(msg.id)}
+                          className="text-[9px] text-gray-300 hover:text-red-400 bg-white px-1 rounded">×</button>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <p className="text-[10px] text-gray-400 mt-0.5 mx-1">
                   {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </p>
@@ -234,7 +267,8 @@ export default function ChatPage() {
       {replyTo && (
         <div className="px-4 py-2 bg-indigo-50 border-t border-indigo-100 flex items-center justify-between flex-shrink-0">
           <p className="text-xs text-indigo-600">
-            Replying to <span className="font-semibold">{replyTo.sender.name}</span>: {replyTo.content.slice(0, 50)}…
+            Replying to <span className="font-semibold">{replyTo.sender.name}</span>:{" "}
+            {replyTo.type === "AUDIO" ? "🎙 Voice message" : replyTo.content.slice(0, 50) + "…"}
           </p>
           <button onClick={() => setReplyTo(null)} className="text-xs text-indigo-400 hover:text-indigo-600 ml-2">×</button>
         </div>
@@ -246,21 +280,44 @@ export default function ChatPage() {
           Guests cannot send messages
         </div>
       ) : (
-        <form onSubmit={send} className="px-4 py-3 bg-white border-t border-gray-200 flex gap-2 flex-shrink-0">
-          <input
-            type="text" placeholder="Message…" value={content}
-            onChange={e => setContent(e.target.value)}
-            className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <button type="submit" disabled={!content.trim() || sending}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors">
-            Send
-          </button>
-          <button type="button" onClick={sendEmergency} disabled={!content.trim() || sending}
-            title="Emergency broadcast"
-            className="bg-red-500 text-white px-3 py-2 rounded-full text-sm font-bold hover:bg-red-600 disabled:opacity-40 transition-colors">
-            🚨
-          </button>
+        <form onSubmit={send} className="px-4 py-3 bg-white border-t border-gray-200 flex items-center gap-2 flex-shrink-0">
+          {recorderActive ? (
+            // Full-row recorder UI while recording / previewing
+            <AudioRecorder
+              sending={sending}
+              onSend={sendAudio}
+              onActiveChange={setRecorderActive}
+            />
+          ) : (
+            <>
+              <input
+                type="text" placeholder="Message…" value={content}
+                onChange={e => setContent(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {content.trim() ? (
+                // Has text → show Send + Emergency
+                <>
+                  <button type="submit" disabled={sending}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors flex-shrink-0">
+                    Send
+                  </button>
+                  <button type="button" onClick={sendEmergency} disabled={sending}
+                    title="Emergency broadcast"
+                    className="bg-red-500 text-white px-3 py-2 rounded-full text-sm font-bold hover:bg-red-600 disabled:opacity-40 transition-colors flex-shrink-0">
+                    🚨
+                  </button>
+                </>
+              ) : (
+                // No text → show prominent mic button
+                <AudioRecorder
+                  sending={sending}
+                  onSend={sendAudio}
+                  onActiveChange={setRecorderActive}
+                />
+              )}
+            </>
+          )}
         </form>
       )}
 
@@ -272,10 +329,7 @@ export default function ChatPage() {
           receiverId={incomingCall?.receiverId ?? callTarget?.receiverId ?? null}
           callType={incomingCall?.type ?? callTarget?.type ?? "VOICE"}
           incomingCall={incomingCall ?? undefined}
-          onClose={() => {
-            setIncomingCall(null);
-            setCallTarget(null);
-          }}
+          onClose={() => { setIncomingCall(null); setCallTarget(null); }}
         />
       )}
     </div>
