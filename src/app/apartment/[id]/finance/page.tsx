@@ -56,6 +56,7 @@ export default function FinancePage() {
   const [requestForm, setRequestForm] = useState({ title: "", amount: "", category: "", notes: "" });
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [approvingRequest, setApprovingRequest] = useState<string | null>(null);
+  const [confirmingCash, setConfirmingCash] = useState<string | null>(null); // expenseId:userId
 
   async function load() {
     const [expRes, balRes, aptRes, meRes, erRes] = await Promise.all([
@@ -166,6 +167,17 @@ export default function FinancePage() {
     setApprovingRequest(requestId);
     await apiFetch(`/api/apartments/${apartmentId}/edit-requests/${requestId}`, { method: "POST" });
     setApprovingRequest(null);
+    load();
+  }
+
+  async function confirmCash(expenseId: string, userId: string, action: "confirm" | "deny") {
+    const key = `${expenseId}:${userId}`;
+    setConfirmingCash(key);
+    await apiFetch(`/api/apartments/${apartmentId}/expenses/${expenseId}/confirm-cash`, {
+      method: "POST",
+      body: JSON.stringify({ userId, action }),
+    });
+    setConfirmingCash(null);
     load();
   }
 
@@ -553,8 +565,12 @@ export default function FinancePage() {
                         {exp.splits.map(s => (
                           <div key={s.userId} className="flex justify-between">
                             <span>{s.user.name}</span>
-                            <span className={s.status === "PAID" ? "text-green-600" : "text-gray-400"}>
-                              ${s.amount.toFixed(2)} {s.status === "PAID" ? "✓" : ""}
+                            <span className={
+                              s.status === "PAID" ? "text-green-600" :
+                              s.status === "PENDING_CASH" ? "text-amber-500" :
+                              "text-gray-400"}>
+                              ${s.amount.toFixed(2)}{" "}
+                              {s.status === "PAID" ? "✓" : s.status === "PENDING_CASH" ? "💵 pending" : ""}
                             </span>
                           </div>
                         ))}
@@ -562,18 +578,59 @@ export default function FinancePage() {
                       <div className="flex gap-2 flex-wrap items-center">
                         {mySplit && mySplit.status === "PENDING" && exp.status !== "DISPUTED" && (
                           <>
-                            {METHODS.map(method => (
-                              <button key={method} onClick={() => settle(exp.id, method)}
-                                disabled={settling === exp.id}
-                                className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-lg font-medium hover:bg-green-100 disabled:opacity-50 transition-colors">
-                                {settling === exp.id ? "…" : `Pay via ${method}`}
-                              </button>
-                            ))}
+                            {["VENMO", "PAYPAL", "CASHAPP"].map(method => {
+                              const link = PAYMENT_LINKS[method]?.(exp.paidBy.name, mySplit.amount);
+                              return link ? (
+                                <a key={method} href={link} target="_blank" rel="noopener noreferrer"
+                                  className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-lg font-medium hover:bg-green-100 transition-colors">
+                                  Pay via {method}
+                                </a>
+                              ) : null;
+                            })}
+                            <button onClick={() => settle(exp.id, "BANK")}
+                              disabled={settling === exp.id}
+                              className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-lg font-medium hover:bg-green-100 disabled:opacity-50 transition-colors">
+                              {settling === exp.id ? "…" : "Paid via bank"}
+                            </button>
+                            <button onClick={() => settle(exp.id, "CASH")}
+                              disabled={settling === exp.id}
+                              className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-lg font-medium hover:bg-amber-100 disabled:opacity-50 transition-colors">
+                              {settling === exp.id ? "…" : "Mark paid in cash"}
+                            </button>
                             <button onClick={() => dispute(exp.id)}
                               className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-3 py-1 rounded-lg font-medium hover:bg-orange-100 transition-colors">
                               Dispute
                             </button>
                           </>
+                        )}
+                        {mySplit && mySplit.status === "PENDING_CASH" && (
+                          <span className="text-xs text-amber-600 font-medium">
+                            Waiting for {exp.paidBy.name} to confirm your cash payment
+                          </span>
+                        )}
+                        {isPayer && exp.splits.some(s => s.status === "PENDING_CASH" && s.userId !== currentUserId) && (
+                          <div className="w-full space-y-1 mt-1">
+                            {exp.splits.filter(s => s.status === "PENDING_CASH" && s.userId !== currentUserId).map(s => {
+                              const key = `${exp.id}:${s.userId}`;
+                              return (
+                                <div key={s.userId} className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                  <span className="text-xs text-amber-700 flex-1">
+                                    {s.user.name} says they paid ${s.amount.toFixed(2)} in cash
+                                  </span>
+                                  <button onClick={() => confirmCash(exp.id, s.userId, "confirm")}
+                                    disabled={confirmingCash === key}
+                                    className="text-xs bg-green-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors">
+                                    {confirmingCash === key ? "…" : "Confirm"}
+                                  </button>
+                                  <button onClick={() => confirmCash(exp.id, s.userId, "deny")}
+                                    disabled={confirmingCash === key}
+                                    className="text-xs bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 rounded-lg font-medium hover:bg-red-100 disabled:opacity-50 transition-colors">
+                                    Deny
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
                         )}
                         <div className="flex-1" />
                         {pendingRequest && (
