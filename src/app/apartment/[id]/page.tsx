@@ -35,6 +35,12 @@ export default function ApartmentPage() {
   const [copied, setCopied] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
   const [today, setToday] = useState<{ overdueChores: { id: string; title: string }[]; upcomingEvents: { id: string; title: string; startDate: string }[] } | null>(null);
+  const [actions, setActions] = useState<{
+    totalOwed: number;
+    cashToConfirm: { expenseId: string; expenseTitle: string; userName: string; amount: number }[];
+    editApprovalCount: number;
+    cleaningDue: boolean;
+  } | null>(null);
   const [announcementEdit, setAnnouncementEdit] = useState(false);
   const [announcementText, setAnnouncementText] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
@@ -56,17 +62,23 @@ export default function ApartmentPage() {
     if (aptRes.status === 401) { router.replace("/login"); return; }
     if (!aptRes.ok) { router.replace("/dashboard"); return; }
     setApt(await aptRes.json());
-    if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); }
+    let myUserId = "";
+    if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); myUserId = me.id; }
     if (travRes.ok) setTravelers(await travRes.json());
     setLoading(false);
 
-    // Load today's snapshot in the background
+    // Load all background data in parallel
     const now = new Date();
     const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const [choresRes, eventsRes] = await Promise.all([
+    const [choresRes, eventsRes, balRes, expRes, erRes, cleanRes] = await Promise.all([
       apiFetch(`/api/apartments/${id}/chores`),
       apiFetch(`/api/apartments/${id}/calendar`),
+      apiFetch(`/api/apartments/${id}/balance`),
+      apiFetch(`/api/apartments/${id}/expenses`),
+      apiFetch(`/api/apartments/${id}/edit-requests`),
+      apiFetch(`/api/apartments/${id}/cleaning`),
     ]);
+
     const chores = choresRes.ok ? await choresRes.json() : [];
     const events = eventsRes.ok ? await eventsRes.json() : [];
     setToday({
@@ -78,6 +90,33 @@ export default function ApartmentPage() {
         return d >= now && d <= in7Days;
       }).slice(0, 3),
     });
+
+    // Compute personal action items
+    const balData = balRes.ok ? await balRes.json() : null;
+    const totalOwed: number = balData?.myBalance
+      ?.filter((b: { direction: string }) => b.direction === "you_owe")
+      .reduce((s: number, b: { amount: number }) => s + b.amount, 0) ?? 0;
+
+    const expenses = expRes.ok ? await expRes.json() : [];
+    const cashToConfirm: { expenseId: string; expenseTitle: string; userName: string; amount: number }[] = [];
+    for (const exp of expenses) {
+      if (exp.paidBy?.id !== myUserId) continue;
+      for (const split of exp.splits ?? []) {
+        if (split.status === "PENDING_CASH" && split.userId !== myUserId) {
+          cashToConfirm.push({ expenseId: exp.id, expenseTitle: exp.title, userName: split.user?.name ?? "Someone", amount: split.amount });
+        }
+      }
+    }
+
+    const editRequests = erRes.ok ? await erRes.json() : [];
+    const editApprovalCount: number = editRequests.filter((req: { requesterId: string; approvals: { approver: { id: string } }[] }) =>
+      req.requesterId !== myUserId && !req.approvals.some(a => a.approver.id === myUserId)
+    ).length;
+
+    const cleaningRotations = cleanRes.ok ? await cleanRes.json() : [];
+    const cleaningDue: boolean = cleaningRotations.some((r: { currentUserId: string }) => r.currentUserId === myUserId);
+
+    setActions({ totalOwed, cashToConfirm, editApprovalCount, cleaningDue });
   }
 
   useEffect(() => { load(); }, [id]);
@@ -237,6 +276,61 @@ export default function ApartmentPage() {
             )}
           </div>
         )}
+
+        {/* Action items */}
+        {actions && (actions.totalOwed > 0.01 || actions.cashToConfirm.length > 0 || actions.editApprovalCount > 0 || actions.cleaningDue) && (() => {
+          const count = (actions.totalOwed > 0.01 ? 1 : 0) + actions.cashToConfirm.length + (actions.editApprovalCount > 0 ? 1 : 0) + (actions.cleaningDue ? 1 : 0);
+          return (
+            <div className="mb-4 bg-white border border-red-200 rounded-xl overflow-hidden">
+              <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-red-50">
+                <p className="text-xs font-semibold text-red-700 uppercase tracking-wide">Action needed</p>
+                <span className="text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded-full">{count}</span>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {actions.totalOwed > 0.01 && (
+                  <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+                    <span className="text-lg">💰</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">You owe <span className="text-red-600">${actions.totalOwed.toFixed(2)}</span></p>
+                      <p className="text-xs text-gray-400">Tap to settle in Finance</p>
+                    </div>
+                    <span className="text-gray-300">→</span>
+                  </Link>
+                )}
+                {actions.cashToConfirm.map((c, i) => (
+                  <Link key={i} href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+                    <span className="text-lg">💵</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{c.userName} paid <span className="text-amber-600">${c.amount.toFixed(2)}</span> in cash</p>
+                      <p className="text-xs text-gray-400 truncate">For: {c.expenseTitle} · Confirm or deny</p>
+                    </div>
+                    <span className="text-gray-300">→</span>
+                  </Link>
+                ))}
+                {actions.editApprovalCount > 0 && (
+                  <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+                    <span className="text-lg">✏️</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{actions.editApprovalCount} expense edit {actions.editApprovalCount === 1 ? "request" : "requests"} to review</p>
+                      <p className="text-xs text-gray-400">Tap to approve in Finance → Approvals</p>
+                    </div>
+                    <span className="text-gray-300">→</span>
+                  </Link>
+                )}
+                {actions.cleaningDue && (
+                  <Link href={`/apartment/${apt.id}/cleaning`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+                    <span className="text-lg">🧹</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">It&apos;s your turn to clean</p>
+                      <p className="text-xs text-gray-400">Check the cleaning rotation</p>
+                    </div>
+                    <span className="text-gray-300">→</span>
+                  </Link>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Quick nav */}
         <div className="grid grid-cols-2 gap-3 mb-2">
