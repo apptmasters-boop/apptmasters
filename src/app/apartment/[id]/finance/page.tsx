@@ -45,6 +45,7 @@ export default function FinancePage() {
     title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL",
     isRecurring: false, frequency: "MONTHLY", date: "", notes: "", receiptUrl: "",
   });
+  const [customSplits, setCustomSplits] = useState<Record<string, string>>({}); // userId → amount string
   const [adding, setAdding] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [settling, setSettling] = useState<string | null>(null);
@@ -99,11 +100,18 @@ export default function FinancePage() {
   async function addExpense(e: React.FormEvent) {
     e.preventDefault();
     setAdding(true);
+    const body: Record<string, unknown> = { ...form, amount: parseFloat(form.amount) };
+    if (form.splitMethod === "CUSTOM") {
+      body.customSplits = Object.fromEntries(
+        Object.entries(customSplits).map(([uid, v]) => [uid, parseFloat(v) || 0])
+      );
+    }
     await apiFetch(`/api/apartments/${apartmentId}/expenses`, {
       method: "POST",
-      body: JSON.stringify({ ...form, amount: parseFloat(form.amount) }),
+      body: JSON.stringify(body),
     });
     setForm({ title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL", isRecurring: false, frequency: "MONTHLY", date: "", notes: "", receiptUrl: "" });
+    setCustomSplits({});
     setShowAdd(false);
     setAdding(false);
     load();
@@ -334,9 +342,19 @@ export default function FinancePage() {
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Split</label>
-                <select value={form.splitMethod} onChange={e => setForm(f => ({ ...f, splitMethod: e.target.value }))}
+                <select value={form.splitMethod} onChange={e => {
+                  const method = e.target.value;
+                  setForm(f => ({ ...f, splitMethod: method }));
+                  if (method === "CUSTOM") {
+                    const amt = parseFloat(form.amount) || 0;
+                    const others = members.filter(m => m.id !== currentUserId);
+                    const share = others.length > 0 ? (amt / (others.length + 1)).toFixed(2) : "0.00";
+                    setCustomSplits(Object.fromEntries(others.map(m => [m.id, share])));
+                  }
+                }}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   <option value="EQUAL">Equal split</option>
+                  <option value="CUSTOM">Custom amounts</option>
                   <option value="PER_PERSON">Per person</option>
                 </select>
               </div>
@@ -346,6 +364,33 @@ export default function FinancePage() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
             </div>
+            {form.splitMethod === "CUSTOM" && (() => {
+              const others = members.filter(m => m.id !== currentUserId);
+              const total = parseFloat(form.amount) || 0;
+              const allocated = others.reduce((s, m) => s + (parseFloat(customSplits[m.id] || "0") || 0), 0);
+              const remaining = total - allocated;
+              return (
+                <div className="border border-indigo-200 rounded-lg p-3 space-y-2 bg-indigo-50">
+                  <p className="text-xs font-medium text-indigo-700">How much does each person owe?</p>
+                  {others.map(m => (
+                    <div key={m.id} className="flex items-center gap-2">
+                      <span className="text-sm text-gray-700 flex-1 truncate">{m.name}</span>
+                      <div className="relative w-28">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                        <input type="number" min="0" step="0.01" placeholder="0.00"
+                          value={customSplits[m.id] ?? ""}
+                          onChange={e => setCustomSplits(s => ({ ...s, [m.id]: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-lg pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      </div>
+                    </div>
+                  ))}
+                  <div className={`flex items-center justify-between text-xs pt-1 border-t border-indigo-200 ${Math.abs(remaining) < 0.01 ? "text-green-600" : remaining < 0 ? "text-red-600" : "text-gray-500"}`}>
+                    <span>Allocated: ${allocated.toFixed(2)} / ${total.toFixed(2)}</span>
+                    <span>{Math.abs(remaining) < 0.01 ? "✓ balanced" : remaining > 0 ? `You absorb $${remaining.toFixed(2)}` : `⚠ over by $${(-remaining).toFixed(2)}`}</span>
+                  </div>
+                </div>
+              );
+            })()}
             <textarea placeholder="Notes (optional)" value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
