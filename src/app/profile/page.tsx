@@ -271,11 +271,11 @@ export default function ProfilePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
             <input
-              type="password" required minLength={12} maxLength={14} value={pwForm.newPassword}
+              type="password" required minLength={8} value={pwForm.newPassword}
               onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
-            <p className="text-xs text-gray-400 mt-0.5">12–14 characters, mixed case, number, and special character</p>
+            <p className="text-xs text-gray-400 mt-0.5">Min. 8 characters — uppercase, lowercase, number, and special character</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Confirm new password</label>
