@@ -19,6 +19,7 @@ model User {
   systemRole     String    @default("USER") // USER | MANAGER | SUPER_ADMIN
   notifPrefs     String    @default("{}") // JSON: { pushEnabled, emailEnabled, types: { [type]: bool } }
   twoFactorEnabled Boolean @default(false)
+  emailVerified  Boolean  @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -59,6 +60,7 @@ model User {
   pushSubscriptions        PushSubscription[]
   passwordResetTokens      PasswordResetToken[]
   twoFactorCodes           TwoFactorCode[]
+  emailVerificationTokens  EmailVerificationToken[]
   auditLogs                AuditLog[]
 }
 
@@ -744,6 +746,17 @@ model AuditLog {
 model TwoFactorCode {
   id        String   @id @default(cuid())
   code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())

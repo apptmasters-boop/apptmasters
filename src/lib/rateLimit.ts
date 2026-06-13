@@ -25,6 +25,25 @@ export function rateLimit(key: string, limit: number, windowMs: number): { ok: b
   return { ok: true, remaining: limit - entry.count };
 }
 
+// Increments a failure counter and returns whether the key is now locked.
+export function recordFailure(key: string, maxFailures: number, windowMs: number): { locked: boolean } {
+  const now = Date.now();
+  const entry = store.get(key);
+
+  if (!entry || entry.resetAt <= now) {
+    store.set(key, { count: 1, resetAt: now + windowMs });
+    return { locked: false };
+  }
+
+  entry.count++;
+  return { locked: entry.count >= maxFailures };
+}
+
+// Clears the failure counter for a key (call on successful login).
+export function resetKey(key: string): void {
+  store.delete(key);
+}
+
 // Clean up expired entries every 10 minutes
 setInterval(() => {
   const now = Date.now();

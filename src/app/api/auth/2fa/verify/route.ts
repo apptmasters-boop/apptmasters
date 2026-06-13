@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
-import { rateLimit } from "@/lib/rateLimit";
+import { rateLimit, recordFailure, resetKey } from "@/lib/rateLimit";
 
 const schema = z.object({
   email: z.string().email(),
@@ -11,7 +11,7 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
-  const { ok } = rateLimit(`2fa-verify:${ip}`, 10, 60_000);
+  const { ok } = rateLimit(`2fa-verify:ip:${ip}`, 5, 60_000);
   if (!ok) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   const body = await req.json();
@@ -27,9 +27,17 @@ export async function POST(req: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  if (!record) return NextResponse.json({ error: "Invalid or expired code" }, { status: 401 });
+  if (!record) {
+    // Per-account: 5 bad guesses within the code's 10-min window locks further attempts
+    const { locked } = recordFailure(`2fa-verify:email:${email}`, 5, 10 * 60_000);
+    if (locked) {
+      return NextResponse.json({ error: "Too many failed attempts. Please request a new code." }, { status: 429 });
+    }
+    return NextResponse.json({ error: "Invalid or expired code" }, { status: 401 });
+  }
 
   await prisma.twoFactorCode.update({ where: { id: record.id }, data: { used: true } });
+  resetKey(`2fa-verify:email:${email}`);
 
   const token = signToken({ userId: user.id, email: user.email });
   return NextResponse.json({ token, user: { id: user.id, name: user.name, email: user.email } });

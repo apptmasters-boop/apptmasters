@@ -7,8 +7,7 @@ export default function RegisterPage() {
         <p className="text-4xl mb-4">🔒</p>
         <h1 className="text-xl font-bold text-gray-900 mb-2">Registration is closed</h1>
         <p className="text-sm text-gray-500 mb-6">
-          We&apos;re still reviewing our policies. New accounts are not available yet.
-          Check back soon!
+          New accounts are not available yet. Check back soon!
         </p>
         <Link href="/login"
           className="inline-block w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 transition-colors">

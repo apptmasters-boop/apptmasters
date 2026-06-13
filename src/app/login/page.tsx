@@ -4,6 +4,25 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, setToken } from "@/lib/api";
 
+function ResendVerification({ email }: { email: string }) {
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  async function resend() {
+    setSending(true);
+    await apiFetch("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) });
+    setSending(false);
+    setSent(true);
+  }
+
+  if (sent) return <span className="block mt-1 text-indigo-600">Verification email sent!</span>;
+  return (
+    <button onClick={resend} disabled={sending} className="block mt-1 text-indigo-600 hover:underline disabled:opacity-50 text-left">
+      {sending ? "Sending…" : "Resend verification email"}
+    </button>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
@@ -11,6 +30,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"credentials" | "2fa">("credentials");
   const [code, setCode] = useState("");
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,7 +40,16 @@ export default function LoginPage() {
     // Step 1: verify credentials
     const res = await apiFetch("/api/auth/login", { method: "POST", body: JSON.stringify(form) });
     const data = await res.json();
-    if (!res.ok) { setError(data.error ?? "Login failed"); setLoading(false); return; }
+    if (!res.ok) {
+      if (res.status === 403 && data.error === "EMAIL_NOT_VERIFIED") {
+        setUnverifiedEmail(form.email);
+        setError("Please verify your email before signing in.");
+      } else {
+        setError(data.error ?? "Login failed");
+      }
+      setLoading(false);
+      return;
+    }
 
     // Check if 2FA is required
     const twoFaRes = await apiFetch("/api/auth/2fa/send", {
@@ -62,7 +91,12 @@ export default function LoginPage() {
           <>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
             <p className="text-sm text-gray-500 mb-6">Sign in to ApptMasters</p>
-            {error && <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>}
+            {error && (
+              <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                {error}
+                {unverifiedEmail && <ResendVerification email={unverifiedEmail} />}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -86,8 +120,9 @@ export default function LoginPage() {
                 </Link>
               </div>
             </form>
-            <p className="mt-6 text-center text-sm text-gray-400">
-              Registration is currently closed.
+            <p className="mt-6 text-center text-sm text-gray-500">
+              Don&apos;t have an account?{" "}
+              <a href="/register" className="text-indigo-600 font-medium hover:underline">Sign up</a>
             </p>
           </>
         ) : (

@@ -32,6 +32,10 @@ export default function ProfilePage() {
 
   const [notifPrefs, setNotifPrefs] = useState({ pushEnabled: true, emailEnabled: true });
   const [notifSaving, setNotifSaving] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
+  const [resending, setResending] = useState(false);
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
   const [twoFASaving, setTwoFASaving] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -61,6 +65,8 @@ export default function ProfilePage() {
         moveInDate: data.moveInDate ? data.moveInDate.slice(0, 10) : "",
         dietaryFlags: JSON.parse(data.dietaryFlags || "[]"),
       });
+      setEmail(data.email ?? "");
+      setEmailVerified(data.emailVerified ?? false);
       setTwoFAEnabled(data.twoFactorEnabled ?? false);
       setLoading(false);
     });
@@ -116,6 +122,13 @@ export default function ProfilePage() {
     setPwSaving(false);
   }
 
+  async function resendVerification() {
+    setResending(true);
+    await apiFetch("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) });
+    setResending(false);
+    setResendSent(true);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -166,6 +179,39 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* Email verification status */}
+          <div className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 bg-gray-50">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-gray-500 mb-0.5">Email</p>
+              <p className="text-sm text-gray-800 truncate">{email}</p>
+            </div>
+            {emailVerified ? (
+              <span className="flex items-center gap-1.5 text-green-600 text-sm font-medium flex-shrink-0 ml-3">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+                Verified
+              </span>
+            ) : (
+              <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-3">
+                <span className="flex items-center gap-1 text-amber-600 text-xs font-medium">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  Not verified
+                </span>
+                {resendSent ? (
+                  <span className="text-xs text-green-600">Email sent!</span>
+                ) : (
+                  <button type="button" onClick={resendVerification} disabled={resending}
+                    className="text-xs text-indigo-600 hover:underline disabled:opacity-50">
+                    {resending ? "Sending…" : "Resend email"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
@@ -225,11 +271,11 @@ export default function ProfilePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
             <input
-              type="password" required minLength={8} value={pwForm.newPassword}
+              type="password" required minLength={12} maxLength={14} value={pwForm.newPassword}
               onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
-            <p className="text-xs text-gray-400 mt-0.5">Minimum 8 characters</p>
+            <p className="text-xs text-gray-400 mt-0.5">12–14 characters, mixed case, number, and special character</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Confirm new password</label>

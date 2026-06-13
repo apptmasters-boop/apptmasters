@@ -16,12 +16,16 @@ function generateCode() {
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
-  const { ok } = rateLimit(`2fa-send:${ip}`, 5, 60_000);
+  const { ok } = rateLimit(`2fa-send:ip:${ip}`, 5, 60_000);
   if (!ok) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+
+  // Per-email: 3 codes per 10 minutes — codes expire in 10 min so no reason to send more
+  const { ok: emailOk } = rateLimit(`2fa-send:email:${parsed.data.email}`, 3, 10 * 60_000);
+  if (!emailOk) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   const user = await prisma.user.findUnique({
     where: { email: parsed.data.email },

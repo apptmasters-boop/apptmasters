@@ -45,6 +45,22 @@ export function inviteEmail(inviterName: string, apartmentName: string, inviteUr
   `;
 }
 
+export function verificationEmail(name: string, verifyUrl: string) {
+  return `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+      <h2 style="color:#4f46e5;margin-bottom:8px">Verify your email</h2>
+      <p style="color:#374151">Hi ${name},</p>
+      <p style="color:#374151">Thanks for signing up! Click the button below to verify your email address. This link expires in <strong>24 hours</strong>.</p>
+      <a href="${verifyUrl}" style="display:inline-block;margin:24px 0;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600">
+        Verify email
+      </a>
+      <p style="color:#6b7280;font-size:13px">If you didn't create an account, you can safely ignore this email.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
+      <p style="color:#9ca3af;font-size:12px">ApptMasters — Roommate management made simple</p>
+    </div>
+  `;
+}
+
 export function notificationEmail(title: string, body: string, actionUrl?: string, actionLabel?: string) {
   return `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
