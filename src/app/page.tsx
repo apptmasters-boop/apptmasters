@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getToken } from "@/lib/api";
+import { getToken, redirectToApartment } from "@/lib/api";
 
 export default function Home() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(() => {
     const token = getToken();
     if (token) {
-      router.replace("/dashboard");
+      redirectToApartment(router).catch(() => router.replace("/dashboard"));
     } else {
       setRedirecting(false);
     }

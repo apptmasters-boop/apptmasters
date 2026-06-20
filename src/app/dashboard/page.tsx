@@ -24,6 +24,11 @@ export default function DashboardPage() {
     apiFetch("/api/auth/me").then(async res => {
       if (res.status === 401) { router.replace("/login"); return; }
       const data = await res.json();
+      const memberships: { role: string; apartment: Apartment }[] = data.memberships ?? [];
+      if (memberships.length > 0) {
+        router.replace(`/apartment/${memberships[0].apartment.id}`);
+        return;
+      }
       setUser(data);
       setLoading(false);
 

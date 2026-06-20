@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, setToken } from "@/lib/api";
+import { apiFetch, setToken, redirectToApartment } from "@/lib/api";
 
 function ResendVerification({ email }: { email: string }) {
   const [sent, setSent] = useState(false);
@@ -65,7 +65,7 @@ export default function LoginPage() {
 
     // No 2FA — complete login
     setToken(data.token);
-    router.push("/dashboard");
+    await redirectToApartment(router);
   }
 
   async function handleVerify(e: React.FormEvent) {
@@ -81,7 +81,7 @@ export default function LoginPage() {
     setLoading(false);
     if (!res.ok) { setError(data.error ?? "Invalid code"); return; }
     setToken(data.token);
-    router.push("/dashboard");
+    await redirectToApartment(router);
   }
 
   return (

@@ -39,6 +39,7 @@ export default function ProfilePage() {
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
   const [twoFASaving, setTwoFASaving] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [memberships, setMemberships] = useState<{ role: string; apartment: { id: string; name: string } }[]>([]);
 
   useEffect(() => {
     setDarkMode(document.documentElement.classList.contains("dark"));
@@ -68,6 +69,7 @@ export default function ProfilePage() {
       setEmail(data.email ?? "");
       setEmailVerified(data.emailVerified ?? false);
       setTwoFAEnabled(data.twoFactorEnabled ?? false);
+      setMemberships(data.memberships ?? []);
       setLoading(false);
     });
   }, [router]);
@@ -143,12 +145,37 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
-        <Link href="/dashboard" className="text-sm text-gray-400 hover:text-gray-600">← Dashboard</Link>
+        <Link href={memberships.length > 0 ? `/apartment/${memberships[0].apartment.id}` : "/dashboard"} className="text-sm text-gray-400 hover:text-gray-600">← Home</Link>
         <span className="text-gray-300">|</span>
         <span className="font-bold text-gray-900">My profile</span>
       </header>
 
       <main className="max-w-md mx-auto px-4 py-10">
+        {/* Apartments */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">My apartments</h2>
+          {memberships.length === 0 ? (
+            <p className="text-sm text-gray-400 mb-4">You haven&apos;t joined any apartments yet.</p>
+          ) : (
+            <div className="space-y-2 mb-4">
+              {memberships.map(({ role, apartment }) => (
+                <Link key={apartment.id} href={`/apartment/${apartment.id}`}
+                  className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300 hover:shadow-sm transition-all">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{apartment.name}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{role}</p>
+                  </div>
+                  <span className="text-gray-300">→</span>
+                </Link>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-4">
+            <Link href="/apartment/create" className="text-sm text-indigo-600 font-medium hover:underline">+ Create apartment</Link>
+            <Link href="/apartment/join" className="text-sm text-indigo-600 font-medium hover:underline">+ Join with code</Link>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 p-8 space-y-5">
           {/* Avatar preview */}
           <div className="flex items-center gap-4">
