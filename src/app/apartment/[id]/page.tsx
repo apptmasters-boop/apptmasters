@@ -332,136 +332,140 @@ export default function ApartmentPage() {
           );
         })()}
 
-        {/* Quick nav */}
-        <div className="grid grid-cols-2 gap-3 mb-2">
-          <Link href={`/apartment/${apt.id}/rooms`}
-            className="flex items-center justify-between bg-indigo-600 text-white rounded-xl px-4 py-4 hover:bg-indigo-700 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Rooms & Chores</p>
-              <p className="text-xs text-indigo-200 mt-0.5">Manage chores</p>
+        {/* Feature sections */}
+        <div className="space-y-6 mb-4">
+
+          {/* Chores */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Chores</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href={`/apartment/${apt.id}/chores`}
+                className="col-span-2 flex items-center justify-between bg-indigo-600 text-white rounded-xl px-4 py-4 hover:bg-indigo-700 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Chores</p>
+                  <p className="text-xs text-indigo-200 mt-0.5">View & manage all chores</p>
+                </div>
+                <span className="text-indigo-200">→</span>
+              </Link>
+              <Link href={`/apartment/${apt.id}/cleaning`}
+                className="flex items-center justify-between bg-cyan-600 text-white rounded-xl px-4 py-4 hover:bg-cyan-700 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Cleaning Rotation</p>
+                  <p className="text-xs text-cyan-200 mt-0.5">Who cleans next</p>
+                </div>
+                <span className="text-cyan-200">→</span>
+              </Link>
+              <Link href={`/apartment/${apt.id}/rotation`}
+                className="flex items-center justify-between bg-orange-500 text-white rounded-xl px-4 py-4 hover:bg-orange-600 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Purchase Rotation</p>
+                  <p className="text-xs text-orange-100 mt-0.5">Whose turn to buy</p>
+                </div>
+                <span className="text-orange-100">→</span>
+              </Link>
             </div>
-            <span className="text-indigo-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/finance`}
-            className="flex items-center justify-between bg-emerald-600 text-white rounded-xl px-4 py-4 hover:bg-emerald-700 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Finance & Rent</p>
-              <p className="text-xs text-emerald-200 mt-0.5">Expenses & balances</p>
+          </div>
+
+          {/* Money */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Money</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href={`/apartment/${apt.id}/finance`}
+                className="col-span-2 flex items-center justify-between bg-emerald-600 text-white rounded-xl px-4 py-4 hover:bg-emerald-700 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Finance & Rent</p>
+                  <p className="text-xs text-emerald-200 mt-0.5">Expenses & balances</p>
+                </div>
+                <span className="text-emerald-200">→</span>
+              </Link>
+              <Link href={`/apartment/${apt.id}/fund`}
+                className="flex items-center justify-between bg-violet-600 text-white rounded-xl px-4 py-4 hover:bg-violet-700 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Apartment Fund</p>
+                  <p className="text-xs text-violet-200 mt-0.5">Shared pool</p>
+                </div>
+                <span className="text-violet-200">→</span>
+              </Link>
+              <Link href={`/apartment/${apt.id}/disputes`}
+                className="flex items-center justify-between bg-red-500 text-white rounded-xl px-4 py-4 hover:bg-red-600 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Disputes</p>
+                  <p className="text-xs text-red-200 mt-0.5">Raise & resolve conflicts</p>
+                </div>
+                <span className="text-red-200">→</span>
+              </Link>
             </div>
-            <span className="text-emerald-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/maintenance`}
-            className="flex items-center justify-between bg-orange-50 border border-orange-200 text-orange-800 rounded-xl px-4 py-3 hover:bg-orange-100 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Maintenance</p>
-              <p className="text-xs text-orange-400 mt-0.5">Room issues & notes</p>
+          </div>
+
+          {/* Household */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Household</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href={`/apartment/${apt.id}/grocery`}
+                className="col-span-2 flex items-center justify-between bg-amber-500 text-white rounded-xl px-4 py-4 hover:bg-amber-600 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Grocery List</p>
+                  <p className="text-xs text-amber-100 mt-0.5">Shared shopping list</p>
+                </div>
+                <span className="text-amber-100">→</span>
+              </Link>
+              <Link href={`/apartment/${apt.id}/maintenance`}
+                className="flex items-center justify-between bg-orange-50 border border-orange-200 text-orange-800 rounded-xl px-4 py-3 hover:bg-orange-100 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Maintenance</p>
+                  <p className="text-xs text-orange-400 mt-0.5">Room issues & notes</p>
+                </div>
+                <span className="text-orange-300">→</span>
+              </Link>
+              <Link href={`/apartment/${apt.id}/inventory`}
+                className="flex items-center justify-between bg-teal-600 text-white rounded-xl px-4 py-4 hover:bg-teal-700 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Inventory</p>
+                  <p className="text-xs text-teal-200 mt-0.5">Supplies & items</p>
+                </div>
+                <span className="text-teal-200">→</span>
+              </Link>
             </div>
-            <span className="text-orange-300">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/chores`}
-            className="flex items-center justify-between bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-xl px-4 py-3 hover:bg-indigo-100 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">All Chores</p>
-              <p className="text-xs text-indigo-400 mt-0.5">View & filter all pending chores</p>
+          </div>
+
+          {/* Community */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Community</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href={`/apartment/${apt.id}/chat`}
+                className="col-span-2 flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl px-4 py-4 hover:from-indigo-700 hover:to-violet-700 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Chat & Calls</p>
+                  <p className="text-xs text-indigo-200 mt-0.5">Group chat, DMs, voice & video</p>
+                </div>
+                <span className="text-indigo-200">→</span>
+              </Link>
+              <Link href={`/apartment/${apt.id}/calendar`}
+                className="flex items-center justify-between bg-sky-600 text-white rounded-xl px-4 py-4 hover:bg-sky-700 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Calendar</p>
+                  <p className="text-xs text-sky-200 mt-0.5">Events & guests</p>
+                </div>
+                <span className="text-sky-200">→</span>
+              </Link>
+              <Link href={`/apartment/${apt.id}/feed`}
+                className="flex items-center justify-between bg-rose-500 text-white rounded-xl px-4 py-4 hover:bg-rose-600 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">Activity Feed</p>
+                  <p className="text-xs text-rose-200 mt-0.5">Events & announcements</p>
+                </div>
+                <span className="text-rose-200">→</span>
+              </Link>
             </div>
-            <span className="text-indigo-400">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/grocery`}
-            className="flex items-center justify-between bg-amber-500 text-white rounded-xl px-4 py-4 hover:bg-amber-600 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Grocery List</p>
-              <p className="text-xs text-amber-100 mt-0.5">Shared shopping list</p>
-            </div>
-            <span className="text-amber-100">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/inventory`}
-            className="flex items-center justify-between bg-teal-600 text-white rounded-xl px-4 py-4 hover:bg-teal-700 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Inventory</p>
-              <p className="text-xs text-teal-200 mt-0.5">Supplies & items</p>
-            </div>
-            <span className="text-teal-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/fund`}
-            className="flex items-center justify-between bg-violet-600 text-white rounded-xl px-4 py-4 hover:bg-violet-700 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Apartment Fund</p>
-              <p className="text-xs text-violet-200 mt-0.5">Shared pool for supplies</p>
-            </div>
-            <span className="text-violet-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/feed`}
-            className="flex items-center justify-between bg-rose-500 text-white rounded-xl px-4 py-4 hover:bg-rose-600 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Activity Feed</p>
-              <p className="text-xs text-rose-200 mt-0.5">Events & announcements</p>
-            </div>
-            <span className="text-rose-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/calendar`}
-            className="flex items-center justify-between bg-sky-600 text-white rounded-xl px-4 py-4 hover:bg-sky-700 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Calendar</p>
-              <p className="text-xs text-sky-200 mt-0.5">Guests, maintenance, events</p>
-            </div>
-            <span className="text-sky-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/agreements`}
-            className="flex items-center justify-between bg-slate-700 text-white rounded-xl px-4 py-4 hover:bg-slate-800 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Shared Agreements</p>
-              <p className="text-xs text-slate-300 mt-0.5">Lease, WiFi, emergency contacts</p>
-            </div>
-            <span className="text-slate-300">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/chat`}
-            className="col-span-2 flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl px-4 py-4 hover:from-indigo-700 hover:to-violet-700 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Chat & Calls</p>
-              <p className="text-xs text-indigo-200 mt-0.5">Group chat, DMs, voice & video</p>
-            </div>
-            <span className="text-indigo-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/scores`}
-            className="flex items-center justify-between bg-emerald-600 text-white rounded-xl px-4 py-4 hover:bg-emerald-700 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Roommate Scores</p>
-              <p className="text-xs text-emerald-200 mt-0.5">Points, history & move-out</p>
-            </div>
-            <span className="text-emerald-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/disputes`}
-            className="flex items-center justify-between bg-red-500 text-white rounded-xl px-4 py-4 hover:bg-red-600 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Disputes</p>
-              <p className="text-xs text-red-200 mt-0.5">Raise & resolve conflicts</p>
-            </div>
-            <span className="text-red-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/rotation`}
-            className="flex items-center justify-between bg-orange-500 text-white rounded-xl px-4 py-4 hover:bg-orange-600 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Purchase Rotation</p>
-              <p className="text-xs text-orange-100 mt-0.5">Whose turn to buy supplies</p>
-            </div>
-            <span className="text-orange-100">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/cleaning`}
-            className="flex items-center justify-between bg-cyan-600 text-white rounded-xl px-4 py-4 hover:bg-cyan-700 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Cleaning Rotation</p>
-              <p className="text-xs text-cyan-200 mt-0.5">Who cleans next</p>
-            </div>
-            <span className="text-cyan-200">→</span>
-          </Link>
-          <Link href={`/apartment/${apt.id}/stats`}
-            className="col-span-2 flex items-center justify-between bg-gray-800 text-white rounded-xl px-4 py-4 hover:bg-gray-900 transition-colors">
-            <div>
-              <p className="font-semibold text-sm">Stats & Analytics</p>
-              <p className="text-xs text-gray-400 mt-0.5">Spending, chores, rent history</p>
-            </div>
-            <span className="text-gray-400">→</span>
-          </Link>
+          </div>
+
+        </div>
+
+        {/* More */}
+        <div className="flex flex-wrap gap-x-5 gap-y-2 mb-4 px-1">
+          <Link href={`/apartment/${apt.id}/agreements`} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Shared Agreements</Link>
+          <Link href={`/apartment/${apt.id}/scores`} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Roommate Scores</Link>
+          <Link href={`/apartment/${apt.id}/stats`} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Stats & Analytics</Link>
         </div>
 
         {/* Today at a glance */}
