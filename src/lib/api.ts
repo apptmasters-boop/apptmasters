@@ -15,6 +15,10 @@ export async function redirectToApartment(router: { replace: (path: string) => v
   const res = await apiFetch("/api/auth/me");
   if (res.ok) {
     const data = await res.json();
+    if (data.systemRole === "SUPER_ADMIN") {
+      router.replace("/admin");
+      return;
+    }
     const memberships: { apartment: { id: string } }[] = data.memberships ?? [];
     if (memberships.length > 0) {
       router.replace(`/apartment/${memberships[0].apartment.id}`);
