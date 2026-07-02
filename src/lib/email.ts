@@ -61,6 +61,22 @@ export function verificationEmail(name: string, verifyUrl: string) {
   `;
 }
 
+export function landlordInviteEmail(buildingName: string, unitNumber: string, inviteUrl: string) {
+  return `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+      <h2 style="color:#4f46e5;margin-bottom:8px">Your unit is ready!</h2>
+      <p style="color:#374151">You've been invited to move into <strong>Unit ${unitNumber}</strong> at <strong>${buildingName}</strong> on ApptMasters.</p>
+      <p style="color:#374151">Click the button below to create your account and access your apartment portal.</p>
+      <a href="${inviteUrl}" style="display:inline-block;margin:24px 0;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600">
+        Accept invitation
+      </a>
+      <p style="color:#6b7280;font-size:13px">This link expires in 7 days. If you weren't expecting this invite, you can safely ignore it.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
+      <p style="color:#9ca3af;font-size:12px">ApptMasters — Roommate management made simple</p>
+    </div>
+  `;
+}
+
 export function notificationEmail(title: string, body: string, actionUrl?: string, actionLabel?: string) {
   return `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">

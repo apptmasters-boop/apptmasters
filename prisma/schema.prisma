@@ -62,6 +62,7 @@ model User {
   twoFactorCodes           TwoFactorCode[]
   emailVerificationTokens  EmailVerificationToken[]
   auditLogs                AuditLog[]
+  managedBuildings         Building[]               @relation("ManagedBuildings")
 }
 
 model Apartment {
@@ -104,6 +105,7 @@ model Apartment {
   roommateScores RoommateScore[]
   disputes       Dispute[]
   auditLogs      AuditLog[]
+  unit           Unit?
 }
 
 model Room {
@@ -774,4 +776,43 @@ model PasswordResetToken {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Landlord / Building ───────────────────────────────────────────────────────
+
+model Building {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  createdAt DateTime @default(now())
+
+  managerId String
+  manager   User     @relation("ManagedBuildings", fields: [managerId], references: [id], onDelete: Cascade)
+  units     Unit[]
+}
+
+model Unit {
+  id        String   @id @default(cuid())
+  number    String
+  createdAt DateTime @default(now())
+
+  buildingId  String
+  building    Building     @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  apartmentId String?      @unique
+  apartment   Apartment?   @relation(fields: [apartmentId], references: [id], onDelete: SetNull)
+  invites     UnitInvite[]
+
+  @@unique([buildingId, number])
+}
+
+model UnitInvite {
+  id         String    @id @default(cuid())
+  email      String
+  token      String    @unique @default(cuid())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  unitId String
+  unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
 }

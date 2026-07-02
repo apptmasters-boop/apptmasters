@@ -19,6 +19,10 @@ export async function redirectToApartment(router: { replace: (path: string) => v
       router.replace("/admin");
       return;
     }
+    if (data.systemRole === "MANAGER") {
+      router.replace("/manager");
+      return;
+    }
     const memberships: { apartment: { id: string } }[] = data.memberships ?? [];
     if (memberships.length > 0) {
       router.replace(`/apartment/${memberships[0].apartment.id}`);
