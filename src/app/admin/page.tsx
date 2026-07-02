@@ -32,6 +32,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<"stats" | "users" | "apartments" | "audit">("stats");
   const [stats, setStats] = useState<Stats | null>(null);
+  const [myApartmentId, setMyApartmentId] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -42,17 +43,23 @@ export default function AdminPage() {
   const [userQuery, setUserQuery] = useState("");
 
   async function load() {
-    const [uRes, aRes, auRes, sRes] = await Promise.all([
+    const [uRes, aRes, auRes, sRes, meRes] = await Promise.all([
       apiFetch("/api/admin/users"),
       apiFetch("/api/admin/apartments"),
       apiFetch("/api/admin/audit"),
       apiFetch("/api/admin/stats"),
+      apiFetch("/api/auth/me"),
     ]);
     if (uRes.status === 403) { router.replace("/dashboard"); return; }
     if (uRes.ok) setUsers(await uRes.json());
     if (aRes.ok) setApartments(await aRes.json());
     if (auRes.ok) setAuditLogs(await auRes.json());
     if (sRes.ok) setStats(await sRes.json());
+    if (meRes.ok) {
+      const me = await meRes.json();
+      const apt = me.memberships?.[0]?.apartment?.id ?? null;
+      setMyApartmentId(apt);
+    }
     setLoading(false);
   }
 
@@ -105,7 +112,7 @@ export default function AdminPage() {
           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">ApptMasters</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-sm text-gray-400 hover:text-gray-600">Tenant view →</Link>
+          <Link href={myApartmentId ? `/apartment/${myApartmentId}` : "/dashboard"} className="text-sm text-gray-400 hover:text-gray-600">Tenant view →</Link>
           <button onClick={() => { clearToken(); router.replace("/login"); }}
             className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
         </div>
