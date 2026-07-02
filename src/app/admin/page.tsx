@@ -41,6 +41,9 @@ export default function AdminPage() {
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportDone, setExportDone] = useState<string | null>(null);
   const [userQuery, setUserQuery] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   async function load() {
     const [uRes, aRes, auRes, sRes, meRes] = await Promise.all([
@@ -64,6 +67,24 @@ export default function AdminPage() {
   }
 
   useEffect(() => { load(); }, []);
+
+  async function sendLandlordInvite(e: React.FormEvent) {
+    e.preventDefault();
+    setInviting(true);
+    setInviteMsg(null);
+    const res = await apiFetch("/api/admin/landlord-invite", {
+      method: "POST",
+      body: JSON.stringify({ email: inviteEmail }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setInviteMsg({ ok: true, text: `Invite sent to ${inviteEmail}` });
+      setInviteEmail("");
+    } else {
+      setInviteMsg({ ok: false, text: data.error ?? "Failed to send invite" });
+    }
+    setInviting(false);
+  }
 
   async function setRole(userId: string, systemRole: string) {
     setWorking(userId);
@@ -131,18 +152,40 @@ export default function AdminPage() {
 
         {/* Stats Tab */}
         {tab === "stats" && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "Total Users", value: stats?.totalUsers },
-              { label: "Apartments", value: stats?.totalApartments },
-              { label: "Messages", value: stats?.totalMessages },
-              { label: "Expenses", value: stats?.totalExpenses },
-            ].map(s => (
-              <div key={s.label} className="bg-white border border-gray-200 rounded-2xl px-6 py-6">
-                <p className="text-xs text-gray-400 mb-1">{s.label}</p>
-                <p className="text-3xl font-bold text-gray-900">{s.value ?? "…"}</p>
-              </div>
-            ))}
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: "Total Users", value: stats?.totalUsers },
+                { label: "Apartments", value: stats?.totalApartments },
+                { label: "Messages", value: stats?.totalMessages },
+                { label: "Expenses", value: stats?.totalExpenses },
+              ].map(s => (
+                <div key={s.label} className="bg-white border border-gray-200 rounded-2xl px-6 py-6">
+                  <p className="text-xs text-gray-400 mb-1">{s.label}</p>
+                  <p className="text-3xl font-bold text-gray-900">{s.value ?? "…"}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Invite Landlord */}
+            <div className="bg-white border border-gray-200 rounded-2xl px-6 py-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">Invite a landlord</h3>
+              <p className="text-xs text-gray-400 mb-4">Send an invite link — they'll create a Manager account directly.</p>
+              <form onSubmit={sendLandlordInvite} className="flex gap-3">
+                <input
+                  type="email" placeholder="landlord@email.com" value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)} required
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50"
+                />
+                <button type="submit" disabled={inviting}
+                  className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                  {inviting ? "Sending…" : "Send invite"}
+                </button>
+              </form>
+              {inviteMsg && (
+                <p className={`text-sm mt-3 ${inviteMsg.ok ? "text-green-600" : "text-red-600"}`}>{inviteMsg.text}</p>
+              )}
+            </div>
           </div>
         )}
 
