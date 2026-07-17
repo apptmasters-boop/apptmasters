@@ -19,6 +19,34 @@ interface Building {
   units: Unit[];
 }
 
+interface MaintenanceRequest {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  landlordNote: string | null;
+  unitNumber: string | null;
+  createdAt: string;
+  submittedBy: { name: string; email: string };
+}
+
+const PRIORITY_STYLES: Record<string, string> = {
+  LOW: "bg-gray-100 text-gray-500",
+  MEDIUM: "bg-blue-100 text-blue-600",
+  URGENT: "bg-red-100 text-red-600",
+};
+const M_STATUS_STYLES: Record<string, string> = {
+  OPEN: "bg-yellow-100 text-yellow-700",
+  IN_PROGRESS: "bg-blue-100 text-blue-700",
+  RESOLVED: "bg-green-100 text-green-700",
+};
+const M_STATUS_LABELS: Record<string, string> = {
+  OPEN: "Open",
+  IN_PROGRESS: "In Progress",
+  RESOLVED: "Resolved",
+};
+
 interface RentPayment { userId: string; amount: number; status: string; method: string | null; paidAt: string | null; }
 interface RentUnit {
   unitId: string;
@@ -47,11 +75,16 @@ const STATUS_LABELS: Record<string, string> = {
 export default function BuildingPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const [tab, setTab] = useState<"units" | "rent">("units");
+  const [tab, setTab] = useState<"units" | "rent" | "maintenance">("units");
   const [building, setBuilding] = useState<Building | null>(null);
   const [rentData, setRentData] = useState<RentUnit[]>([]);
+  const [maintData, setMaintData] = useState<MaintenanceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [rentLoading, setRentLoading] = useState(false);
+  const [maintLoading, setMaintLoading] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Units tab state
   const [addingUnit, setAddingUnit] = useState(false);
@@ -84,8 +117,30 @@ export default function BuildingPage() {
     setRentLoading(false);
   }
 
+  async function loadMaintenance() {
+    setMaintLoading(true);
+    const res = await apiFetch(`/api/manager/buildings/${params.id}/maintenance`);
+    if (res.ok) setMaintData(await res.json());
+    setMaintLoading(false);
+  }
+
+  async function updateRequest(requestId: string, status?: string, landlordNote?: string) {
+    setUpdatingId(requestId);
+    const body: Record<string, string> = {};
+    if (status) body.status = status;
+    if (landlordNote !== undefined) body.landlordNote = landlordNote;
+    await apiFetch(`/api/manager/maintenance/${requestId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    setUpdatingId(null);
+    setExpandedId(null);
+    loadMaintenance();
+  }
+
   useEffect(() => { loadBuilding(); }, [params.id]);
   useEffect(() => { if (tab === "rent") loadRent(); }, [tab]);
+  useEffect(() => { if (tab === "maintenance") loadMaintenance(); }, [tab]);
 
   async function addUnit(e: React.FormEvent) {
     e.preventDefault();
@@ -170,10 +225,10 @@ export default function BuildingPage() {
       <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-          {(["units", "rent"] as const).map(t => (
+          {(["units", "rent", "maintenance"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${tab === t ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
-              {t === "units" ? "Units & Invites" : "Rent"}
+              {t === "units" ? "Units & Invites" : t === "rent" ? "Rent" : `Maintenance${maintData.filter(r => r.status === "OPEN").length > 0 ? ` (${maintData.filter(r => r.status === "OPEN").length})` : ""}`}
             </button>
           ))}
         </div>
@@ -354,6 +409,83 @@ export default function BuildingPage() {
                   ))}
                 </div>
               </>
+            )}
+          </div>
+        )}
+        {/* ── Maintenance Tab ── */}
+        {tab === "maintenance" && (
+          <div className="space-y-3">
+            {maintLoading ? (
+              <p className="text-sm text-gray-400 text-center py-8">Loading…</p>
+            ) : maintData.length === 0 ? (
+              <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center">
+                <p className="text-3xl mb-3">🔧</p>
+                <p className="text-gray-500 font-medium">No maintenance requests</p>
+                <p className="text-sm text-gray-400 mt-1">Tenants can submit requests from their apartment home.</p>
+              </div>
+            ) : (
+              maintData.map(r => (
+                <div key={r.id} className="bg-white border border-gray-200 rounded-2xl p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        {r.unitNumber && <span className="text-xs text-gray-400 font-medium">Unit {r.unitNumber}</span>}
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${PRIORITY_STYLES[r.priority]}`}>{r.priority}</span>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${M_STATUS_STYLES[r.status]}`}>{M_STATUS_LABELS[r.status]}</span>
+                      </div>
+                      <p className="font-semibold text-gray-900">{r.title}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{r.description}</p>
+                      <p className="text-xs text-gray-400 mt-1">by {r.submittedBy.name} · {new Date(r.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <button onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex-shrink-0">
+                      {expandedId === r.id ? "Close" : "Update"}
+                    </button>
+                  </div>
+
+                  {r.landlordNote && expandedId !== r.id && (
+                    <div className="mt-3 bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5">
+                      <p className="text-xs font-medium text-blue-700 mb-0.5">Your note</p>
+                      <p className="text-sm text-blue-800">{r.landlordNote}</p>
+                    </div>
+                  )}
+
+                  {expandedId === r.id && (
+                    <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1.5">Update status</label>
+                        <div className="flex gap-2">
+                          {(["OPEN", "IN_PROGRESS", "RESOLVED"] as const).map(s => (
+                            <button key={s} type="button"
+                              onClick={() => updateRequest(r.id, s, noteInputs[r.id])}
+                              disabled={updatingId === r.id || r.status === s}
+                              className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors disabled:opacity-40 ${r.status === s ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600"}`}>
+                              {M_STATUS_LABELS[s]}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1.5">Note to tenant (optional)</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text" placeholder="e.g. Plumber coming Friday…"
+                            value={noteInputs[r.id] ?? r.landlordNote ?? ""}
+                            onChange={e => setNoteInputs(n => ({ ...n, [r.id]: e.target.value }))}
+                            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <button
+                            onClick={() => updateRequest(r.id, undefined, noteInputs[r.id] ?? "")}
+                            disabled={updatingId === r.id}
+                            className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+                            {updatingId === r.id ? "…" : "Save note"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
             )}
           </div>
         )}

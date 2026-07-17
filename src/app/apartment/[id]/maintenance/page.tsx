@@ -4,294 +4,168 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
-interface Room {
-  id: string; name: string; type: string;
-  maintenanceFlag: boolean; maintenanceNotes: string | null;
-  escalatedAt: string | null; updatedAt: string;
+interface MaintenanceRequest {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  landlordNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+  submittedBy: { name: string };
 }
+
+const PRIORITY_STYLES: Record<string, string> = {
+  LOW: "bg-gray-100 text-gray-500",
+  MEDIUM: "bg-blue-100 text-blue-600",
+  URGENT: "bg-red-100 text-red-600",
+};
+const STATUS_STYLES: Record<string, string> = {
+  OPEN: "bg-yellow-100 text-yellow-700",
+  IN_PROGRESS: "bg-blue-100 text-blue-700",
+  RESOLVED: "bg-green-100 text-green-700",
+};
+const STATUS_LABELS: Record<string, string> = {
+  OPEN: "Open",
+  IN_PROGRESS: "In Progress",
+  RESOLVED: "Resolved",
+};
 
 export default function MaintenancePage() {
   const { id: apartmentId } = useParams<{ id: string }>();
   const router = useRouter();
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [editingNotes, setEditingNotes] = useState<string | null>(null);
-  const [notesText, setNotesText] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  // Escalation state
-  const [escalatingRoom, setEscalatingRoom] = useState<Room | null>(null);
-  const [landlordEmail, setLandlordEmail] = useState("");
-  const [emailBody, setEmailBody] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState<string | null>(null); // roomId
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({ title: "", description: "", priority: "MEDIUM" });
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
-    const [aptRes, roomsRes, agreementsRes] = await Promise.all([
-      apiFetch(`/api/apartments/${apartmentId}`),
-      apiFetch(`/api/apartments/${apartmentId}/rooms`),
-      apiFetch(`/api/apartments/${apartmentId}/agreements`),
-    ]);
-    if (aptRes.status === 401) { router.replace("/login"); return; }
-    const apt = await aptRes.json();
-    setIsAdmin(apt.currentUserRole === "ADMIN");
-    if (roomsRes.ok) setRooms(await roomsRes.json());
-    // Pre-fill landlord email from shared agreements if available
-    if (agreementsRes.ok) {
-      const agreements: { key: string; value: string }[] = await agreementsRes.json();
-      const stored = agreements.find(a => a.key === "LANDLORD_EMAIL");
-      if (stored) setLandlordEmail(stored.value);
-    }
+    const res = await apiFetch(`/api/apartments/${apartmentId}/maintenance`);
+    if (res.status === 403) { router.replace(`/apartment/${apartmentId}`); return; }
+    if (res.ok) setRequests(await res.json());
     setLoading(false);
   }
 
   useEffect(() => { load(); }, [apartmentId]);
 
-  function openEscalate(room: Room) {
-    setEscalatingRoom(room);
-    setSent(null);
-    const defaultBody = [
-      `Dear Landlord,`,
-      ``,
-      `I am writing to report a maintenance issue in the ${room.name} at our apartment.`,
-      ``,
-      room.maintenanceNotes
-        ? `Issue description:\n${room.maintenanceNotes}`
-        : `Please contact us for more details about the issue.`,
-      ``,
-      `This issue was first reported on ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} and requires your attention.`,
-      ``,
-      `Please let us know when you can address this.`,
-      ``,
-      `Thank you,`,
-      `The residents`,
-    ].join("\n");
-    setEmailBody(defaultBody);
-  }
-
-  async function sendEscalation() {
-    if (!escalatingRoom || !landlordEmail.trim()) return;
-    setSending(true);
-    const res = await apiFetch(`/api/apartments/${apartmentId}/rooms/${escalatingRoom.id}/escalate`, {
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    const res = await apiFetch(`/api/apartments/${apartmentId}/maintenance`, {
       method: "POST",
-      body: JSON.stringify({ landlordEmail: landlordEmail.trim(), emailBody }),
+      body: JSON.stringify(form),
     });
-    setSending(false);
-    if (res.ok) {
-      setSent(escalatingRoom.id);
-      setEscalatingRoom(null);
-      load();
-    }
-  }
-
-  async function toggleMaintenance(room: Room) {
-    await apiFetch(`/api/apartments/${apartmentId}/rooms/${room.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ maintenanceFlag: !room.maintenanceFlag }),
-    });
+    const data = await res.json();
+    if (!res.ok) { setError(data.error ?? "Failed to submit"); setSubmitting(false); return; }
+    setForm({ title: "", description: "", priority: "MEDIUM" });
+    setShowForm(false);
+    setSubmitting(false);
     load();
   }
-
-  async function saveNotes(roomId: string) {
-    setSaving(true);
-    await apiFetch(`/api/apartments/${apartmentId}/rooms/${roomId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ maintenanceNotes: notesText || null }),
-    });
-    setEditingNotes(null);
-    setSaving(false);
-    load();
-  }
-
-  const flagged = rooms.filter(r => r.maintenanceFlag);
-  const clear = rooms.filter(r => !r.maintenanceFlag);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
-        <Link href={`/apartment/${apartmentId}`} className="text-sm text-gray-400 hover:text-gray-600">← Apartment</Link>
-        <span className="text-gray-300">|</span>
-        <span className="font-bold text-gray-900">Maintenance</span>
-        {flagged.length > 0 && (
-          <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
-            {flagged.length} issue{flagged.length !== 1 ? "s" : ""}
-          </span>
-        )}
+      <header className="bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href={`/apartment/${apartmentId}`} className="text-sm text-gray-400 hover:text-gray-600">← Home</Link>
+          <span className="text-gray-300">|</span>
+          <span className="font-bold text-gray-900">Maintenance</span>
+        </div>
+        <button onClick={() => setShowForm(s => !s)}
+          className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          + New request
+        </button>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-        {rooms.length === 0 && (
+      <main className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+        {showForm && (
+          <form onSubmit={submit} className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
+            <h2 className="font-semibold text-gray-900">Submit a maintenance request</h2>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Title</label>
+              <input
+                type="text" required value={form.title}
+                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="e.g. Leaking faucet in bathroom"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Description</label>
+              <textarea
+                required rows={3} value={form.description}
+                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Describe the issue in detail…"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Priority</label>
+              <div className="flex gap-2">
+                {(["LOW", "MEDIUM", "URGENT"] as const).map(p => (
+                  <button key={p} type="button"
+                    onClick={() => setForm(f => ({ ...f, priority: p }))}
+                    className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${form.priority === p ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>
+                    {p === "LOW" ? "Low" : p === "MEDIUM" ? "Medium" : "Urgent"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <div className="flex gap-3">
+              <button type="submit" disabled={submitting}
+                className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                {submitting ? "Submitting…" : "Submit request"}
+              </button>
+              <button type="button" onClick={() => setShowForm(false)}
+                className="px-4 text-sm text-gray-400 hover:text-gray-600">Cancel</button>
+            </div>
+          </form>
+        )}
+
+        {requests.length === 0 && !showForm ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center">
             <p className="text-3xl mb-3">🔧</p>
-            <p className="text-gray-500">No rooms yet.</p>
-            <Link href={`/apartment/${apartmentId}/rooms`} className="text-sm text-indigo-600 hover:underline mt-1 block">Go to rooms →</Link>
+            <p className="text-gray-500 font-medium">No requests yet</p>
+            <p className="text-sm text-gray-400 mt-1">Submit a request when something needs fixing.</p>
           </div>
-        )}
-
-        {flagged.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wide">Needs attention ({flagged.length})</h2>
-            {flagged.map(room => (
-              <RoomCard key={room.id} room={room} isAdmin={isAdmin}
-                editingNotes={editingNotes} notesText={notesText} saving={saving}
-                justSent={sent === room.id}
-                onToggle={() => toggleMaintenance(room)}
-                onEditNotes={() => { setEditingNotes(room.id); setNotesText(room.maintenanceNotes ?? ""); }}
-                onNotesChange={setNotesText}
-                onSaveNotes={() => saveNotes(room.id)}
-                onCancelNotes={() => setEditingNotes(null)}
-                onEscalate={() => openEscalate(room)}
-              />
-            ))}
-          </section>
-        )}
-
-        {clear.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">All clear ({clear.length})</h2>
-            {clear.map(room => (
-              <RoomCard key={room.id} room={room} isAdmin={isAdmin}
-                editingNotes={editingNotes} notesText={notesText} saving={saving}
-                justSent={false}
-                onToggle={() => toggleMaintenance(room)}
-                onEditNotes={() => { setEditingNotes(room.id); setNotesText(room.maintenanceNotes ?? ""); }}
-                onNotesChange={setNotesText}
-                onSaveNotes={() => saveNotes(room.id)}
-                onCancelNotes={() => setEditingNotes(null)}
-                onEscalate={() => openEscalate(room)}
-              />
-            ))}
-          </section>
+        ) : (
+          requests.map(r => (
+            <div key={r.id} className="bg-white border border-gray-200 rounded-2xl p-5 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900">{r.title}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">{r.description}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[r.status]}`}>
+                    {STATUS_LABELS[r.status]}
+                  </span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${PRIORITY_STYLES[r.priority]}`}>
+                    {r.priority}
+                  </span>
+                </div>
+              </div>
+              {r.landlordNote && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+                  <p className="text-xs font-medium text-blue-700 mb-0.5">Landlord note</p>
+                  <p className="text-sm text-blue-800">{r.landlordNote}</p>
+                </div>
+              )}
+              <p className="text-xs text-gray-400">
+                Submitted {new Date(r.createdAt).toLocaleDateString()}
+                {r.updatedAt !== r.createdAt && ` · Updated ${new Date(r.updatedAt).toLocaleDateString()}`}
+              </p>
+            </div>
+          ))
         )}
       </main>
-
-      {/* Escalation modal */}
-      {escalatingRoom && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div>
-              <h3 className="font-bold text-gray-900">Escalate to landlord</h3>
-              <p className="text-sm text-gray-500 mt-0.5">
-                Send an email to your landlord about the <strong>{escalatingRoom.name}</strong> issue.
-              </p>
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block font-medium">Landlord email *</label>
-              <input type="email" required placeholder="landlord@example.com" value={landlordEmail}
-                onChange={e => setLandlordEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400" />
-              <p className="text-xs text-gray-400 mt-1">
-                Tip: save it in <Link href={`/apartment/${apartmentId}/agreements`} className="text-indigo-500 hover:underline">Shared Agreements</Link> as "Landlord Email" for next time.
-              </p>
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block font-medium">Email message (editable)</label>
-              <textarea value={emailBody} onChange={e => setEmailBody(e.target.value)} rows={10}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none font-mono" />
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={sendEscalation} disabled={sending || !landlordEmail.trim()}
-                className="flex-1 bg-red-600 text-white py-2.5 rounded-xl font-medium hover:bg-red-700 disabled:opacity-50 transition-colors">
-                {sending ? "Sending…" : "Send to landlord"}
-              </button>
-              <button onClick={() => setEscalatingRoom(null)}
-                className="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl font-medium hover:bg-gray-50 transition-colors">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RoomCard({ room, isAdmin, editingNotes, notesText, saving, justSent, onToggle, onEditNotes, onNotesChange, onSaveNotes, onCancelNotes, onEscalate }: {
-  room: Room; isAdmin: boolean;
-  editingNotes: string | null; notesText: string; saving: boolean; justSent: boolean;
-  onToggle: () => void; onEditNotes: () => void;
-  onNotesChange: (v: string) => void; onSaveNotes: () => void; onCancelNotes: () => void;
-  onEscalate: () => void;
-}) {
-  const isEditing = editingNotes === room.id;
-
-  return (
-    <div className={`bg-white border rounded-xl px-5 py-4 space-y-3 ${room.maintenanceFlag ? "border-red-200" : "border-gray-200"}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{room.maintenanceFlag ? "🔴" : "🟢"}</span>
-          <div>
-            <p className="font-medium text-gray-900">{room.name}</p>
-            <p className="text-xs text-gray-400 capitalize">{room.type.toLowerCase()}</p>
-          </div>
-        </div>
-        {isAdmin && (
-          <button onClick={onToggle}
-            className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
-              room.maintenanceFlag
-                ? "border-green-300 text-green-700 hover:bg-green-50"
-                : "border-red-300 text-red-600 hover:bg-red-50"
-            }`}>
-            {room.maintenanceFlag ? "Mark resolved" : "Flag issue"}
-          </button>
-        )}
-      </div>
-
-      {isEditing ? (
-        <div className="space-y-2">
-          <textarea value={notesText} onChange={e => onNotesChange(e.target.value)} rows={3}
-            placeholder="Describe the maintenance issue…"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
-          <div className="flex gap-2">
-            <button onClick={onSaveNotes} disabled={saving}
-              className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-              {saving ? "Saving…" : "Save notes"}
-            </button>
-            <button onClick={onCancelNotes} className="text-xs text-gray-400 hover:text-gray-600 px-2">Cancel</button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-start justify-between gap-2">
-          {room.maintenanceNotes ? (
-            <p className="text-sm text-gray-600 whitespace-pre-wrap flex-1">{room.maintenanceNotes}</p>
-          ) : (
-            <p className="text-sm text-gray-400 italic">No notes</p>
-          )}
-          <button onClick={onEditNotes} className="text-xs text-indigo-500 hover:underline flex-shrink-0">
-            {room.maintenanceNotes ? "Edit" : "Add notes"}
-          </button>
-        </div>
-      )}
-
-      {/* Escalation section */}
-      {room.maintenanceFlag && (
-        <div className="pt-2 border-t border-gray-50 flex items-center justify-between">
-          {room.escalatedAt ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-orange-600 font-medium">
-                Escalated {new Date(room.escalatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-              </span>
-              <button onClick={onEscalate}
-                className="text-xs text-gray-400 hover:text-orange-600 transition-colors">
-                Re-send
-              </button>
-            </div>
-          ) : justSent ? (
-            <span className="text-xs text-green-600 font-medium">Email sent to landlord ✓</span>
-          ) : (
-            <button onClick={onEscalate}
-              className="text-xs bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg font-medium hover:bg-red-100 transition-colors">
-              📧 Escalate to landlord
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
