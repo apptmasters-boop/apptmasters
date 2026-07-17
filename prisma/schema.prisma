@@ -792,9 +792,10 @@ model Building {
 }
 
 model Unit {
-  id        String   @id @default(cuid())
-  number    String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  number     String
+  rentAmount Float?
+  createdAt  DateTime @default(now())
 
   buildingId  String
   building    Building     @relation(fields: [buildingId], references: [id], onDelete: Cascade)
