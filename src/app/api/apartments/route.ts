@@ -6,6 +6,7 @@ import { generateInviteCode } from "@/lib/invite";
 
 const schema = z.object({
   name: z.string().min(1),
+  address: z.string().min(1),
 });
 
 export async function POST(req: NextRequest) {
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
   const apartment = await prisma.apartment.create({
     data: {
       name: parsed.data.name,
+      address: parsed.data.address,
       inviteCode,
       members: {
         create: { userId: payload.userId, role: "ADMIN" },
