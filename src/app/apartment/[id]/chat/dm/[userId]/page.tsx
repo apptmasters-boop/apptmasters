@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { formatMessageTime } from "@/lib/time";
 import CallOverlay from "@/components/CallOverlay";
 import AudioRecorder from "@/components/AudioRecorder";
 import VoiceMessage from "@/components/VoiceMessage";
@@ -158,7 +159,7 @@ export default function DMPage() {
                   </div>
                 )}
                 <p className="text-[10px] text-gray-400 mt-0.5 mx-1">
-                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {formatMessageTime(msg.createdAt)}
                   {isMe && !isAudio && <span className="ml-1">{msg.read ? "· Read" : "· Sent"}</span>}
                 </p>
               </div>

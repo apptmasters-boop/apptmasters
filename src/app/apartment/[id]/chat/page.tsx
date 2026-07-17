@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { formatMessageTime } from "@/lib/time";
 import NotificationBell from "@/components/NotificationBell";
 import CallOverlay from "@/components/CallOverlay";
 import AudioRecorder from "@/components/AudioRecorder";
@@ -254,7 +255,7 @@ export default function ChatPage() {
                   </div>
                 )}
                 <p className="text-[10px] text-gray-400 mt-0.5 mx-1">
-                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {formatMessageTime(msg.createdAt)}
                 </p>
               </div>
             </div>
