@@ -36,6 +36,7 @@ export default function ChatPage() {
   const [recorderActive, setRecorderActive] = useState(false);
   const bottomRef    = useRef<HTMLDivElement>(null);
   const callPollRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+  const textareaRef  = useRef<HTMLTextAreaElement>(null);
 
   async function loadMessages() {
     const res = await apiFetch(`/api/apartments/${apartmentId}/chat`);
@@ -92,6 +93,13 @@ export default function ChatPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [content]);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -281,7 +289,7 @@ export default function ChatPage() {
           Guests cannot send messages
         </div>
       ) : (
-        <form onSubmit={send} className="px-4 py-3 bg-white border-t border-gray-200 flex items-center gap-2 flex-shrink-0">
+        <form onSubmit={send} className="px-4 py-3 bg-white border-t border-gray-200 flex items-end gap-2 flex-shrink-0">
           {recorderActive ? (
             // Full-row recorder UI while recording / previewing
             <AudioRecorder
@@ -291,10 +299,18 @@ export default function ChatPage() {
             />
           ) : (
             <>
-              <input
-                type="text" placeholder="Message…" value={content}
+              <textarea
+                ref={textareaRef}
+                rows={1}
+                placeholder="Message…" value={content}
                 onChange={e => setContent(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                onKeyDown={e => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                className="flex-1 border border-gray-300 rounded-2xl px-4 py-2 text-sm leading-snug resize-none max-h-52 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               {content.trim() ? (
                 // Has text → show Send + Emergency
