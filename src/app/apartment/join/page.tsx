@@ -14,6 +14,8 @@ function JoinForm() {
   const [pendingRules, setPendingRules] = useState<{ id: string; content: string }[] | null>(null);
   const [apartmentId, setApartmentId] = useState<string | null>(null);
   const [acknowledging, setAcknowledging] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState(false);
+  const [pendingApartmentName, setPendingApartmentName] = useState("");
 
   useEffect(() => {
     const c = searchParams.get("code");
@@ -30,6 +32,11 @@ function JoinForm() {
     const data = await res.json();
     setLoading(false);
     if (!res.ok) return setError(data.error ?? "Failed to join");
+    if (data.pending) {
+      setPendingApartmentName(data.apartmentName);
+      setPendingApproval(true);
+      return;
+    }
     setApartmentId(data.member.apartmentId);
     if (data.pendingRules?.length > 0) {
       setPendingRules(data.pendingRules);
@@ -46,6 +53,25 @@ function JoinForm() {
     }
     setAcknowledging(false);
     router.push(`/apartment/${apartmentId}`);
+  }
+
+  if (pendingApproval) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto text-3xl">⏳</div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Request sent</h1>
+            <p className="text-sm text-gray-500 mt-2">
+              Your request to join <strong>{pendingApartmentName}</strong> is awaiting admin approval.
+            </p>
+          </div>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            The apartment admin will review your request. You will receive an email when it has been approved.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (pendingRules) {

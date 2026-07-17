@@ -17,14 +17,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const membership = await prisma.apartmentMember.findUnique({
     where: { userId_apartmentId: { userId: payload.userId, apartmentId: id } },
   });
-  if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
+  if (!membership || membership.status === "PENDING_APPROVAL") {
+    return NextResponse.json({ error: "Not a member" }, { status: 403 });
+  }
 
   const apartment = await prisma.apartment.findUnique({
     where: { id },
     include: {
       members: {
         include: { user: { select: { id: true, name: true, email: true, photo: true, roomAssignment: true, moveInDate: true, dietaryFlags: true } } },
-        where: { status: { not: "MOVED_OUT" } },
+        where: { status: { notIn: ["MOVED_OUT", "PENDING_APPROVAL"] } },
       },
       houseRules: {
         where: { status: { not: "ARCHIVED" } },

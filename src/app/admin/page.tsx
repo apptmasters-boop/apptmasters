@@ -44,6 +44,12 @@ export default function AdminPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [inviteMsg, setInviteMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Apartment | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpInput, setOtpInput] = useState("");
+  const [otpExpiry, setOtpExpiry] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   async function load() {
     const [uRes, aRes, auRes, sRes, meRes] = await Promise.all([
@@ -99,6 +105,40 @@ export default function AdminPage() {
     await apiFetch(`/api/admin/users/${userId}`, { method: "DELETE" });
     setWorking(null);
     load();
+  }
+
+  async function requestDelete(apt: Apartment) {
+    setDeleteTarget(apt);
+    setOtpSent(false);
+    setOtpInput("");
+    setDeleteError("");
+    const res = await apiFetch(`/api/admin/apartments/${apt.id}/request-delete`, { method: "POST" });
+    if (res.ok) {
+      const d = await res.json();
+      setOtpSent(true);
+      setOtpExpiry(d.expiresAt);
+    } else {
+      setDeleteError("Failed to send code. Try again.");
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget || otpInput.length !== 6) return;
+    setDeleteLoading(true);
+    setDeleteError("");
+    const res = await apiFetch(`/api/admin/apartments/${deleteTarget.id}`, {
+      method: "DELETE",
+      body: JSON.stringify({ code: otpInput }),
+    });
+    if (res.ok) {
+      setDeleteTarget(null);
+      setOtpSent(false);
+      load();
+    } else {
+      const d = await res.json();
+      setDeleteError(d.error ?? "Delete failed. Check code and try again.");
+    }
+    setDeleteLoading(false);
   }
 
   async function exportUser(userId: string, name: string) {
@@ -270,6 +310,7 @@ export default function AdminPage() {
                   <th className="text-left px-5 py-3 font-medium text-gray-600">Manager</th>
                   <th className="text-left px-5 py-3 font-medium text-gray-600">Members</th>
                   <th className="text-left px-5 py-3 font-medium text-gray-600">Created</th>
+                  <th className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -286,6 +327,13 @@ export default function AdminPage() {
                     </td>
                     <td className="px-5 py-3 text-gray-600">{a._count.members}</td>
                     <td className="px-5 py-3 text-gray-400 text-xs">{new Date(a.createdAt).toLocaleDateString()}</td>
+                    <td className="px-5 py-3 text-right">
+                      <button
+                        onClick={() => requestDelete(a)}
+                        className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors">
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -322,6 +370,60 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+
+      {/* OTP Confirmation Modal for apartment deletion */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+            <div>
+              <h2 className="font-bold text-gray-900 text-lg">Delete &ldquo;{deleteTarget.name}&rdquo;?</h2>
+              <p className="text-xs text-gray-500 mt-1">
+                This permanently deletes the apartment and ALL data — chores, expenses, chat, members. This cannot be undone.
+              </p>
+            </div>
+
+            {!otpSent ? (
+              <button
+                onClick={() => requestDelete(deleteTarget)}
+                className="w-full bg-red-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-red-700 transition-colors">
+                Send confirmation code to my email
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                  <p className="text-xs text-green-700">
+                    A 6-digit code was sent to your email. Expires at{" "}
+                    <strong>{otpExpiry ? new Date(otpExpiry).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</strong>.
+                  </p>
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otpInput}
+                  onChange={e => setOtpInput(e.target.value.replace(/\D/g, ""))}
+                  placeholder="000000"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-center font-mono text-xl tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-red-400"
+                />
+                {deleteError && <p className="text-xs text-red-500">{deleteError}</p>}
+                <button
+                  onClick={confirmDelete}
+                  disabled={otpInput.length !== 6 || deleteLoading}
+                  className="w-full bg-red-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-red-700 disabled:opacity-40 transition-colors">
+                  {deleteLoading ? "Deleting…" : "Permanently delete apartment"}
+                </button>
+              </div>
+            )}
+
+            {deleteError && !otpSent && <p className="text-xs text-red-500">{deleteError}</p>}
+            <button
+              onClick={() => { setDeleteTarget(null); setOtpSent(false); setOtpInput(""); setDeleteError(""); }}
+              className="w-full text-sm text-gray-400 hover:text-gray-600 transition-colors py-1">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

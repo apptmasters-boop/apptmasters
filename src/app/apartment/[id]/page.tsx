@@ -6,8 +6,11 @@ import { apiFetch, clearToken } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
 
 interface Member {
-  id: string; role: string; status: string; joinedAt: string;
+  id: string; role: string; status: string; joinedAt: string; expiresAt: string | null;
   user: { id: string; name: string; email: string; photo: string | null; roomAssignment: string | null; dietaryFlags: string };
+}
+interface JoinRequest {
+  id: string; user: { id: string; name: string; email: string; photo: string | null };
 }
 interface RuleVote { id: string; vote: string; user: { id: string; name: string } }
 interface HouseRule {
@@ -53,6 +56,7 @@ export default function ApartmentPage() {
   const [markingReturn, setMarkingReturn] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"chores" | "money" | "household" | "community" | "people">("chores");
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
 
   async function load() {
     const [aptRes, meRes, travRes] = await Promise.all([
@@ -118,6 +122,11 @@ export default function ApartmentPage() {
     const cleaningDue: boolean = cleaningRotations.some((r: { currentUserId: string }) => r.currentUserId === myUserId);
 
     setActions({ totalOwed, cashToConfirm, editApprovalCount, cleaningDue });
+
+    // Load join requests (only visible to admins; returns 403 for others — handle gracefully)
+    const jrRes = await apiFetch(`/api/apartments/${id}/join-requests`);
+    if (jrRes.ok) setJoinRequests(await jrRes.json());
+    else setJoinRequests([]);
   }
 
   useEffect(() => { load(); }, [id]);
@@ -145,8 +154,27 @@ export default function ApartmentPage() {
     load();
   }
 
-  async function updateMember(memberId: string, update: { role?: string; status?: string }) {
+  async function updateMember(memberId: string, update: { role?: string; status?: string; expiresAt?: string | null }) {
     await apiFetch(`/api/apartments/${id}/members/${memberId}`, { method: "PATCH", body: JSON.stringify(update) });
+    load();
+  }
+
+  async function setGuestExpiry(memberId: string, dateStr: string | null) {
+    await apiFetch(`/api/apartments/${id}/members/${memberId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ expiresAt: dateStr ? new Date(dateStr + "T23:59:59").toISOString() : null }),
+    });
+    load();
+  }
+
+  async function approveJoin(memberId: string) {
+    await apiFetch(`/api/apartments/${id}/join-requests/${memberId}/approve`, { method: "POST" });
+    load();
+  }
+
+  async function rejectJoin(memberId: string) {
+    if (!confirm("Reject this join request?")) return;
+    await apiFetch(`/api/apartments/${id}/join-requests/${memberId}/reject`, { method: "POST" });
     load();
   }
 
@@ -742,8 +770,59 @@ export default function ApartmentPage() {
                           </button>
                         ))}
                       </div>
+                      {/* Guest expiry — only for GUEST members */}
+                      {m.role === "GUEST" && (
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                          <span className="text-xs text-gray-400">Access until:</span>
+                          <input
+                            type="date"
+                            defaultValue={m.expiresAt ? m.expiresAt.split("T")[0] : ""}
+                            onChange={e => setGuestExpiry(m.id, e.target.value || null)}
+                            className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                          />
+                          {m.expiresAt && (
+                            <span className="text-xs text-amber-600 font-medium">
+                              {new Date(m.expiresAt) < new Date() ? "Expired" : "Active"}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
+
+                  {/* Pending join requests — visible to ADMIN role members only */}
+                  {joinRequests.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">
+                        Pending Requests ({joinRequests.length})
+                      </p>
+                      <div className="space-y-2">
+                        {joinRequests.map(jr => (
+                          <div key={jr.id} className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-amber-200 flex items-center justify-center text-sm font-semibold text-amber-800 flex-shrink-0">
+                              {jr.user.name[0]?.toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900">{jr.user.name}</p>
+                              <p className="text-xs text-gray-400 truncate">{jr.user.email}</p>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => approveJoin(jr.id)}
+                                className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => rejectJoin(jr.id)}
+                                className="text-xs text-red-400 hover:text-red-600 px-2 py-1.5 transition-colors">
+                                Reject
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

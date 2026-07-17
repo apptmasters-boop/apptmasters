@@ -64,6 +64,7 @@ model User {
   auditLogs                AuditLog[]
   managedBuildings         Building[]               @relation("ManagedBuildings")
   maintenanceRequests      MaintenanceRequest[]     @relation("MaintenanceSubmitter")
+  apartmentDeleteCodes     ApartmentDeleteCode[]
 }
 
 model Apartment {
@@ -108,6 +109,7 @@ model Apartment {
   disputes       Dispute[]
   auditLogs      AuditLog[]
   unit           Unit?
+  deleteCodes    ApartmentDeleteCode[]
 }
 
 model Room {
@@ -182,9 +184,10 @@ model ChoreSwapRequest {
 model ApartmentMember {
   id         String    @id @default(cuid())
   role       String    @default("MEMBER")
-  status     String    @default("ACTIVE")
+  status     String    @default("ACTIVE") // ACTIVE | VACATION | MOVED_OUT | PENDING_APPROVAL
   joinedAt   DateTime  @default(now())
   movedOutAt DateTime?
+  expiresAt  DateTime? // null = no expiry; used for GUEST members
 
   userId      String
   apartmentId String
@@ -849,4 +852,30 @@ model LandlordInvite {
   expiresAt  DateTime
   acceptedAt DateTime?
   createdAt  DateTime  @default(now())
+}
+
+// ── Apartment Deletion (Super Admin) ─────────────────────────────────────────
+
+model ApartmentDeleteCode {
+  id          String   @id @default(cuid())
+  code        String
+  expiresAt   DateTime
+  used        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  userId      String
+  apartmentId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+}
+
+model ArchivedApartment {
+  inviteCode      String   @id
+  name            String
+  managerName     String?
+  managerEmail    String?
+  memberCount     Int
+  archivedAt      DateTime @default(now())
+  archivedByName  String
+  archivedByEmail String
 }

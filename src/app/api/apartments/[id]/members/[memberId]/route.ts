@@ -9,6 +9,7 @@ import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
 const updateSchema = z.object({
   role: z.enum(["ADMIN", "MEMBER", "GUEST"]).optional(),
   status: z.enum(["ACTIVE", "VACATION", "MOVED_OUT"]).optional(),
+  expiresAt: z.string().datetime().nullable().optional(),
 });
 
 async function requireAdmin(userId: string, apartmentId: string) {
@@ -38,11 +39,20 @@ export async function PATCH(
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
 
+  // Only GUEST members can have an expiry
+  if (parsed.data.expiresAt !== undefined && member.role !== "GUEST") {
+    return NextResponse.json({ error: "Expiry can only be set on GUEST members" }, { status: 400 });
+  }
+
   const updated = await prisma.apartmentMember.update({
     where: { id: memberId },
     data: {
-      ...parsed.data,
-      movedOutAt: parsed.data.status === "MOVED_OUT" ? new Date() : undefined,
+      ...(parsed.data.role !== undefined && { role: parsed.data.role }),
+      ...(parsed.data.status !== undefined && { status: parsed.data.status }),
+      ...(parsed.data.status === "MOVED_OUT" && { movedOutAt: new Date() }),
+      ...(parsed.data.expiresAt !== undefined && {
+        expiresAt: parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : null,
+      }),
     },
     include: { user: { select: { id: true, name: true, email: true } } },
   });

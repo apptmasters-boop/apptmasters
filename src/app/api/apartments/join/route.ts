@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { sendEmail, joinRequestEmail, appUrl } from "@/lib/email";
 
 const schema = z.object({
   inviteCode: z.string().min(1),
@@ -26,15 +27,27 @@ export async function POST(req: NextRequest) {
   });
   if (existing) return NextResponse.json({ error: "Already a member" }, { status: 409 });
 
-  // New member must acknowledge active house rules before joining
-  const activeRules = await prisma.houseRule.findMany({
-    where: { apartmentId: apartment.id, archivedAt: null },
+  // Create member in PENDING_APPROVAL state — apartment admin must approve before access is granted
+  await prisma.apartmentMember.create({
+    data: { userId: payload.userId, apartmentId: apartment.id, role: parsed.data.role, status: "PENDING_APPROVAL" },
   });
 
-  const member = await prisma.apartmentMember.create({
-    data: { userId: payload.userId, apartmentId: apartment.id, role: parsed.data.role },
-    include: { apartment: true },
+  // Email all active apartment admins about the new join request
+  const requester = await prisma.user.findUnique({ where: { id: payload.userId }, select: { name: true } });
+  const admins = await prisma.apartmentMember.findMany({
+    where: { apartmentId: apartment.id, role: "ADMIN", status: "ACTIVE" },
+    include: { user: { select: { email: true } } },
   });
+  const reviewUrl = `${appUrl}/apartment/${apartment.id}`;
+  await Promise.allSettled(
+    admins.map(a =>
+      sendEmail(
+        a.user.email,
+        `${requester?.name ?? "Someone"} wants to join ${apartment.name}`,
+        joinRequestEmail(requester?.name ?? "Someone", apartment.name, reviewUrl)
+      )
+    )
+  );
 
-  return NextResponse.json({ member, pendingRules: activeRules }, { status: 201 });
+  return NextResponse.json({ pending: true, apartmentId: apartment.id, apartmentName: apartment.name }, { status: 201 });
 }

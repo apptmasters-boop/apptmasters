@@ -77,6 +77,52 @@ export function landlordInviteEmail(buildingName: string, unitNumber: string, in
   `;
 }
 
+export function deleteConfirmEmail(adminName: string, apartmentName: string, code: string) {
+  return `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+      <h2 style="color:#dc2626;margin-bottom:8px">Confirm apartment deletion</h2>
+      <p style="color:#374151">Hi ${adminName},</p>
+      <p style="color:#374151">You requested to permanently delete <strong>${apartmentName}</strong> from ApptMasters. This action cannot be undone.</p>
+      <div style="margin:24px 0;text-align:center">
+        <p style="color:#6b7280;font-size:13px;margin-bottom:8px">Your confirmation code (expires in 10 minutes):</p>
+        <div style="display:inline-block;background:#fee2e2;border:1px solid #fca5a5;border-radius:12px;padding:16px 32px">
+          <span style="font-size:36px;font-weight:700;letter-spacing:8px;color:#dc2626;font-family:monospace">${code}</span>
+        </div>
+      </div>
+      <p style="color:#6b7280;font-size:13px">If you did not request this, your account may be compromised. Contact support immediately.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
+      <p style="color:#9ca3af;font-size:12px">ApptMasters — Roommate management made simple</p>
+    </div>
+  `;
+}
+
+export function joinRequestEmail(requesterName: string, apartmentName: string, actionUrl: string) {
+  return `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+      <h2 style="color:#4f46e5;margin-bottom:8px">New join request</h2>
+      <p style="color:#374151"><strong>${requesterName}</strong> has requested to join <strong>${apartmentName}</strong>.</p>
+      <p style="color:#374151">They are waiting for your approval before they can access the apartment.</p>
+      <a href="${actionUrl}" style="display:inline-block;margin:24px 0;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600">
+        Review request
+      </a>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
+      <p style="color:#9ca3af;font-size:12px">ApptMasters — Roommate management made simple</p>
+    </div>
+  `;
+}
+
+export function joinApprovedEmail(userName: string, apartmentName: string) {
+  return `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+      <h2 style="color:#4f46e5;margin-bottom:8px">You're in!</h2>
+      <p style="color:#374151">Hi ${userName},</p>
+      <p style="color:#374151">Your request to join <strong>${apartmentName}</strong> has been approved. Log in to ApptMasters to access your apartment.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
+      <p style="color:#9ca3af;font-size:12px">ApptMasters — Roommate management made simple</p>
+    </div>
+  `;
+}
+
 export function notificationEmail(title: string, body: string, actionUrl?: string, actionLabel?: string) {
   return `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
