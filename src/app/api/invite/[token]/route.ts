@@ -69,6 +69,7 @@ export async function POST(
   });
 
   let apartmentId = invite.unit.apartmentId;
+  const isFirstTenant = !apartmentId;
 
   if (!apartmentId) {
     const apt = await prisma.apartment.create({
@@ -83,13 +84,13 @@ export async function POST(
 
     if (invite.unit.rentAmount) {
       await prisma.rentConfig.create({
-        data: { apartmentId, totalAmount: invite.unit.rentAmount },
+        data: { apartmentId, totalAmount: invite.unit.rentAmount, rentPayerId: user.id },
       });
     }
   }
 
   await prisma.apartmentMember.create({
-    data: { userId: user.id, apartmentId, role: "MEMBER" },
+    data: { userId: user.id, apartmentId, role: isFirstTenant ? "ADMIN" : "MEMBER" },
   });
 
   await prisma.unitInvite.update({

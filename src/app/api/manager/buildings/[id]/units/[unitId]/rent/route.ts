@@ -29,11 +29,22 @@ export async function PATCH(
   });
 
   if (updated.apartmentId) {
-    await prisma.rentConfig.upsert({
-      where: { apartmentId: updated.apartmentId },
-      update: { totalAmount: parsed.data.rentAmount },
-      create: { apartmentId: updated.apartmentId, totalAmount: parsed.data.rentAmount },
-    });
+    const existingConfig = await prisma.rentConfig.findUnique({ where: { apartmentId: updated.apartmentId } });
+    if (existingConfig) {
+      await prisma.rentConfig.update({
+        where: { apartmentId: updated.apartmentId },
+        data: { totalAmount: parsed.data.rentAmount },
+      });
+    } else {
+      const members = await prisma.apartmentMember.findMany({ where: { apartmentId: updated.apartmentId } });
+      await prisma.rentConfig.create({
+        data: {
+          apartmentId: updated.apartmentId,
+          totalAmount: parsed.data.rentAmount,
+          rentPayerId: members.length === 1 ? members[0].userId : null,
+        },
+      });
+    }
   }
 
   return NextResponse.json(updated);
