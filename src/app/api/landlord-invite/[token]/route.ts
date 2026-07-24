@@ -5,8 +5,12 @@ import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
 
 const schema = z.object({
-  name: z.string().min(1).max(80),
-  password: z.string().min(8).regex(/[A-Za-z]/).regex(/[0-9]/),
+  name: z.string().min(1, "Please enter your name").max(80, "Name is too long"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Za-z]/, "Password must include at least one letter")
+    .regex(/[0-9]/, "Password must include at least one number"),
 });
 
 export async function GET(
@@ -39,7 +43,9 @@ export async function POST(
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
+  }
 
   const hash = await bcrypt.hash(parsed.data.password, 12);
   const user = await prisma.user.create({
