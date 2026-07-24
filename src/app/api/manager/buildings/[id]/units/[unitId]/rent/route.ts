@@ -28,6 +28,14 @@ export async function PATCH(
     data: { rentAmount: parsed.data.rentAmount },
   });
 
+  if (updated.apartmentId) {
+    await prisma.rentConfig.upsert({
+      where: { apartmentId: updated.apartmentId },
+      update: { totalAmount: parsed.data.rentAmount },
+      create: { apartmentId: updated.apartmentId, totalAmount: parsed.data.rentAmount },
+    });
+  }
+
   return NextResponse.json(updated);
 }
 

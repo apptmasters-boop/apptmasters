@@ -80,6 +80,12 @@ export async function POST(
     });
     apartmentId = apt.id;
     await prisma.unit.update({ where: { id: invite.unit.id }, data: { apartmentId } });
+
+    if (invite.unit.rentAmount) {
+      await prisma.rentConfig.create({
+        data: { apartmentId, totalAmount: invite.unit.rentAmount },
+      });
+    }
   }
 
   await prisma.apartmentMember.create({
