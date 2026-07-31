@@ -20,6 +20,8 @@ interface Rotation {
   nextUserId: string; nextUserName: string;
   memberOrder: RotationMember[];
   logs: CleaningLog[];
+  pendingAdvanceById: string | null;
+  pendingAdvanceByName: string | null;
 }
 interface Member { id: string; name: string }
 
@@ -29,11 +31,13 @@ export default function CleaningPage() {
   const [rotations, setRotations] = useState<Rotation[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [currentUserId, setCurrentUserId] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ frequency: "WEEKLY" as string, memberIds: [] as string[] });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [resolving, setResolving] = useState<string | null>(null);
 
   // Photo modal state
   const [doneModal, setDoneModal] = useState<string | null>(null); // rotationId
@@ -56,6 +60,7 @@ export default function CleaningPage() {
     if (aptRes.ok) {
       const apt = await aptRes.json();
       setMembers(apt.members.map((m: { user: Member }) => m.user));
+      setIsAdmin(apt.currentUserRole === "ADMIN");
     }
     if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); }
     setLoading(false);
@@ -119,8 +124,23 @@ export default function CleaningPage() {
       return;
     }
 
+    if (res.status === 202) {
+      setDoneModal(null);
+      setAdvancing(false);
+      alert("Request sent to the apartment admin for approval.");
+      load();
+      return;
+    }
+
     setDoneModal(null);
     setAdvancing(false);
+    load();
+  }
+
+  async function resolveAdvance(rotationId: string, action: "approve" | "reject") {
+    setResolving(rotationId);
+    await apiFetch(`/api/apartments/${apartmentId}/cleaning/${rotationId}/${action}-advance`, { method: "POST" });
+    setResolving(null);
     load();
   }
 
@@ -242,7 +262,8 @@ export default function CleaningPage() {
         {rotations.map(rot => {
           const isMyTurn = rot.currentUserId === currentUserId;
           const lastLog = rot.logs[0];
-          const canAdvance = !rot.nextDue || new Date(rot.nextDue) <= new Date();
+          const hasPending = !!rot.pendingAdvanceById;
+          const canAdvance = (!rot.nextDue || new Date(rot.nextDue) <= new Date()) && !hasPending;
           return (
             <div key={rot.id} className={`bg-white border rounded-2xl overflow-hidden ${isMyTurn ? "border-indigo-300 shadow-sm" : "border-gray-200"}`}>
               {/* Header */}
@@ -324,12 +345,40 @@ export default function CleaningPage() {
                 </div>
               )}
 
+              {/* Pending out-of-turn advance request */}
+              {hasPending && isAdmin && (
+                <div className="mx-5 mb-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                  <p className="text-sm text-amber-800">
+                    <span className="font-medium">{rot.pendingAdvanceByName}</span> wants to advance the rotation out of turn.
+                  </p>
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => resolveAdvance(rot.id, "approve")} disabled={resolving === rot.id}
+                      className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors">
+                      {resolving === rot.id ? "…" : "Approve"}
+                    </button>
+                    <button onClick={() => resolveAdvance(rot.id, "reject")} disabled={resolving === rot.id}
+                      className="text-xs border border-amber-300 text-amber-700 px-3 py-1.5 rounded-lg font-medium hover:bg-amber-100 transition-colors">
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              )}
+              {hasPending && !isAdmin && (
+                <div className="mx-5 mb-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
+                  <p className="text-xs text-amber-700">
+                    {rot.pendingAdvanceById === currentUserId ? "Your" : `${rot.pendingAdvanceByName}'s`} request to advance this rotation is awaiting admin approval.
+                  </p>
+                </div>
+              )}
+
               <div className="px-5 pb-4 flex gap-2 border-t border-gray-100 pt-3">
                 <button onClick={() => openDoneModal(rot.id)} disabled={!canAdvance}
                   className="flex-1 text-sm bg-indigo-600 text-white py-2 rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors">
-                  {!canAdvance && rot.nextDue
+                  {hasPending
+                    ? "Pending admin approval"
+                    : !canAdvance && rot.nextDue
                     ? `Already logged · next turn ${new Date(rot.nextDue).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-                    : isMyTurn ? "Mark done & pass to next" : "Advance rotation"}
+                    : isMyTurn ? "Mark done & pass to next" : "Request advance (needs admin approval)"}
                 </button>
                 <button onClick={() => del(rot.id)} disabled={deleting === rot.id}
                   className="text-sm text-red-400 hover:text-red-600 px-3 transition-colors">
@@ -342,11 +391,18 @@ export default function CleaningPage() {
       </main>
 
       {/* Done modal — photo upload */}
-      {doneModal && (
+      {doneModal && (() => {
+        const modalRotation = rotations.find(r => r.id === doneModal);
+        const modalIsMyTurn = modalRotation?.currentUserId === currentUserId;
+        return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
-            <h3 className="font-bold text-gray-900">Mark cleaning done</h3>
-            <p className="text-sm text-gray-500">Optionally add a photo as proof and a short note before passing to the next person.</p>
+            <h3 className="font-bold text-gray-900">{modalIsMyTurn ? "Mark cleaning done" : "Request rotation advance"}</h3>
+            <p className="text-sm text-gray-500">
+              {modalIsMyTurn
+                ? "Optionally add a photo as proof and a short note before passing to the next person."
+                : "It's not your turn — this will be sent to the apartment admin for approval before the rotation advances."}
+            </p>
 
             {/* Photo upload */}
             <div>
@@ -381,7 +437,7 @@ export default function CleaningPage() {
             <div className="flex gap-2">
               <button onClick={submitDone} disabled={advancing || uploading}
                 className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-                {uploading ? "Uploading…" : advancing ? "Saving…" : "Done — pass to next"}
+                {uploading ? "Uploading…" : advancing ? "Saving…" : modalIsMyTurn ? "Done — pass to next" : "Send request"}
               </button>
               <button onClick={() => setDoneModal(null)}
                 className="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl font-medium hover:bg-gray-50 transition-colors">
@@ -390,7 +446,8 @@ export default function CleaningPage() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

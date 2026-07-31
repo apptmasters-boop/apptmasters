@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/auth";
 import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
+import { notify } from "@/lib/notify";
 
 function nextDueDate(frequency: string, from: Date = new Date()): Date {
   const d = new Date(from);
@@ -46,6 +47,54 @@ export async function POST(
     notes = body.notes || undefined;
   } catch { /* body is optional */ }
 
+  const order: string[] = JSON.parse(rotation.memberOrder);
+  const currentTurnUserId = order[rotation.currentIndex % order.length];
+
+  // Out-of-turn advance: queue for admin approval instead of applying immediately
+  if (payload.userId !== currentTurnUserId) {
+    if (rotation.pendingAdvanceById) {
+      return NextResponse.json(
+        { error: "A request to advance this rotation is already pending admin approval." },
+        { status: 409 }
+      );
+    }
+
+    await prisma.cleaningRotation.update({
+      where: { id: rotationId },
+      data: {
+        pendingAdvanceById: payload.userId,
+        pendingAdvancePhotoUrl: photoUrl ?? null,
+        pendingAdvanceNotes: notes ?? null,
+        pendingAdvanceAt: now,
+      },
+    });
+
+    const [admins, requester] = await Promise.all([
+      prisma.apartmentMember.findMany({
+        where: { apartmentId, role: "ADMIN", status: "ACTIVE" },
+        select: { userId: true },
+      }),
+      prisma.user.findUnique({ where: { id: payload.userId }, select: { name: true } }),
+    ]);
+
+    if (admins.length > 0) {
+      await notify({
+        apartmentId,
+        userIds: admins.map(a => a.userId),
+        type: "ROTATION_ADVANCE_REQUEST",
+        title: "Rotation advance needs approval",
+        body: `${requester?.name ?? "A member"} wants to advance the cleaning rotation out of turn. Review and approve or reject.`,
+        link: `/apartment/${apartmentId}/cleaning`,
+        sendEmailTo: admins.map(a => a.userId),
+      });
+    }
+
+    return NextResponse.json(
+      { pending: true, message: "Request sent to the apartment admin for approval." },
+      { status: 202 }
+    );
+  }
+
   const travelers = await prisma.travelPeriod.findMany({
     where: {
       apartmentId,
@@ -56,8 +105,6 @@ export async function POST(
     select: { userId: true },
   });
   const travelingIds = new Set(travelers.map(t => t.userId));
-
-  const order: string[] = JSON.parse(rotation.memberOrder);
 
   // Find next non-traveling member
   let nextIndex = rotation.currentIndex;

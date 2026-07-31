@@ -65,6 +65,7 @@ model User {
   managedBuildings         Building[]               @relation("ManagedBuildings")
   maintenanceRequests      MaintenanceRequest[]     @relation("MaintenanceSubmitter")
   apartmentDeleteCodes     ApartmentDeleteCode[]
+  pendingRotationAdvances  CleaningRotation[]       @relation("PendingRotationAdvance")
 }
 
 model Apartment {
@@ -302,6 +303,13 @@ model CleaningRotation {
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  // Out-of-turn advance request, pending admin approval
+  pendingAdvanceById     String?
+  pendingAdvanceBy       User?     @relation("PendingRotationAdvance", fields: [pendingAdvanceById], references: [id], onDelete: SetNull)
+  pendingAdvancePhotoUrl String?
+  pendingAdvanceNotes    String?
+  pendingAdvanceAt       DateTime?
 
   apartmentId String
   apartment   Apartment    @relation(fields: [apartmentId], references: [id], onDelete: Cascade)

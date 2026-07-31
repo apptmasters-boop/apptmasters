@@ -67,6 +67,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       nextUserId: order[nextIndex],
       nextUserName: memberMap[order[nextIndex]]?.name ?? "Unknown",
       memberOrder: order.map(id => ({ id, name: memberMap[id]?.name ?? "Unknown", traveling: travelingIds.has(id) })),
+      pendingAdvanceByName: r.pendingAdvanceById ? (memberMap[r.pendingAdvanceById]?.name ?? "Unknown") : null,
     };
   });
 
