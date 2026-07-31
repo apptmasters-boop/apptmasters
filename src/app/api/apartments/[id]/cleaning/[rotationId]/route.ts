@@ -30,6 +30,13 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const now = new Date();
+  if (rotation.nextDue && now < rotation.nextDue) {
+    return NextResponse.json({
+      error: `The rotation already advanced for this period. Next turn opens ${rotation.nextDue.toLocaleDateString("en-US", { month: "short", day: "numeric" })}.`,
+    }, { status: 400 });
+  }
+
   // Parse optional photo/notes from body
   let photoUrl: string | undefined;
   let notes: string | undefined;
@@ -39,7 +46,6 @@ export async function POST(
     notes = body.notes || undefined;
   } catch { /* body is optional */ }
 
-  const now = new Date();
   const travelers = await prisma.travelPeriod.findMany({
     where: {
       apartmentId,

@@ -42,6 +42,7 @@ export default function CleaningPage() {
   const [doneNotes, setDoneNotes] = useState("");
   const [uploading, setUploading] = useState(false);
   const [advancing, setAdvancing] = useState(false);
+  const [doneError, setDoneError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -81,6 +82,7 @@ export default function CleaningPage() {
     setPhotoFile(null);
     setPhotoPreview(null);
     setDoneNotes("");
+    setDoneError(null);
   }
 
   function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
@@ -93,6 +95,7 @@ export default function CleaningPage() {
   async function submitDone() {
     if (!doneModal) return;
     setAdvancing(true);
+    setDoneError(null);
     let photoUrl: string | undefined;
 
     if (photoFile) {
@@ -104,10 +107,17 @@ export default function CleaningPage() {
       setUploading(false);
     }
 
-    await apiFetch(`/api/apartments/${apartmentId}/cleaning/${doneModal}`, {
+    const res = await apiFetch(`/api/apartments/${apartmentId}/cleaning/${doneModal}`, {
       method: "POST",
       body: JSON.stringify({ photoUrl, notes: doneNotes || undefined }),
     });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      setDoneError(data?.error ?? "Something went wrong");
+      setAdvancing(false);
+      return;
+    }
 
     setDoneModal(null);
     setAdvancing(false);
@@ -232,6 +242,7 @@ export default function CleaningPage() {
         {rotations.map(rot => {
           const isMyTurn = rot.currentUserId === currentUserId;
           const lastLog = rot.logs[0];
+          const canAdvance = !rot.nextDue || new Date(rot.nextDue) <= new Date();
           return (
             <div key={rot.id} className={`bg-white border rounded-2xl overflow-hidden ${isMyTurn ? "border-indigo-300 shadow-sm" : "border-gray-200"}`}>
               {/* Header */}
@@ -314,9 +325,11 @@ export default function CleaningPage() {
               )}
 
               <div className="px-5 pb-4 flex gap-2 border-t border-gray-100 pt-3">
-                <button onClick={() => openDoneModal(rot.id)}
-                  className="flex-1 text-sm bg-indigo-600 text-white py-2 rounded-xl font-medium hover:bg-indigo-700 transition-colors">
-                  {isMyTurn ? "Mark done & pass to next" : "Advance rotation"}
+                <button onClick={() => openDoneModal(rot.id)} disabled={!canAdvance}
+                  className="flex-1 text-sm bg-indigo-600 text-white py-2 rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors">
+                  {!canAdvance && rot.nextDue
+                    ? `Already logged · next turn ${new Date(rot.nextDue).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                    : isMyTurn ? "Mark done & pass to next" : "Advance rotation"}
                 </button>
                 <button onClick={() => del(rot.id)} disabled={deleting === rot.id}
                   className="text-sm text-red-400 hover:text-red-600 px-3 transition-colors">
@@ -362,6 +375,8 @@ export default function CleaningPage() {
             <input type="text" placeholder="Notes (optional)" value={doneNotes}
               onChange={e => setDoneNotes(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+
+            {doneError && <p className="text-sm text-red-600">{doneError}</p>}
 
             <div className="flex gap-2">
               <button onClick={submitDone} disabled={advancing || uploading}
