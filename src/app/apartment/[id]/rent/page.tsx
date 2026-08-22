@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
-const METHODS = ["VENMO", "PAYPAL", "CASHAPP", "CASH", "BANK"] as const;
+const METHODS = ["VENMO", "PAYPAL", "CASHAPP", "ZELLE", "CASH", "BANK"] as const;
 const PAYMENT_LINKS: Record<string, (name: string, amount: number) => string> = {
   VENMO: (name, amt) => `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(name)}&amount=${amt}`,
   PAYPAL: (_, amt) => `https://www.paypal.com/paypalme/pay?amount=${amt}`,
@@ -124,7 +124,8 @@ export default function RentPage() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
 
-  const currentCycle = cycles[0];
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const currentCycle = cycles.find(c => c.month === currentMonth);
   const isRentPayer = currentCycle?.rentPayer.id === currentUserId || config?.rentPayerId === currentUserId;
 
   return (
