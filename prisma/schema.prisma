@@ -300,9 +300,14 @@ model CleaningRotation {
   currentIndex Int       @default(0)
   memberOrder  String    // JSON: userId[]
   nextDue      DateTime?
+  dueWeekday   Int?      // 0=Sunday..6=Saturday — pins WEEKLY due date to a fixed day, set by admin
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  // Tracks the nextDue value already penalized for a missed turn, so the
+  // cron job docks points once per missed period instead of every day.
+  lastPenaltyDueDate DateTime?
 
   // Out-of-turn advance request, pending admin approval
   pendingAdvanceById     String?

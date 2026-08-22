@@ -7,6 +7,7 @@ import NotificationBell from "@/components/NotificationBell";
 
 const FREQS = ["DAILY", "WEEKLY", "MONTHLY"] as const;
 const FREQ_LABELS: Record<string, string> = { DAILY: "Daily", WEEKLY: "Weekly", MONTHLY: "Monthly" };
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 interface RotationMember { id: string; name: string; traveling: boolean }
 interface CleaningLog {
@@ -16,6 +17,7 @@ interface CleaningLog {
 interface Rotation {
   id: string; frequency: string; currentIndex: number;
   nextDue: string | null;
+  dueWeekday: number | null;
   currentUserId: string; currentUserName: string;
   nextUserId: string; nextUserName: string;
   memberOrder: RotationMember[];
@@ -34,7 +36,7 @@ export default function CleaningPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ frequency: "WEEKLY" as string, memberIds: [] as string[] });
+  const [form, setForm] = useState({ frequency: "WEEKLY" as string, memberIds: [] as string[], dueWeekday: null as number | null });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [resolving, setResolving] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export default function CleaningPage() {
       method: "POST",
       body: JSON.stringify(form),
     });
-    setForm({ frequency: "WEEKLY", memberIds: [] });
+    setForm({ frequency: "WEEKLY", memberIds: [], dueWeekday: null });
     setShowForm(false);
     setSaving(false);
     load();
@@ -209,6 +211,19 @@ export default function CleaningPage() {
                 ))}
               </div>
             </div>
+            {form.frequency === "WEEKLY" && (
+              <div>
+                <label className="text-xs text-gray-500 mb-2 block font-medium">Due day (fixed every week)</label>
+                <select value={form.dueWeekday ?? ""} onChange={e => setForm(prev => ({ ...prev, dueWeekday: e.target.value === "" ? null : Number(e.target.value) }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">No fixed day — 7 days from creation</option>
+                  {WEEKDAYS.map((day, i) => (
+                    <option key={day} value={i}>{day}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-1">Cleaning early or late never shifts this — it stays due every {form.dueWeekday !== null ? WEEKDAYS[form.dueWeekday] : "chosen day"}.</p>
+              </div>
+            )}
             <div>
               <label className="text-xs text-gray-500 mb-2 block font-medium">Select members & set order</label>
               <div className="flex flex-wrap gap-2 mb-3">

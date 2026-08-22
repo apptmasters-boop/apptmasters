@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/auth";
-
-function nextDueDate(frequency: string, from: Date = new Date()): Date {
-  const d = new Date(from);
-  if (frequency === "DAILY") d.setDate(d.getDate() + 1);
-  else if (frequency === "WEEKLY") d.setDate(d.getDate() + 7);
-  else d.setMonth(d.getMonth() + 1); // MONTHLY
-  return d;
-}
+import { nextDueDate, nextWeekdayDate } from "@/lib/rotation";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const payload = getTokenFromRequest(req);
@@ -84,19 +77,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { frequency, memberIds } = await req.json();
+  const { frequency, memberIds, dueWeekday } = await req.json();
   if (!memberIds?.length || memberIds.length < 2) {
     return NextResponse.json({ error: "At least 2 members required" }, { status: 400 });
   }
+
+  const freq = frequency ?? "WEEKLY";
+  const hasWeekday = freq === "WEEKLY" && Number.isInteger(dueWeekday) && dueWeekday >= 0 && dueWeekday <= 6;
 
   const rotation = await prisma.cleaningRotation.create({
     data: {
       apartmentId,
       name: "Apartment Cleaning",
-      frequency: frequency ?? "WEEKLY",
+      frequency: freq,
       memberOrder: JSON.stringify(memberIds),
       currentIndex: 0,
-      nextDue: nextDueDate(frequency ?? "WEEKLY"),
+      dueWeekday: hasWeekday ? dueWeekday : null,
+      nextDue: hasWeekday ? nextWeekdayDate(dueWeekday) : nextDueDate(freq),
     },
   });
 

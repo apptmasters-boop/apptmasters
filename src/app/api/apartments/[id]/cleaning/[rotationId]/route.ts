@@ -3,14 +3,7 @@ import { prisma } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/auth";
 import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
 import { notify } from "@/lib/notify";
-
-function nextDueDate(frequency: string, from: Date = new Date()): Date {
-  const d = new Date(from);
-  if (frequency === "DAILY") d.setDate(d.getDate() + 1);
-  else if (frequency === "WEEKLY") d.setDate(d.getDate() + 7);
-  else d.setMonth(d.getMonth() + 1);
-  return d;
-}
+import { nextDueDate, nextWeekdayDate } from "@/lib/rotation";
 
 // POST = mark done & advance to next person
 export async function POST(
@@ -124,9 +117,12 @@ export async function POST(
     },
   });
 
+  // Anchor the next due date to the *previous* due date (not to whenever this
+  // was actually clicked) so an early or late completion never shifts the
+  // fixed schedule the admin set.
   const updated = await prisma.cleaningRotation.update({
     where: { id: rotationId },
-    data: { currentIndex: nextIndex, nextDue: nextDueDate(rotation.frequency) },
+    data: { currentIndex: nextIndex, nextDue: nextDueDate(rotation.frequency, rotation.nextDue ?? now) },
   });
 
   // Email the next cleaner
@@ -191,14 +187,18 @@ export async function PATCH(
   });
   if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { frequency, memberIds } = await req.json();
+  const { frequency, memberIds, dueWeekday } = await req.json();
   const data: Record<string, unknown> = {};
   if (frequency) data.frequency = frequency;
   if (memberIds?.length >= 2) {
     data.memberOrder = JSON.stringify(memberIds);
     data.currentIndex = 0;
   }
-  if (frequency) data.nextDue = nextDueDate(frequency);
+  if (frequency) {
+    const hasWeekday = frequency === "WEEKLY" && Number.isInteger(dueWeekday) && dueWeekday >= 0 && dueWeekday <= 6;
+    data.dueWeekday = hasWeekday ? dueWeekday : null;
+    data.nextDue = hasWeekday ? nextWeekdayDate(dueWeekday) : nextDueDate(frequency);
+  }
 
   const updated = await prisma.cleaningRotation.update({ where: { id: rotationId }, data });
   return NextResponse.json(updated);

@@ -3,14 +3,7 @@ import { prisma } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/auth";
 import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
 import { notify } from "@/lib/notify";
-
-function nextDueDate(frequency: string, from: Date = new Date()): Date {
-  const d = new Date(from);
-  if (frequency === "DAILY") d.setDate(d.getDate() + 1);
-  else if (frequency === "WEEKLY") d.setDate(d.getDate() + 7);
-  else d.setMonth(d.getMonth() + 1);
-  return d;
-}
+import { nextDueDate } from "@/lib/rotation";
 
 // POST = admin approves a pending out-of-turn advance request
 export async function POST(
@@ -69,7 +62,7 @@ export async function POST(
     where: { id: rotationId },
     data: {
       currentIndex: nextIndex,
-      nextDue: nextDueDate(rotation.frequency),
+      nextDue: nextDueDate(rotation.frequency, rotation.nextDue ?? now),
       pendingAdvanceById: null,
       pendingAdvancePhotoUrl: null,
       pendingAdvanceNotes: null,
