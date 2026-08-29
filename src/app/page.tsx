@@ -4,9 +4,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getToken, redirectToApartment } from "@/lib/api";
 
+interface HomeListing {
+  id: string; type: string; title: string; price: number; priceMax: number | null;
+  city: string; state: string | null;
+  photos: { url: string }[];
+}
+
+const TYPE_LABELS: Record<string, string> = { APARTMENT_FOR_RENT: "Apartment for rent", ROOM_TO_SHARE: "Room to share" };
+
 export default function Home() {
   const router = useRouter();
   const [redirecting, setRedirecting] = useState(true);
+  const [listings, setListings] = useState<HomeListing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
 
   useEffect(() => {
     const token = getToken();
@@ -16,6 +26,14 @@ export default function Home() {
       setRedirecting(false);
     }
   }, [router]);
+
+  useEffect(() => {
+    fetch("/api/listings")
+      .then(res => res.ok ? res.json() : [])
+      .then((data: HomeListing[]) => setListings(data.slice(0, 6)))
+      .catch(() => {})
+      .finally(() => setListingsLoading(false));
+  }, []);
 
   if (redirecting) {
     return (
@@ -58,9 +76,9 @@ export default function Home() {
                   <p className="text-sm font-semibold text-white">Looking for a place to live?</p>
                   <p className="mt-1 text-sm text-slate-400">Browse apartments and rooms posted directly by the people who have them — no broker fee.</p>
                 </div>
-                <Link href="/listings" className="mt-3 inline-flex items-center justify-center rounded-xl border border-indigo-400/40 bg-indigo-500/10 px-5 py-2.5 text-sm font-semibold text-indigo-200 transition hover:bg-indigo-500/20 sm:mt-0 sm:flex-shrink-0">
-                  Browse listings →
-                </Link>
+                <a href="#listings" className="mt-3 inline-flex items-center justify-center rounded-xl border border-indigo-400/40 bg-indigo-500/10 px-5 py-2.5 text-sm font-semibold text-indigo-200 transition hover:bg-indigo-500/20 sm:mt-0 sm:flex-shrink-0">
+                  See listings below ↓
+                </a>
               </div>
             </div>
 
@@ -89,6 +107,57 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="listings" className="border-t border-white/10 bg-slate-900/40">
+        <div className="mx-auto max-w-6xl px-6 py-16 sm:px-10 lg:px-12">
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl font-semibold text-white sm:text-3xl">Places posted recently</h2>
+              <p className="mt-2 text-slate-400">No broker fee, ever — posted directly by the people who have them.</p>
+            </div>
+            <Link href="/listings" className="text-sm font-semibold text-indigo-300 hover:text-indigo-200 transition">
+              See all listings →
+            </Link>
+          </div>
+
+          {listingsLoading ? (
+            <p className="text-slate-500 text-sm">Loading listings…</p>
+          ) : listings.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-10 text-center">
+              <p className="text-slate-300 font-medium mb-1">No listings yet</p>
+              <p className="text-sm text-slate-500 mb-5">Be the first to post an apartment or a room to share.</p>
+              <Link href="/listings/new" className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400">
+                Post a listing
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {listings.map(l => (
+                <Link key={l.id} href={`/listings/${l.id}`}
+                  className="group rounded-2xl border border-white/10 bg-white/5 overflow-hidden transition hover:border-indigo-400/40 hover:bg-white/[0.07]">
+                  <div className="aspect-[4/3] bg-slate-800">
+                    {l.photos[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={l.photos[0].url} alt={l.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl text-slate-600">🏠</div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <span className="text-[11px] font-medium text-indigo-300 uppercase tracking-wide">{TYPE_LABELS[l.type]}</span>
+                    <p className="font-semibold text-white mt-0.5 truncate group-hover:text-indigo-200 transition">{l.title}</p>
+                    <p className="text-sm text-slate-400">{l.city}{l.state ? `, ${l.state}` : ""}</p>
+                    <p className="font-bold text-white mt-2">
+                      ${l.price.toLocaleString()}{l.priceMax ? `–$${l.priceMax.toLocaleString()}` : ""}
+                      <span className="text-sm font-normal text-slate-500">/mo</span>
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </main>
