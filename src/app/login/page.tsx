@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, setToken, redirectToApartment } from "@/lib/api";
 
@@ -23,14 +23,21 @@ function ResendVerification({ email }: { email: string }) {
   );
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"credentials" | "2fa">("credentials");
   const [code, setCode] = useState("");
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
+
+  async function afterLogin() {
+    if (returnTo) { router.replace(returnTo); return; }
+    await redirectToApartment(router);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +72,7 @@ export default function LoginPage() {
 
     // No 2FA — complete login
     setToken(data.token);
-    await redirectToApartment(router);
+    await afterLogin();
   }
 
   async function handleVerify(e: React.FormEvent) {
@@ -81,7 +88,7 @@ export default function LoginPage() {
     setLoading(false);
     if (!res.ok) { setError(data.error ?? "Invalid code"); return; }
     setToken(data.token);
-    await redirectToApartment(router);
+    await afterLogin();
   }
 
   return (
@@ -155,5 +162,13 @@ export default function LoginPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

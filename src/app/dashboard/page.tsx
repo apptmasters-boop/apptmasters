@@ -112,6 +112,16 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Your apartments</h1>
         <p className="text-sm text-gray-400 mb-6">{user?.email}</p>
 
+        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4 mb-6 sm:flex sm:items-center sm:justify-between sm:gap-4">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Looking for a place, or have one to share?</p>
+            <p className="text-sm text-gray-500 mt-0.5">Browse or post listings — free, no broker fee.</p>
+          </div>
+          <Link href="/listings" className="mt-3 inline-flex sm:mt-0 text-sm bg-white border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg font-medium hover:bg-indigo-100 transition-colors">
+            Browse listings →
+          </Link>
+        </div>
+
         {apartments.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
             <p className="text-4xl mb-4">🏠</p>

@@ -52,6 +52,16 @@ export default function Home() {
                   Sign in
                 </Link>
               </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-white">Looking for a place to live?</p>
+                  <p className="mt-1 text-sm text-slate-400">Browse apartments and rooms posted directly by the people who have them — no broker fee.</p>
+                </div>
+                <Link href="/listings" className="mt-3 inline-flex items-center justify-center rounded-xl border border-indigo-400/40 bg-indigo-500/10 px-5 py-2.5 text-sm font-semibold text-indigo-200 transition hover:bg-indigo-500/20 sm:mt-0 sm:flex-shrink-0">
+                  Browse listings →
+                </Link>
+              </div>
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/30 ring-1 ring-white/10">

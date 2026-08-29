@@ -66,6 +66,11 @@ model User {
   maintenanceRequests      MaintenanceRequest[]     @relation("MaintenanceSubmitter")
   apartmentDeleteCodes     ApartmentDeleteCode[]
   pendingRotationAdvances  CleaningRotation[]       @relation("PendingRotationAdvance")
+  listings                 Listing[]                @relation("ListingOwner")
+  listingReviews           Listing[]                @relation("ListingReviewer")
+  listingReports           ListingReport[]          @relation("ListingReporter")
+  listingMessagesSent      ListingMessage[]         @relation("ListingMessageSender")
+  listingMessagesReceived  ListingMessage[]         @relation("ListingMessageReceiver")
 }
 
 model Apartment {
@@ -892,4 +897,83 @@ model ArchivedApartment {
   archivedAt      DateTime @default(now())
   archivedByName  String
   archivedByEmail String
+}
+
+// ── Listings Marketplace ────────────────────────────────────────────────────────
+
+model Listing {
+  id              String    @id @default(cuid())
+  type            String    // APARTMENT_FOR_RENT | ROOM_TO_SHARE
+  status          String    @default("PENDING") // PENDING | APPROVED | REJECTED | REMOVED
+  title           String
+  description     String
+  price           Float
+  priceMax        Float?    // when set, price–priceMax renders as a range (mainly for ROOM_TO_SHARE budget ranges)
+  city            String
+  state           String?
+  address         String?
+  bedrooms        Int?
+  bathrooms       Float?
+  availableFrom   DateTime?
+  leaseLength     String?   // freeform: "month-to-month" | "6 months" | "1 year" | ...
+
+  // Roommate-matching criteria — only meaningful/shown when type = ROOM_TO_SHARE
+  roommateGenderPref     String? // ANY | MALE | FEMALE
+  roommateAgeMin         Int?
+  roommateAgeMax         Int?
+  roommateOccupation     String? // STUDENT | PROFESSIONAL | EITHER
+  roommateSmoking        String? // NO | YES | EITHER
+  roommatePets           String? // NO | YES | EITHER
+  roommateLifestyleTags  String  @default("[]") // JSON string[], same convention as User.dietaryFlags
+  roommateCulturalNotes  String? // freeform: language/religious/cultural compatibility notes
+
+  rejectionReason String?
+  reviewedAt      DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  ownerId      String
+  reviewedById String?
+  owner        User    @relation("ListingOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  reviewedBy   User?   @relation("ListingReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  photos       ListingPhoto[]
+  reports      ListingReport[]
+  messages     ListingMessage[]
+}
+
+model ListingPhoto {
+  id        String   @id @default(cuid())
+  url       String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model ListingReport {
+  id           String   @id @default(cuid())
+  reason       String   // SPAM | SCAM | BROKER_FEE_DEMANDED | ALREADY_RENTED | INAPPROPRIATE | OTHER
+  notes        String?
+  status       String   @default("OPEN") // OPEN | DISMISSED | ACTIONED
+  createdAt    DateTime @default(now())
+  listingId    String
+  reportedById String
+  listing      Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reportedBy   User    @relation("ListingReporter", fields: [reportedById], references: [id], onDelete: Cascade)
+}
+
+model ListingMessage {
+  id         String   @id @default(cuid())
+  content    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  listingId  String
+  senderId   String
+  receiverId String
+
+  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  sender   User    @relation("ListingMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User    @relation("ListingMessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
 }
