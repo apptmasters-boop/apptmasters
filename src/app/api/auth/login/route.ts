@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
 import { rateLimit, recordFailure, resetKey } from "@/lib/rateLimit";
+import { recordLoginEvent } from "@/lib/loginEvents";
 
 const schema = z.object({
   email: z.string().email(),
@@ -12,6 +13,7 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  const userAgent = req.headers.get("user-agent");
 
   // IP-based: 5 attempts per minute — blocks bulk scanning from one address
   const { ok } = rateLimit(`login:ip:${ip}`, 5, 60_000);
@@ -31,6 +33,7 @@ export async function POST(req: NextRequest) {
     if (locked) {
       return NextResponse.json({ error: "Too many failed attempts. Please try again in 15 minutes." }, { status: 429 });
     }
+    if (user) recordLoginEvent({ userId: user.id, ip, userAgent, success: false }).catch(() => {});
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
@@ -39,6 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   resetKey(`login:email:${email}`);
+  recordLoginEvent({ userId: user.id, ip, userAgent, success: true }).catch(() => {});
   const token = signToken({ userId: user.id, email: user.email });
   return NextResponse.json({ token, user: { id: user.id, name: user.name, email: user.email } });
 }

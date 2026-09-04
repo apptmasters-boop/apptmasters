@@ -71,6 +71,8 @@ model User {
   listingReports           ListingReport[]          @relation("ListingReporter")
   listingMessagesSent      ListingMessage[]         @relation("ListingMessageSender")
   listingMessagesReceived  ListingMessage[]         @relation("ListingMessageReceiver")
+  backupCodes              BackupCode[]
+  loginEvents              LoginEvent[]
 }
 
 model Apartment {
@@ -255,6 +257,7 @@ model Expense {
   paidBy      User         @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Cascade)
   splits      ExpenseSplit[]
   editRequests ExpenseEditRequest[]
+  settlements Settlement[]
 }
 
 model ExpenseEditRequest {
@@ -380,9 +383,11 @@ model Settlement {
   apartmentId String
   fromUserId  String
   toUserId    String
+  expenseId   String?
   apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   fromUser    User      @relation("SettlementFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
   toUser      User      @relation("SettlementTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  expense     Expense?  @relation(fields: [expenseId], references: [id], onDelete: SetNull)
 }
 
 // ── Rent ─────────────────────────────────────────────────────────────────────
@@ -774,6 +779,28 @@ model TwoFactorCode {
   code      String
   expiresAt DateTime
   used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BackupCode {
+  id        String    @id @default(cuid())
+  codeHash  String
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LoginEvent {
+  id        String   @id @default(cuid())
+  ip        String
+  userAgent String?
+  success   Boolean
   createdAt DateTime @default(now())
 
   userId String

@@ -13,7 +13,7 @@ const PAYMENT_LINKS: Record<string, (name: string, amount: number) => string> = 
   CASHAPP: (name, amt) => `https://cash.app/$${encodeURIComponent(name)}/${amt}`,
 };
 
-interface Split { userId: string; amount: number; status: string; user: { id: string; name: string } }
+interface Split { userId: string; amount: number; status: string; method: string | null; user: { id: string; name: string } }
 interface Expense {
   id: string; title: string; amount: number; category: string; splitMethod: string;
   status: string; date: string; createdAt: string; isRecurring: boolean; notes: string | null; receiptUrl: string | null;
@@ -41,6 +41,8 @@ export default function FinancePage() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [tab, setTab] = useState<"expenses" | "balance" | "approvals">("balance");
+  const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
+  const [detailTab, setDetailTab] = useState<"details" | "paidBy">("details");
   const [form, setForm] = useState({
     title: "", amount: "", category: "GENERAL", splitMethod: "EQUAL",
     isRecurring: false, frequency: "MONTHLY", date: "", notes: "", receiptUrl: "",
@@ -609,7 +611,10 @@ export default function FinancePage() {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900">{exp.title}</p>
+                            <button onClick={() => { setViewingExpense(exp); setDetailTab("details"); }}
+                              className="font-medium text-gray-900 hover:text-indigo-600 hover:underline text-left transition-colors">
+                              {exp.title}
+                            </button>
                             {exp.receiptUrl && (
                               <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer"
                                 title="View receipt"
@@ -731,6 +736,68 @@ export default function FinancePage() {
           </div>
         )}
       </main>
+
+      {/* Expense detail modal */}
+      {viewingExpense && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[85vh] overflow-y-auto">
+            <div className="px-6 pt-6 pb-2 flex items-start justify-between">
+              <div>
+                <p className="text-2xl font-bold text-gray-900">${viewingExpense.amount.toFixed(2)}</p>
+                <p className="text-sm text-gray-500">{viewingExpense.title}</p>
+              </div>
+              <button onClick={() => setViewingExpense(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+            </div>
+
+            <div className="px-6 pt-3">
+              <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+                {(["details", "paidBy"] as const).map(t => (
+                  <button key={t} onClick={() => setDetailTab(t)}
+                    className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${detailTab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                    {t === "details" ? "Details" : "Paid By"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="px-6 py-4">
+              {detailTab === "details" ? (
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex justify-between"><span className="text-gray-400">Date</span><span className="text-gray-800">{new Date(viewingExpense.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Paid by</span><span className="text-gray-800">{viewingExpense.paidBy.name}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Category</span><span className="text-gray-800">{viewingExpense.category}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Split method</span><span className="text-gray-800">{viewingExpense.splitMethod}</span></div>
+                  {viewingExpense.isRecurring && <div className="flex justify-between"><span className="text-gray-400">Recurring</span><span className="text-gray-800">Yes</span></div>}
+                  {viewingExpense.notes && <div className="pt-1 border-t border-gray-100"><p className="text-gray-400 text-xs mb-1">Notes</p><p className="text-gray-700">{viewingExpense.notes}</p></div>}
+                  {viewingExpense.receiptUrl && (
+                    <a href={viewingExpense.receiptUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-indigo-600 hover:underline pt-1">
+                      🧾 View receipt
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {viewingExpense.splits.map(s => (
+                    <div key={s.userId} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                      <span className="text-sm text-gray-700">{s.user.name}</span>
+                      <div className="text-right">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          s.status === "PAID" ? "bg-green-100 text-green-700" :
+                          s.status === "PENDING_CASH" ? "bg-amber-100 text-amber-700" :
+                          "bg-gray-100 text-gray-500"}`}>
+                          {s.status === "PENDING_CASH" ? "Pending Cash" : s.status}
+                        </span>
+                        {s.method && <p className="text-xs text-gray-400 mt-0.5">via {s.method}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
+import ApartmentSidebar from "@/components/ApartmentSidebar";
 
 interface Member {
   id: string; role: string; status: string; joinedAt: string; expiresAt: string | null;
@@ -57,6 +58,15 @@ export default function ApartmentPage() {
   const [activeSection, setActiveSection] = useState<"chores" | "money" | "household" | "community" | "people">("chores");
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+  const [desktopData, setDesktopData] = useState<{
+    choresPendingCount: number;
+    rentDue: { amount: number; dueDay: number; paidThisMonth: boolean } | null;
+    fundBalance: number;
+    maintenanceOpenCount: number;
+    recentActivity: { id: string; title: string; body: string; createdAt: string; user: { name: string } }[];
+    upcomingEvents: { id: string; title: string; startDate: string }[];
+    expensesByCategory: { category: string; amount: number }[];
+  } | null>(null);
 
   async function load() {
     const [aptRes, meRes, travRes] = await Promise.all([
@@ -127,6 +137,36 @@ export default function ApartmentPage() {
     const jrRes = await apiFetch(`/api/apartments/${id}/join-requests`);
     if (jrRes.ok) setJoinRequests(await jrRes.json());
     else setJoinRequests([]);
+
+    // Desktop dashboard widgets — reuses chores/events already fetched above, plus a few more reads
+    const [fundRes, maintRes, feedRes, statsRes, rentConfigRes, rentCyclesRes] = await Promise.all([
+      apiFetch(`/api/apartments/${id}/fund`),
+      apiFetch(`/api/apartments/${id}/maintenance`),
+      apiFetch(`/api/apartments/${id}/feed`),
+      apiFetch(`/api/apartments/${id}/stats`),
+      apiFetch(`/api/apartments/${id}/rent/config`),
+      apiFetch(`/api/apartments/${id}/rent/cycles`),
+    ]);
+
+    const fund = fundRes.ok ? await fundRes.json() : { balance: 0 };
+    const maintenance = maintRes.ok ? await maintRes.json() : [];
+    const feed = feedRes.ok ? await feedRes.json() : [];
+    const stats = statsRes.ok ? await statsRes.json() : { byCategory: {} };
+    const rentConfig = rentConfigRes.ok ? await rentConfigRes.json() : null;
+    const rentCycles = rentCyclesRes.ok ? await rentCyclesRes.json() : [];
+
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const currentCycle = rentCycles.find((c: { month: string }) => c.month === currentMonth);
+
+    setDesktopData({
+      choresPendingCount: chores.filter((c: { status: string }) => c.status === "PENDING").length,
+      rentDue: rentConfig ? { amount: rentConfig.totalAmount, dueDay: rentConfig.dueDay, paidThisMonth: !!currentCycle } : null,
+      fundBalance: fund.balance ?? 0,
+      maintenanceOpenCount: maintenance.filter((m: { status: string }) => m.status !== "RESOLVED").length,
+      recentActivity: feed.slice(0, 5),
+      upcomingEvents: events.filter((e: { startDate: string }) => new Date(e.startDate) >= now).slice(0, 5),
+      expensesByCategory: Object.entries(stats.byCategory ?? {}).map(([category, amount]) => ({ category, amount: amount as number })),
+    });
   }
 
   useEffect(() => { load(); }, [id]);
@@ -266,7 +306,8 @@ export default function ApartmentPage() {
   const isGuest = apt.currentUserRole === "GUEST";
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
+    <>
+    <div className="md:hidden min-h-screen bg-gray-50 pb-16">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-sm text-gray-400 hover:text-gray-600">← Dashboard</Link>
@@ -318,7 +359,7 @@ export default function ApartmentPage() {
               <div className="divide-y divide-gray-50">
                 {actions.totalOwed > 0.01 && (
                   <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="text-lg">💰</span>
+                    <span className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-base flex-shrink-0">💰</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">You owe <span className="text-red-600">${actions.totalOwed.toFixed(2)}</span></p>
                       <p className="text-xs text-gray-400">Tap to settle in Finance</p>
@@ -328,7 +369,7 @@ export default function ApartmentPage() {
                 )}
                 {actions.cashToConfirm.map((c, i) => (
                   <Link key={i} href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="text-lg">💵</span>
+                    <span className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-base flex-shrink-0">💵</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">{c.userName} paid <span className="text-amber-600">${c.amount.toFixed(2)}</span> in cash</p>
                       <p className="text-xs text-gray-400 truncate">For: {c.expenseTitle} · Confirm or deny</p>
@@ -338,7 +379,7 @@ export default function ApartmentPage() {
                 ))}
                 {actions.editApprovalCount > 0 && (
                   <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="text-lg">✏️</span>
+                    <span className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-base flex-shrink-0">✏️</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">{actions.editApprovalCount} expense edit {actions.editApprovalCount === 1 ? "request" : "requests"} to review</p>
                       <p className="text-xs text-gray-400">Tap to approve in Finance → Approvals</p>
@@ -348,7 +389,7 @@ export default function ApartmentPage() {
                 )}
                 {actions.cleaningDue && (
                   <Link href={`/apartment/${apt.id}/cleaning`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="text-lg">🧹</span>
+                    <span className="w-9 h-9 rounded-full bg-cyan-100 flex items-center justify-center text-base flex-shrink-0">🧹</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">It&apos;s your turn to clean</p>
                       <p className="text-xs text-gray-400">Check the cleaning rotation</p>
@@ -486,6 +527,22 @@ export default function ApartmentPage() {
                   <p className="text-xs text-teal-200 mt-0.5">Supplies & items</p>
                 </div>
                 <span className="text-teal-300">→</span>
+              </Link>
+              <Link href="/listings"
+                className="flex items-center justify-between bg-sky-600 text-white rounded-2xl px-4 py-5 hover:bg-sky-700 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">🏠 Find a Home</p>
+                  <p className="text-xs text-sky-200 mt-0.5">Browse listings</p>
+                </div>
+                <span className="text-sky-300">→</span>
+              </Link>
+              <Link href="/listings/mine"
+                className="flex items-center justify-between bg-gray-100 border border-gray-200 text-gray-700 rounded-2xl px-4 py-5 hover:bg-gray-200 transition-colors">
+                <div>
+                  <p className="font-semibold text-sm">📋 My Listings</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Manage your posts</p>
+                </div>
+                <span className="text-gray-400">→</span>
               </Link>
             </div>
           )}
@@ -913,5 +970,177 @@ export default function ApartmentPage() {
         </div>
       </nav>
     </div>
+
+    {/* Desktop experience */}
+    <div className="hidden md:flex min-h-screen bg-gray-50">
+      <ApartmentSidebar apartmentId={apt.id} apartmentName={apt.name} isSuperAdmin={isSuperAdmin} />
+
+      <div className="flex-1 min-w-0">
+        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-gray-900">{apt.name}</span>
+            {isAdmin && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Admin</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href={`/apartment/${apt.id}/search`} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors" aria-label="Search">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </Link>
+            <NotificationBell apartmentId={apt.id} />
+            <Link href="/profile" className="text-sm text-gray-500 hover:text-gray-700">{apt.members.find(m => m.user.id === currentUserId)?.user.name ?? "Profile"}</Link>
+            <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
+          </div>
+        </header>
+
+        <main className="px-8 py-8 max-w-6xl">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Welcome back{apt.members.find(m => m.user.id === currentUserId)?.user.name ? `, ${apt.members.find(m => m.user.id === currentUserId)!.user.name.split(" ")[0]}` : ""}!
+              </h1>
+              <p className="text-sm text-gray-500 mt-0.5">Here&apos;s what&apos;s happening in your household.</p>
+            </div>
+          </div>
+
+          {/* Stat tiles */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-xs text-gray-400 mb-1">Chores Pending</p>
+              <p className="text-2xl font-bold text-gray-900">{desktopData?.choresPendingCount ?? "—"}</p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-xs text-gray-400 mb-1">Rent</p>
+              {desktopData?.rentDue ? (
+                <p className="text-2xl font-bold text-gray-900">
+                  ${desktopData.rentDue.amount.toFixed(0)}
+                  {desktopData.rentDue.paidThisMonth
+                    ? <span className="text-xs font-medium text-green-600 ml-2">Paid</span>
+                    : <span className="text-xs font-medium text-red-500 ml-2">Due day {desktopData.rentDue.dueDay}</span>}
+                </p>
+              ) : <p className="text-sm text-gray-400">Not configured</p>}
+            </div>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-xs text-gray-400 mb-1">Shared Fund</p>
+              <p className="text-2xl font-bold text-gray-900">${(desktopData?.fundBalance ?? 0).toFixed(2)}</p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-xs text-gray-400 mb-1">Maintenance</p>
+              <p className="text-2xl font-bold text-gray-900">{desktopData?.maintenanceOpenCount ?? "—"}</p>
+            </div>
+          </div>
+
+          {/* Schedule / Activity / Upcoming */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-sm font-semibold text-gray-900 mb-3">Today&apos;s Schedule</p>
+              {today && today.overdueChores.length === 0 && today.upcomingEvents.length === 0 ? (
+                <p className="text-xs text-gray-400">Nothing due today.</p>
+              ) : (
+                <div className="space-y-2">
+                  {today?.overdueChores.map(c => (
+                    <Link key={c.id} href={`/apartment/${apt.id}/chores`} className="flex items-center gap-2 text-xs text-red-600 hover:underline">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />{c.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-sm font-semibold text-gray-900 mb-3">Recent Activity</p>
+              {desktopData?.recentActivity.length ? (
+                <div className="space-y-2.5">
+                  {desktopData.recentActivity.map(a => (
+                    <div key={a.id} className="text-xs">
+                      <p className="text-gray-700"><span className="font-medium">{a.user?.name ?? "Someone"}</span> {a.title}</p>
+                      <p className="text-gray-400">{new Date(a.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-xs text-gray-400">No recent activity.</p>}
+              <Link href={`/apartment/${apt.id}/feed`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">View All Activity</Link>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-sm font-semibold text-gray-900 mb-3">Upcoming</p>
+              {desktopData?.upcomingEvents.length ? (
+                <div className="space-y-2">
+                  {desktopData.upcomingEvents.map(e => (
+                    <Link key={e.id} href={`/apartment/${apt.id}/calendar`} className="flex items-center gap-2 text-xs text-gray-700 hover:underline">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 flex-shrink-0" />
+                      {e.title} · {new Date(e.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    </Link>
+                  ))}
+                </div>
+              ) : <p className="text-xs text-gray-400">Nothing on the calendar.</p>}
+              <Link href={`/apartment/${apt.id}/calendar`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">View Calendar</Link>
+            </div>
+          </div>
+
+          {/* Expenses / Members / Marketplace promo */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-sm font-semibold text-gray-900 mb-3">Expenses Overview</p>
+              {desktopData?.expensesByCategory.length ? (
+                <div className="space-y-2.5">
+                  {desktopData.expensesByCategory.map(c => {
+                    const total = desktopData.expensesByCategory.reduce((s, x) => s + x.amount, 0) || 1;
+                    return (
+                      <div key={c.category}>
+                        <div className="flex justify-between text-xs text-gray-600 mb-0.5">
+                          <span>{c.category}</span><span>${c.amount.toFixed(2)}</span>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((c.amount / total) * 100)}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : <p className="text-xs text-gray-400">No expenses yet.</p>}
+              <Link href={`/apartment/${apt.id}/finance`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">View All Expenses</Link>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+              <p className="text-sm font-semibold text-gray-900 mb-3">Household Members</p>
+              <div className="space-y-2.5">
+                {apt.members.slice(0, 5).map(m => (
+                  <div key={m.id} className="flex items-center gap-2.5">
+                    {m.user.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={m.user.photo} alt={m.user.name} className="w-7 h-7 rounded-full object-cover border border-gray-200" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">{m.user.name[0]?.toUpperCase()}</div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-800 truncate">{m.user.name}{m.user.id === currentUserId ? " (you)" : ""}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4 flex flex-col justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-900 mb-1">Find Your Next Home</p>
+                <p className="text-xs text-gray-500">Browse listings and find the perfect place.</p>
+              </div>
+              <Link href="/listings" className="mt-3 inline-block text-center bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                Search Listings
+              </Link>
+            </div>
+          </div>
+
+          {/* Quick actions */}
+          <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
+            <p className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</p>
+            <div className="flex flex-wrap gap-4">
+              <Link href={`/apartment/${apt.id}/finance`} className="text-sm text-indigo-600 hover:underline">Add Expense</Link>
+              <Link href={`/apartment/${apt.id}/chores`} className="text-sm text-indigo-600 hover:underline">Create Chore</Link>
+              <Link href={`/apartment/${apt.id}/maintenance`} className="text-sm text-indigo-600 hover:underline">Add Maintenance</Link>
+              <button onClick={copyInviteLink} className="text-sm text-indigo-600 hover:underline">{linkCopied ? "Invite link copied!" : "Invite Roommate"}</button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    </>
   );
 }

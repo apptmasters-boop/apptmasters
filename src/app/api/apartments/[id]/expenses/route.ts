@@ -33,11 +33,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     include: {
       paidBy: { select: { id: true, name: true } },
       splits: { include: { user: { select: { id: true, name: true } } } },
+      settlements: { select: { fromUserId: true, method: true } },
     },
     orderBy: { date: "desc" },
   });
 
-  return NextResponse.json(expenses);
+  // Attach each split's actual settlement method (if paid) — Settlement isn't
+  // directly keyed to a split, so match it by who paid within this expense.
+  const withSplitMethods = expenses.map(({ settlements, ...expense }) => ({
+    ...expense,
+    splits: expense.splits.map(split => ({
+      ...split,
+      method: settlements.find(s => s.fromUserId === split.userId)?.method ?? null,
+    })),
+  }));
+
+  return NextResponse.json(withSplitMethods);
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

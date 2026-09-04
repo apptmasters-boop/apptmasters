@@ -40,6 +40,10 @@ export default function ProfilePage() {
   const [twoFASaving, setTwoFASaving] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [memberships, setMemberships] = useState<{ role: string; apartment: { id: string; name: string } }[]>([]);
+  const [backupCodesRemaining, setBackupCodesRemaining] = useState<number | null>(null);
+  const [backupCodesGenerated, setBackupCodesGenerated] = useState<string[] | null>(null);
+  const [generatingCodes, setGeneratingCodes] = useState(false);
+  const [loginEvents, setLoginEvents] = useState<{ id: string; ip: string; userAgent: string | null; success: boolean; createdAt: string }[]>([]);
 
   useEffect(() => {
     setDarkMode(document.documentElement.classList.contains("dark"));
@@ -72,7 +76,33 @@ export default function ProfilePage() {
       setMemberships(data.memberships ?? []);
       setLoading(false);
     });
+    apiFetch("/api/users/2fa/backup-codes").then(async res => {
+      if (res.ok) { const d = await res.json(); setBackupCodesRemaining(d.remaining); }
+    });
+    apiFetch("/api/users/login-events").then(async res => {
+      if (res.ok) setLoginEvents(await res.json());
+    });
   }, [router]);
+
+  async function generateBackupCodes() {
+    if (backupCodesRemaining !== null && backupCodesRemaining > 0 &&
+        !confirm("Generating new codes invalidates any existing ones. Continue?")) return;
+    setGeneratingCodes(true);
+    const res = await apiFetch("/api/users/2fa/backup-codes", { method: "POST" });
+    if (res.ok) {
+      const data = await res.json();
+      setBackupCodesGenerated(data.codes);
+      setBackupCodesRemaining(data.codes.length);
+    }
+    setGeneratingCodes(false);
+  }
+
+  function describeUserAgent(userAgent: string | null): string {
+    if (!userAgent) return "Unknown device";
+    const browser = userAgent.includes("Edg/") ? "Edge" : userAgent.includes("Chrome/") ? "Chrome" : userAgent.includes("Firefox/") ? "Firefox" : userAgent.includes("Safari/") ? "Safari" : "Unknown browser";
+    const os = userAgent.includes("iPhone") ? "iPhone" : userAgent.includes("Android") ? "Android" : userAgent.includes("Mac OS X") ? "Mac" : userAgent.includes("Windows") ? "Windows" : "Unknown device";
+    return `${browser} on ${os}`;
+  }
 
   function toggleFlag(key: string) {
     setForm(f => ({
@@ -350,6 +380,35 @@ export default function ProfilePage() {
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${twoFAEnabled ? "translate-x-5" : ""}`} />
             </button>
           </label>
+
+          {twoFAEnabled && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Backup codes</p>
+                  <p className="text-xs text-gray-400">
+                    {backupCodesGenerated ? "Save these now — they won't be shown again." :
+                      backupCodesRemaining !== null && backupCodesRemaining > 0 ? `${backupCodesRemaining} unused code${backupCodesRemaining === 1 ? "" : "s"} remaining` :
+                      "Use if you can't get the emailed code"}
+                  </p>
+                </div>
+                <button type="button" onClick={generateBackupCodes} disabled={generatingCodes}
+                  className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors flex-shrink-0">
+                  {generatingCodes ? "Generating…" : backupCodesRemaining ? "Regenerate" : "Generate codes"}
+                </button>
+              </div>
+              {backupCodesGenerated && (
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="grid grid-cols-2 gap-1.5 font-mono text-xs text-gray-700">
+                    {backupCodesGenerated.map(code => <span key={code}>{code}</span>)}
+                  </div>
+                  <button type="button" onClick={() => { navigator.clipboard.writeText(backupCodesGenerated.join("\n")); }}
+                    className="text-xs text-indigo-600 hover:underline mt-2">Copy all</button>
+                </div>
+              )}
+            </div>
+          )}
+
           <hr className="border-gray-100" />
           <h2 className="text-sm font-semibold text-gray-900">Notification preferences</h2>
           <div className="space-y-3">
@@ -381,6 +440,28 @@ export default function ProfilePage() {
           }} className="w-full bg-gray-100 text-gray-700 rounded-lg py-2 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 transition-colors">
             {notifSaving ? "Saving…" : "Save preferences"}
           </button>
+        </div>
+
+        {/* Recent login activity */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 space-y-3 mt-6">
+          <h2 className="text-sm font-semibold text-gray-900">Recent login activity</h2>
+          {loginEvents.length === 0 ? (
+            <p className="text-sm text-gray-400">No login activity recorded yet.</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {loginEvents.map(ev => (
+                <div key={ev.id} className="flex items-center justify-between py-2.5">
+                  <div>
+                    <p className="text-sm text-gray-700">{describeUserAgent(ev.userAgent)}</p>
+                    <p className="text-xs text-gray-400">{ev.ip} · {new Date(ev.createdAt).toLocaleString()}</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ev.success ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    {ev.success ? "Success" : "Failed"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -70,6 +70,7 @@ export async function POST(
         apartmentId: expense.apartmentId,
         fromUserId: payload.userId,
         toUserId: expense.paidById,
+        expenseId,
         amount: split.amount,
         method,
         confirmedAt: new Date(),
