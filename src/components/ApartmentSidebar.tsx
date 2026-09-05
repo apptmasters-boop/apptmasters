@@ -13,6 +13,9 @@ interface Props {
   apartmentId: string;
   apartmentName: string;
   isSuperAdmin: boolean;
+  /** Below `md`, the sidebar is a slide-in drawer controlled by these — ignored at `md` and up, where it's always visible. */
+  open: boolean;
+  onClose: () => void;
 }
 
 const HOUSEHOLD_LINKS: { label: string; path: string; icon: React.ReactNode; color: CategoryColor }[] = [
@@ -37,7 +40,7 @@ const MARKETPLACE_LINKS: { label: string; path: string; root: boolean; icon: Rea
   { label: "My Listings", path: "listings/mine", root: true, icon: <ActivityIcon />, color: "gray" },
 ];
 
-export default function ApartmentSidebar({ apartmentId, apartmentName, isSuperAdmin }: Props) {
+export default function ApartmentSidebar({ apartmentId, apartmentName, isSuperAdmin, open, onClose }: Props) {
   const pathname = usePathname();
 
   function linkClass(href: string) {
@@ -48,57 +51,73 @@ export default function ApartmentSidebar({ apartmentId, apartmentName, isSuperAd
   }
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-shrink-0 md:flex-col border-r border-gray-200 bg-white h-screen sticky top-0 overflow-y-auto">
-      <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2.5">
-        <span className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
-          <HouseIcon className="w-[18px] h-[18px] text-white" />
-        </span>
-        <p className="font-bold text-gray-900 truncate">{apartmentName}</p>
-      </div>
+    <>
+      {/* Backdrop — mobile drawer only; sidebar is always visible at md+ so this never shows there */}
+      {open && (
+        <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={onClose} aria-hidden="true" />
+      )}
 
-      <nav className="flex-1 px-3 py-4 space-y-5">
-        <Link href={`/apartment/${apartmentId}`} className={linkClass(`/apartment/${apartmentId}`)}>
-          <IconBadge icon={<StatsIcon />} color="indigo" size="sm" />
-          Dashboard
-        </Link>
-
-        <div>
-          <p className="px-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Household</p>
-          <div className="space-y-0.5">
-            {HOUSEHOLD_LINKS.map(l => (
-              <Link key={l.path} href={`/apartment/${apartmentId}/${l.path}`} className={linkClass(`/apartment/${apartmentId}/${l.path}`)}>
-                <IconBadge icon={l.icon} color={l.color} size="sm" />
-                {l.label}
-              </Link>
-            ))}
-          </div>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col border-r border-gray-200 bg-white h-screen overflow-y-auto
+        transform transition-transform duration-200 ease-in-out
+        md:translate-x-0 md:sticky md:top-0
+        ${open ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2.5">
+          <span className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
+            <HouseIcon className="w-[18px] h-[18px] text-white" />
+          </span>
+          <p className="font-bold text-gray-900 truncate flex-1 min-w-0">{apartmentName}</p>
+          <button onClick={onClose} aria-label="Close menu"
+            className="md:hidden p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        <div>
-          <p className="px-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Marketplace</p>
-          <div className="space-y-0.5">
-            {MARKETPLACE_LINKS.map(l => (
-              <Link key={l.path} href={`/${l.path}`} className={linkClass(`/${l.path}`)}>
-                <IconBadge icon={l.icon} color={l.color} size="sm" />
-                {l.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </nav>
-
-      <div className="px-3 py-4 border-t border-gray-100 space-y-0.5">
-        <Link href="/profile" className={linkClass("/profile")}>
-          <IconBadge icon={<ProfileIcon />} color="indigo" size="sm" />
-          Profile
-        </Link>
-        {isSuperAdmin && (
-          <Link href="/admin" className={linkClass("/admin")}>
-            <IconBadge icon={<AdminIcon />} color="slate" size="sm" />
-            Admin
+        <nav className="flex-1 px-3 py-4 space-y-5" onClick={onClose}>
+          <Link href={`/apartment/${apartmentId}`} className={linkClass(`/apartment/${apartmentId}`)}>
+            <IconBadge icon={<StatsIcon />} color="indigo" size="sm" />
+            Dashboard
           </Link>
-        )}
-      </div>
-    </aside>
+
+          <div>
+            <p className="px-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Household</p>
+            <div className="space-y-0.5">
+              {HOUSEHOLD_LINKS.map(l => (
+                <Link key={l.path} href={`/apartment/${apartmentId}/${l.path}`} className={linkClass(`/apartment/${apartmentId}/${l.path}`)}>
+                  <IconBadge icon={l.icon} color={l.color} size="sm" />
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="px-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Marketplace</p>
+            <div className="space-y-0.5">
+              {MARKETPLACE_LINKS.map(l => (
+                <Link key={l.path} href={`/${l.path}`} className={linkClass(`/${l.path}`)}>
+                  <IconBadge icon={l.icon} color={l.color} size="sm" />
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </nav>
+
+        <div className="px-3 py-4 border-t border-gray-100 space-y-0.5" onClick={onClose}>
+          <Link href="/profile" className={linkClass("/profile")}>
+            <IconBadge icon={<ProfileIcon />} color="indigo" size="sm" />
+            Profile
+          </Link>
+          {isSuperAdmin && (
+            <Link href="/admin" className={linkClass("/admin")}>
+              <IconBadge icon={<AdminIcon />} color="slate" size="sm" />
+              Admin
+            </Link>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }

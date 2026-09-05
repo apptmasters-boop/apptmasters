@@ -6,29 +6,11 @@ import { apiFetch, clearToken } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
 import ApartmentSidebar from "@/components/ApartmentSidebar";
 import IconBadge from "@/components/IconBadge";
-import type { CategoryColor } from "@/lib/categoryStyle";
 import {
-  ChoresIcon, CleaningIcon, GroceryIcon, InventoryIcon, FinanceIcon, FundIcon,
-  CalendarIcon, ChatIcon, MaintenanceIcon, DisputesIcon, ActivityIcon, StatsIcon,
-  AgreementsIcon, HouseIcon, DollarBadgeIcon, CashIcon, EditIcon, AnnouncementIcon,
+  ChoresIcon, CleaningIcon, FinanceIcon, FundIcon,
+  ChatIcon, MaintenanceIcon, HouseIcon, DollarBadgeIcon, CashIcon, EditIcon, AnnouncementIcon,
   ChevronRightIcon, ProfileIcon,
 } from "@/components/icons";
-
-function FeatureCard({ href, icon, color, title, subtitle, wide }: {
-  href: string; icon: React.ReactNode; color: CategoryColor; title: string; subtitle: string; wide?: boolean;
-}) {
-  return (
-    <Link href={href}
-      className={`flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-4 py-4 hover:border-indigo-300 hover:shadow-sm transition-all ${wide ? "col-span-2" : ""}`}>
-      <IconBadge icon={icon} color={color} size="lg" />
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm text-gray-900 truncate">{title}</p>
-        <p className="text-xs text-gray-400 mt-0.5 truncate">{subtitle}</p>
-      </div>
-      <ChevronRightIcon className="w-4 h-4 text-gray-300 flex-shrink-0" />
-    </Link>
-  );
-}
 
 interface Member {
   id: string; role: string; status: string; joinedAt: string; expiresAt: string | null;
@@ -79,7 +61,7 @@ export default function ApartmentPage() {
   const [travelForm, setTravelForm] = useState({ startDate: "", endDate: "", notes: "" });
   const [markingTravel, setMarkingTravel] = useState(false);
   const [markingReturn, setMarkingReturn] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"chores" | "money" | "household" | "community" | "people">("chores");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [desktopData, setDesktopData] = useState<{
@@ -331,16 +313,22 @@ export default function ApartmentPage() {
 
   return (
     <>
-    <div className="md:hidden min-h-screen bg-gray-50 pb-16">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-sm text-gray-400 hover:text-gray-600">← Dashboard</Link>
-          <span className="text-gray-300">|</span>
-          <span className="font-bold text-gray-900">{apt.name}</span>
-          {isGuest && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Guest</span>}
-          {isAdmin && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Admin</span>}
+    <ApartmentSidebar apartmentId={apt.id} apartmentName={apt.name} isSuperAdmin={isSuperAdmin} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+    <div className="md:hidden min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 min-w-0">
+          <button onClick={() => setSidebarOpen(true)} aria-label="Open menu"
+            className="p-1.5 -ml-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors flex-shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="font-bold text-gray-900 truncate">{apt.name}</span>
+          {isGuest && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Guest</span>}
+          {isAdmin && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Admin</span>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Link href={`/apartment/${apt.id}/search`}
             className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
             aria-label="Search">
@@ -463,46 +451,8 @@ export default function ApartmentPage() {
           </div>
         )}
 
-        {/* Section cards — switches with bottom nav */}
-        <div className="mb-24">
-          {activeSection === "chores" && (
-            <div className="grid grid-cols-2 gap-3">
-              <FeatureCard href={`/apartment/${apt.id}/chores`} icon={<ChoresIcon />} color="orange" title="Chores" subtitle="View & manage all" wide />
-              <FeatureCard href={`/apartment/${apt.id}/cleaning`} icon={<CleaningIcon />} color="cyan" title="Cleaning Rotation" subtitle="Who cleans next" />
-              <FeatureCard href={`/apartment/${apt.id}/rotation`} icon={<ChoresIcon />} color="amber" title="Purchase Rotation" subtitle="Whose turn to buy" />
-            </div>
-          )}
-
-          {activeSection === "money" && (
-            <div className="grid grid-cols-2 gap-3">
-              <FeatureCard href={`/apartment/${apt.id}/finance`} icon={<FinanceIcon />} color="blue" title="Finance & Rent" subtitle="Expenses & balances" wide />
-              <FeatureCard href={`/apartment/${apt.id}/fund`} icon={<FundIcon />} color="teal" title="Apartment Fund" subtitle="Shared pool" />
-              <FeatureCard href={`/apartment/${apt.id}/disputes`} icon={<DisputesIcon />} color="red" title="Disputes" subtitle="Raise & resolve conflicts" />
-              <FeatureCard href={`/apartment/${apt.id}/stats`} icon={<StatsIcon />} color="teal" title="Stats & Analytics" subtitle="Trends & breakdowns" wide />
-            </div>
-          )}
-
-          {activeSection === "household" && (
-            <div className="grid grid-cols-2 gap-3">
-              <FeatureCard href={`/apartment/${apt.id}/grocery`} icon={<GroceryIcon />} color="green" title="Grocery List" subtitle="Shared shopping list" wide />
-              <FeatureCard href={`/apartment/${apt.id}/maintenance`} icon={<MaintenanceIcon />} color="amber" title="Maintenance" subtitle="Room issues & notes" />
-              <FeatureCard href={`/apartment/${apt.id}/inventory`} icon={<InventoryIcon />} color="purple" title="Inventory" subtitle="Supplies & items" />
-              <FeatureCard href="/listings" icon={<HouseIcon />} color="blue" title="Find a Home" subtitle="Browse listings" />
-              <FeatureCard href="/listings/mine" icon={<ActivityIcon />} color="gray" title="My Listings" subtitle="Manage your posts" />
-            </div>
-          )}
-
-          {activeSection === "community" && (
-            <div className="grid grid-cols-2 gap-3">
-              <FeatureCard href={`/apartment/${apt.id}/chat`} icon={<ChatIcon />} color="emerald" title="Chat & Calls" subtitle="Group chat, DMs, voice & video" wide />
-              <FeatureCard href={`/apartment/${apt.id}/calendar`} icon={<CalendarIcon />} color="sky" title="Calendar" subtitle="Events & guests" />
-              <FeatureCard href={`/apartment/${apt.id}/feed`} icon={<ActivityIcon />} color="rose" title="Activity Feed" subtitle="Events & announcements" />
-              <FeatureCard href={`/apartment/${apt.id}/agreements`} icon={<AgreementsIcon />} color="indigo" title="Shared Agreements" subtitle="Rules everyone signed" wide />
-            </div>
-          )}
-
-          {activeSection === "people" && (
-            <div className="space-y-4">
+        {/* Household — members, rules & admin. Feature navigation now lives in the sidebar drawer (☰). */}
+        <div className="space-y-4">
               {/* Profile link */}
               <Link href="/profile"
                 className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 hover:border-indigo-300 hover:shadow-sm transition-all">
@@ -803,8 +753,6 @@ export default function ApartmentPage() {
                 </div>
               )}
             </div>
-          )}
-        </div>
 
         {/* Travel modal */}
         {travelModal && (
@@ -844,57 +792,10 @@ export default function ApartmentPage() {
           </div>
         )}
       </main>
-
-      {/* Fixed 5-tab bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-inset-bottom">
-        <div className="flex items-stretch h-16">
-          {([
-            {
-              key: "chores" as const, label: "Chores", activeColor: "text-indigo-600",
-              icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>,
-            },
-            {
-              key: "money" as const, label: "Money", activeColor: "text-emerald-600",
-              icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-            },
-            {
-              key: "household" as const, label: "Household", activeColor: "text-amber-500",
-              icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
-            },
-            {
-              key: "community" as const, label: "Chat", activeColor: "text-violet-600",
-              icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
-            },
-            {
-              key: "people" as const, label: "Profile", activeColor: "text-indigo-600",
-              icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
-            },
-          ]).map(tab => (
-            <button key={tab.key} onClick={() => setActiveSection(tab.key)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-                activeSection === tab.key ? tab.activeColor : "text-gray-400 hover:text-gray-600"
-              }`}>
-              {tab.icon}
-              <span className="text-[10px] font-medium">{tab.label}</span>
-            </button>
-          ))}
-          {isSuperAdmin && (
-            <Link href="/admin"
-              className="flex-1 flex flex-col items-center justify-center gap-0.5 text-purple-500 hover:text-purple-700 transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span className="text-[10px] font-medium">Admin</span>
-            </Link>
-          )}
-        </div>
-      </nav>
     </div>
 
     {/* Desktop experience */}
-    <div className="hidden md:flex min-h-screen bg-gray-50">
-      <ApartmentSidebar apartmentId={apt.id} apartmentName={apt.name} isSuperAdmin={isSuperAdmin} />
-
+    <div className="hidden md:block min-h-screen bg-gray-50 md:pl-64">
       <div className="flex-1 min-w-0">
         <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
