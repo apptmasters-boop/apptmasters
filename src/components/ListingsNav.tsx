@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { apiFetch, getToken, clearToken } from "@/lib/api";
 
-export default function ListingsNav() {
+export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [name, setName] = useState<string | null>(null);
@@ -21,7 +21,15 @@ export default function ListingsNav() {
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 sm:gap-6">
+        {onOpenMenu && (
+          <button onClick={onOpenMenu} aria-label="Open menu"
+            className="md:hidden p-1.5 -ml-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors flex-shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
         <Link href="/listings" className="font-bold text-gray-900">
           ApptMasters <span className="text-indigo-600">Listings</span>
         </Link>
