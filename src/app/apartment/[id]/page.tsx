@@ -5,6 +5,30 @@ import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
 import ApartmentSidebar from "@/components/ApartmentSidebar";
+import IconBadge from "@/components/IconBadge";
+import type { CategoryColor } from "@/lib/categoryStyle";
+import {
+  ChoresIcon, CleaningIcon, GroceryIcon, InventoryIcon, FinanceIcon, FundIcon,
+  CalendarIcon, ChatIcon, MaintenanceIcon, DisputesIcon, ActivityIcon, StatsIcon,
+  AgreementsIcon, HouseIcon, DollarBadgeIcon, CashIcon, EditIcon, AnnouncementIcon,
+  ChevronRightIcon, ProfileIcon,
+} from "@/components/icons";
+
+function FeatureCard({ href, icon, color, title, subtitle, wide }: {
+  href: string; icon: React.ReactNode; color: CategoryColor; title: string; subtitle: string; wide?: boolean;
+}) {
+  return (
+    <Link href={href}
+      className={`flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-4 py-4 hover:border-indigo-300 hover:shadow-sm transition-all ${wide ? "col-span-2" : ""}`}>
+      <IconBadge icon={icon} color={color} size="lg" />
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm text-gray-900 truncate">{title}</p>
+        <p className="text-xs text-gray-400 mt-0.5 truncate">{subtitle}</p>
+      </div>
+      <ChevronRightIcon className="w-4 h-4 text-gray-300 flex-shrink-0" />
+    </Link>
+  );
+}
 
 interface Member {
   id: string; role: string; status: string; joinedAt: string; expiresAt: string | null;
@@ -334,7 +358,9 @@ export default function ApartmentPage() {
         {apt.announcement && (
           <div className="bg-amber-50 border border-amber-300 rounded-xl px-5 py-4 mb-4 flex items-start justify-between gap-3">
             <div className="flex-1">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">📢 Announcement</p>
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                <AnnouncementIcon className="w-3.5 h-3.5" /> Announcement
+              </p>
               <p className="text-sm text-amber-900">{apt.announcement}</p>
               {apt.announcementAt && (
                 <p className="text-xs text-amber-500 mt-1">{new Date(apt.announcementAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</p>
@@ -359,42 +385,42 @@ export default function ApartmentPage() {
               <div className="divide-y divide-gray-50">
                 {actions.totalOwed > 0.01 && (
                   <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-base flex-shrink-0">💰</span>
+                    <IconBadge icon={<DollarBadgeIcon />} color="red" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">You owe <span className="text-red-600">${actions.totalOwed.toFixed(2)}</span></p>
                       <p className="text-xs text-gray-400">Tap to settle in Finance</p>
                     </div>
-                    <span className="text-gray-300">→</span>
+                    <ChevronRightIcon className="w-4 h-4 text-gray-300" />
                   </Link>
                 )}
                 {actions.cashToConfirm.map((c, i) => (
                   <Link key={i} href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-base flex-shrink-0">💵</span>
+                    <IconBadge icon={<CashIcon />} color="amber" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">{c.userName} paid <span className="text-amber-600">${c.amount.toFixed(2)}</span> in cash</p>
                       <p className="text-xs text-gray-400 truncate">For: {c.expenseTitle} · Confirm or deny</p>
                     </div>
-                    <span className="text-gray-300">→</span>
+                    <ChevronRightIcon className="w-4 h-4 text-gray-300" />
                   </Link>
                 ))}
                 {actions.editApprovalCount > 0 && (
                   <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-base flex-shrink-0">✏️</span>
+                    <IconBadge icon={<EditIcon />} color="indigo" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">{actions.editApprovalCount} expense edit {actions.editApprovalCount === 1 ? "request" : "requests"} to review</p>
                       <p className="text-xs text-gray-400">Tap to approve in Finance → Approvals</p>
                     </div>
-                    <span className="text-gray-300">→</span>
+                    <ChevronRightIcon className="w-4 h-4 text-gray-300" />
                   </Link>
                 )}
                 {actions.cleaningDue && (
                   <Link href={`/apartment/${apt.id}/cleaning`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <span className="w-9 h-9 rounded-full bg-cyan-100 flex items-center justify-center text-base flex-shrink-0">🧹</span>
+                    <IconBadge icon={<CleaningIcon />} color="cyan" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900">It&apos;s your turn to clean</p>
                       <p className="text-xs text-gray-400">Check the cleaning rotation</p>
                     </div>
-                    <span className="text-gray-300">→</span>
+                    <ChevronRightIcon className="w-4 h-4 text-gray-300" />
                   </Link>
                 )}
               </div>
@@ -441,143 +467,37 @@ export default function ApartmentPage() {
         <div className="mb-24">
           {activeSection === "chores" && (
             <div className="grid grid-cols-2 gap-3">
-              <Link href={`/apartment/${apt.id}/chores`}
-                className="col-span-2 flex items-center justify-between bg-indigo-600 text-white rounded-2xl px-5 py-5 hover:bg-indigo-700 transition-colors">
-                <div>
-                  <p className="font-bold text-base">Chores</p>
-                  <p className="text-xs text-indigo-200 mt-0.5">View & manage all chores</p>
-                </div>
-                <span className="text-indigo-300 text-xl">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/cleaning`}
-                className="flex items-center justify-between bg-cyan-600 text-white rounded-2xl px-4 py-5 hover:bg-cyan-700 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">Cleaning Rotation</p>
-                  <p className="text-xs text-cyan-200 mt-0.5">Who cleans next</p>
-                </div>
-                <span className="text-cyan-300">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/rotation`}
-                className="flex items-center justify-between bg-orange-500 text-white rounded-2xl px-4 py-5 hover:bg-orange-600 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">Purchase Rotation</p>
-                  <p className="text-xs text-orange-100 mt-0.5">Whose turn to buy</p>
-                </div>
-                <span className="text-orange-200">→</span>
-              </Link>
+              <FeatureCard href={`/apartment/${apt.id}/chores`} icon={<ChoresIcon />} color="orange" title="Chores" subtitle="View & manage all" wide />
+              <FeatureCard href={`/apartment/${apt.id}/cleaning`} icon={<CleaningIcon />} color="cyan" title="Cleaning Rotation" subtitle="Who cleans next" />
+              <FeatureCard href={`/apartment/${apt.id}/rotation`} icon={<ChoresIcon />} color="amber" title="Purchase Rotation" subtitle="Whose turn to buy" />
             </div>
           )}
 
           {activeSection === "money" && (
             <div className="grid grid-cols-2 gap-3">
-              <Link href={`/apartment/${apt.id}/finance`}
-                className="col-span-2 flex items-center justify-between bg-emerald-600 text-white rounded-2xl px-5 py-5 hover:bg-emerald-700 transition-colors">
-                <div>
-                  <p className="font-bold text-base">Finance & Rent</p>
-                  <p className="text-xs text-emerald-200 mt-0.5">Expenses & balances</p>
-                </div>
-                <span className="text-emerald-300 text-xl">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/fund`}
-                className="flex items-center justify-between bg-violet-600 text-white rounded-2xl px-4 py-5 hover:bg-violet-700 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">Apartment Fund</p>
-                  <p className="text-xs text-violet-200 mt-0.5">Shared pool</p>
-                </div>
-                <span className="text-violet-300">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/disputes`}
-                className="flex items-center justify-between bg-red-500 text-white rounded-2xl px-4 py-5 hover:bg-red-600 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">Disputes</p>
-                  <p className="text-xs text-red-200 mt-0.5">Raise & resolve conflicts</p>
-                </div>
-                <span className="text-red-300">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/stats`}
-                className="col-span-2 flex items-center justify-between bg-gray-100 border border-gray-200 text-gray-700 rounded-2xl px-4 py-3 hover:bg-gray-200 transition-colors">
-                <p className="text-sm font-medium">Stats & Analytics</p>
-                <span className="text-gray-400">→</span>
-              </Link>
+              <FeatureCard href={`/apartment/${apt.id}/finance`} icon={<FinanceIcon />} color="blue" title="Finance & Rent" subtitle="Expenses & balances" wide />
+              <FeatureCard href={`/apartment/${apt.id}/fund`} icon={<FundIcon />} color="teal" title="Apartment Fund" subtitle="Shared pool" />
+              <FeatureCard href={`/apartment/${apt.id}/disputes`} icon={<DisputesIcon />} color="red" title="Disputes" subtitle="Raise & resolve conflicts" />
+              <FeatureCard href={`/apartment/${apt.id}/stats`} icon={<StatsIcon />} color="teal" title="Stats & Analytics" subtitle="Trends & breakdowns" wide />
             </div>
           )}
 
           {activeSection === "household" && (
             <div className="grid grid-cols-2 gap-3">
-              <Link href={`/apartment/${apt.id}/grocery`}
-                className="col-span-2 flex items-center justify-between bg-amber-500 text-white rounded-2xl px-5 py-5 hover:bg-amber-600 transition-colors">
-                <div>
-                  <p className="font-bold text-base">Grocery List</p>
-                  <p className="text-xs text-amber-100 mt-0.5">Shared shopping list</p>
-                </div>
-                <span className="text-amber-200 text-xl">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/maintenance`}
-                className="flex items-center justify-between bg-orange-50 border border-orange-200 text-orange-800 rounded-2xl px-4 py-5 hover:bg-orange-100 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">Maintenance</p>
-                  <p className="text-xs text-orange-400 mt-0.5">Room issues & notes</p>
-                </div>
-                <span className="text-orange-300">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/inventory`}
-                className="flex items-center justify-between bg-teal-600 text-white rounded-2xl px-4 py-5 hover:bg-teal-700 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">Inventory</p>
-                  <p className="text-xs text-teal-200 mt-0.5">Supplies & items</p>
-                </div>
-                <span className="text-teal-300">→</span>
-              </Link>
-              <Link href="/listings"
-                className="flex items-center justify-between bg-sky-600 text-white rounded-2xl px-4 py-5 hover:bg-sky-700 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">🏠 Find a Home</p>
-                  <p className="text-xs text-sky-200 mt-0.5">Browse listings</p>
-                </div>
-                <span className="text-sky-300">→</span>
-              </Link>
-              <Link href="/listings/mine"
-                className="flex items-center justify-between bg-gray-100 border border-gray-200 text-gray-700 rounded-2xl px-4 py-5 hover:bg-gray-200 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">📋 My Listings</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Manage your posts</p>
-                </div>
-                <span className="text-gray-400">→</span>
-              </Link>
+              <FeatureCard href={`/apartment/${apt.id}/grocery`} icon={<GroceryIcon />} color="green" title="Grocery List" subtitle="Shared shopping list" wide />
+              <FeatureCard href={`/apartment/${apt.id}/maintenance`} icon={<MaintenanceIcon />} color="amber" title="Maintenance" subtitle="Room issues & notes" />
+              <FeatureCard href={`/apartment/${apt.id}/inventory`} icon={<InventoryIcon />} color="purple" title="Inventory" subtitle="Supplies & items" />
+              <FeatureCard href="/listings" icon={<HouseIcon />} color="blue" title="Find a Home" subtitle="Browse listings" />
+              <FeatureCard href="/listings/mine" icon={<ActivityIcon />} color="gray" title="My Listings" subtitle="Manage your posts" />
             </div>
           )}
 
           {activeSection === "community" && (
             <div className="grid grid-cols-2 gap-3">
-              <Link href={`/apartment/${apt.id}/chat`}
-                className="col-span-2 flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl px-5 py-5 hover:from-indigo-700 hover:to-violet-700 transition-colors">
-                <div>
-                  <p className="font-bold text-base">Chat & Calls</p>
-                  <p className="text-xs text-indigo-200 mt-0.5">Group chat, DMs, voice & video</p>
-                </div>
-                <span className="text-indigo-300 text-xl">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/calendar`}
-                className="flex items-center justify-between bg-sky-600 text-white rounded-2xl px-4 py-5 hover:bg-sky-700 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">Calendar</p>
-                  <p className="text-xs text-sky-200 mt-0.5">Events & guests</p>
-                </div>
-                <span className="text-sky-300">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/feed`}
-                className="flex items-center justify-between bg-rose-500 text-white rounded-2xl px-4 py-5 hover:bg-rose-600 transition-colors">
-                <div>
-                  <p className="font-semibold text-sm">Activity Feed</p>
-                  <p className="text-xs text-rose-200 mt-0.5">Events & announcements</p>
-                </div>
-                <span className="text-rose-300">→</span>
-              </Link>
-              <Link href={`/apartment/${apt.id}/agreements`}
-                className="col-span-2 flex items-center justify-between bg-gray-100 border border-gray-200 text-gray-700 rounded-2xl px-4 py-3 hover:bg-gray-200 transition-colors">
-                <p className="text-sm font-medium">Shared Agreements</p>
-                <span className="text-gray-400">→</span>
-              </Link>
+              <FeatureCard href={`/apartment/${apt.id}/chat`} icon={<ChatIcon />} color="emerald" title="Chat & Calls" subtitle="Group chat, DMs, voice & video" wide />
+              <FeatureCard href={`/apartment/${apt.id}/calendar`} icon={<CalendarIcon />} color="sky" title="Calendar" subtitle="Events & guests" />
+              <FeatureCard href={`/apartment/${apt.id}/feed`} icon={<ActivityIcon />} color="rose" title="Activity Feed" subtitle="Events & announcements" />
+              <FeatureCard href={`/apartment/${apt.id}/agreements`} icon={<AgreementsIcon />} color="indigo" title="Shared Agreements" subtitle="Rules everyone signed" wide />
             </div>
           )}
 
@@ -1005,28 +925,40 @@ export default function ApartmentPage() {
 
           {/* Stat tiles */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-xs text-gray-400 mb-1">Chores Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{desktopData?.choresPendingCount ?? "—"}</p>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
+              <IconBadge icon={<ChoresIcon />} color="orange" size="lg" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 mb-0.5">Chores Pending</p>
+                <p className="text-2xl font-bold text-gray-900">{desktopData?.choresPendingCount ?? "—"}</p>
+              </div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-xs text-gray-400 mb-1">Rent</p>
-              {desktopData?.rentDue ? (
-                <p className="text-2xl font-bold text-gray-900">
-                  ${desktopData.rentDue.amount.toFixed(0)}
-                  {desktopData.rentDue.paidThisMonth
-                    ? <span className="text-xs font-medium text-green-600 ml-2">Paid</span>
-                    : <span className="text-xs font-medium text-red-500 ml-2">Due day {desktopData.rentDue.dueDay}</span>}
-                </p>
-              ) : <p className="text-sm text-gray-400">Not configured</p>}
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
+              <IconBadge icon={<HouseIcon />} color="rose" size="lg" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 mb-0.5">Rent</p>
+                {desktopData?.rentDue ? (
+                  <p className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    ${desktopData.rentDue.amount.toFixed(0)}
+                    {desktopData.rentDue.paidThisMonth
+                      ? <span className="text-xs font-medium text-green-600">Paid</span>
+                      : <span className="text-xs font-medium text-red-500">Due day {desktopData.rentDue.dueDay}</span>}
+                  </p>
+                ) : <p className="text-sm text-gray-400">Not configured</p>}
+              </div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-xs text-gray-400 mb-1">Shared Fund</p>
-              <p className="text-2xl font-bold text-gray-900">${(desktopData?.fundBalance ?? 0).toFixed(2)}</p>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
+              <IconBadge icon={<FundIcon />} color="teal" size="lg" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 mb-0.5">Shared Fund</p>
+                <p className="text-2xl font-bold text-gray-900">${(desktopData?.fundBalance ?? 0).toFixed(2)}</p>
+              </div>
             </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-xs text-gray-400 mb-1">Maintenance</p>
-              <p className="text-2xl font-bold text-gray-900">{desktopData?.maintenanceOpenCount ?? "—"}</p>
+            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
+              <IconBadge icon={<MaintenanceIcon />} color="amber" size="lg" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 mb-0.5">Maintenance</p>
+                <p className="text-2xl font-bold text-gray-900">{desktopData?.maintenanceOpenCount ?? "—"}</p>
+              </div>
             </div>
           </div>
 
@@ -1100,7 +1032,10 @@ export default function ApartmentPage() {
               <Link href={`/apartment/${apt.id}/finance`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">View All Expenses</Link>
             </div>
             <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-sm font-semibold text-gray-900 mb-3">Household Members</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold text-gray-900">Household Members</p>
+                <span className="text-xs text-gray-400">{apt.members.length} total</span>
+              </div>
               <div className="space-y-2.5">
                 {apt.members.slice(0, 5).map(m => (
                   <div key={m.id} className="flex items-center gap-2.5">
@@ -1110,15 +1045,21 @@ export default function ApartmentPage() {
                     ) : (
                       <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">{m.user.name[0]?.toUpperCase()}</div>
                     )}
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-medium text-gray-800 truncate">{m.user.name}{m.user.id === currentUserId ? " (you)" : ""}</p>
                     </div>
+                    {m.user.id !== currentUserId && (
+                      <Link href={`/apartment/${apt.id}/chat/dm/${m.user.id}`} className="p-1.5 rounded-lg text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" aria-label={`Message ${m.user.name}`}>
+                        <ChatIcon className="w-4 h-4" />
+                      </Link>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
             <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4 flex flex-col justify-between">
               <div>
+                <IconBadge icon={<HouseIcon />} color="blue" size="lg" className="mb-2" />
                 <p className="text-sm font-semibold text-gray-900 mb-1">Find Your Next Home</p>
                 <p className="text-xs text-gray-500">Browse listings and find the perfect place.</p>
               </div>
@@ -1131,11 +1072,19 @@ export default function ApartmentPage() {
           {/* Quick actions */}
           <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
             <p className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</p>
-            <div className="flex flex-wrap gap-4">
-              <Link href={`/apartment/${apt.id}/finance`} className="text-sm text-indigo-600 hover:underline">Add Expense</Link>
-              <Link href={`/apartment/${apt.id}/chores`} className="text-sm text-indigo-600 hover:underline">Create Chore</Link>
-              <Link href={`/apartment/${apt.id}/maintenance`} className="text-sm text-indigo-600 hover:underline">Add Maintenance</Link>
-              <button onClick={copyInviteLink} className="text-sm text-indigo-600 hover:underline">{linkCopied ? "Invite link copied!" : "Invite Roommate"}</button>
+            <div className="grid grid-cols-4 gap-3">
+              <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors">
+                <IconBadge icon={<FinanceIcon />} color="blue" size="sm" /> Add Expense
+              </Link>
+              <Link href={`/apartment/${apt.id}/chores`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors">
+                <IconBadge icon={<ChoresIcon />} color="orange" size="sm" /> Create Chore
+              </Link>
+              <Link href={`/apartment/${apt.id}/maintenance`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors">
+                <IconBadge icon={<MaintenanceIcon />} color="amber" size="sm" /> Add Maintenance
+              </Link>
+              <button onClick={copyInviteLink} className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors text-left">
+                <IconBadge icon={<ProfileIcon />} color="indigo" size="sm" /> {linkCopied ? "Link copied!" : "Invite Roommate"}
+              </button>
             </div>
           </div>
         </main>

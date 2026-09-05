@@ -4,6 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
+import IconBadge from "@/components/IconBadge";
+import { FinanceIcon } from "@/components/icons";
 
 const CATEGORIES = ["GENERAL", "GROCERIES", "UTILITIES", "SUPPLIES", "DINING", "TRANSPORT", "OTHER"];
 const METHODS = ["VENMO", "PAYPAL", "CASHAPP", "CASH", "BANK"];
@@ -738,66 +740,124 @@ export default function FinancePage() {
       </main>
 
       {/* Expense detail modal */}
-      {viewingExpense && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[85vh] overflow-y-auto">
-            <div className="px-6 pt-6 pb-2 flex items-start justify-between">
-              <div>
-                <p className="text-2xl font-bold text-gray-900">${viewingExpense.amount.toFixed(2)}</p>
-                <p className="text-sm text-gray-500">{viewingExpense.title}</p>
-              </div>
-              <button onClick={() => setViewingExpense(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
-            </div>
-
-            <div className="px-6 pt-3">
-              <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-                {(["details", "paidBy"] as const).map(t => (
-                  <button key={t} onClick={() => setDetailTab(t)}
-                    className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${detailTab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-                    {t === "details" ? "Details" : "Paid By"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="px-6 py-4">
-              {detailTab === "details" ? (
-                <div className="space-y-2.5 text-sm">
-                  <div className="flex justify-between"><span className="text-gray-400">Date</span><span className="text-gray-800">{new Date(viewingExpense.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400">Paid by</span><span className="text-gray-800">{viewingExpense.paidBy.name}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400">Category</span><span className="text-gray-800">{viewingExpense.category}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400">Split method</span><span className="text-gray-800">{viewingExpense.splitMethod}</span></div>
-                  {viewingExpense.isRecurring && <div className="flex justify-between"><span className="text-gray-400">Recurring</span><span className="text-gray-800">Yes</span></div>}
-                  {viewingExpense.notes && <div className="pt-1 border-t border-gray-100"><p className="text-gray-400 text-xs mb-1">Notes</p><p className="text-gray-700">{viewingExpense.notes}</p></div>}
-                  {viewingExpense.receiptUrl && (
-                    <a href={viewingExpense.receiptUrl} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-indigo-600 hover:underline pt-1">
-                      🧾 View receipt
-                    </a>
-                  )}
+      {viewingExpense && (() => {
+        const vIsPayer = viewingExpense.paidBy.id === currentUserId;
+        const vPendingRequest = editRequests.find(r => r.expenseId === viewingExpense.id);
+        const vIsLocked = Date.now() - new Date(viewingExpense.createdAt).getTime() > 24 * 60 * 60 * 1000;
+        // CUSTOM/PER_PERSON splits omit the payer's own row; EQUAL splits include it at $0 — normalize so payer always appears exactly once.
+        const payerHasSplit = viewingExpense.splits.some(s => s.userId === viewingExpense.paidBy.id);
+        const everyone: { userId: string; user: { id: string; name: string } }[] = payerHasSplit
+          ? viewingExpense.splits
+          : [{ userId: viewingExpense.paidBy.id, user: viewingExpense.paidBy }, ...viewingExpense.splits];
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[85vh] overflow-y-auto">
+              <div className="px-6 pt-6 pb-2 flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <IconBadge icon={<FinanceIcon />} color="blue" size="lg" />
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">${viewingExpense.amount.toFixed(2)}</p>
+                    <p className="text-sm text-gray-500">{viewingExpense.title}</p>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {viewingExpense.splits.map(s => (
-                    <div key={s.userId} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-                      <span className="text-sm text-gray-700">{s.user.name}</span>
-                      <div className="text-right">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          s.status === "PAID" ? "bg-green-100 text-green-700" :
-                          s.status === "PENDING_CASH" ? "bg-amber-100 text-amber-700" :
-                          "bg-gray-100 text-gray-500"}`}>
-                          {s.status === "PENDING_CASH" ? "Pending Cash" : s.status}
-                        </span>
-                        {s.method && <p className="text-xs text-gray-400 mt-0.5">via {s.method}</p>}
-                      </div>
-                    </div>
+                <button onClick={() => setViewingExpense(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+              </div>
+
+              <div className="px-6 pt-3">
+                <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+                  {(["details", "paidBy"] as const).map(t => (
+                    <button key={t} onClick={() => setDetailTab(t)}
+                      className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${detailTab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                      {t === "details" ? "Details" : "Paid By"}
+                    </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="px-6 py-4">
+                {detailTab === "details" ? (
+                  <div className="space-y-2.5 text-sm">
+                    <div className="flex justify-between"><span className="text-gray-400">Date</span><span className="text-gray-800">{new Date(viewingExpense.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Paid by</span><span className="text-gray-800">{viewingExpense.paidBy.name}</span></div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Split between</span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="flex -space-x-2">
+                          {everyone.slice(0, 4).map(p => (
+                            <span key={p.userId} className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                              {p.user.name[0]?.toUpperCase()}
+                            </span>
+                          ))}
+                        </span>
+                        <span className="text-gray-800">{everyone.length} people</span>
+                      </span>
+                    </div>
+                    <div className="flex justify-between"><span className="text-gray-400">Category</span><span className="text-gray-800">{viewingExpense.category}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Split method</span><span className="text-gray-800">{viewingExpense.splitMethod}</span></div>
+                    {viewingExpense.isRecurring && <div className="flex justify-between"><span className="text-gray-400">Recurring</span><span className="text-gray-800">Yes</span></div>}
+                    {viewingExpense.notes && <div className="pt-1 border-t border-gray-100"><p className="text-gray-400 text-xs mb-1">Notes</p><p className="text-gray-700">{viewingExpense.notes}</p></div>}
+                    {viewingExpense.receiptUrl && (
+                      <a href={viewingExpense.receiptUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-indigo-600 hover:underline pt-1">
+                        🧾 View receipt
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {everyone.map(p => {
+                      const isPayerRow = p.userId === viewingExpense.paidBy.id;
+                      const split = viewingExpense.splits.find(s => s.userId === p.userId);
+                      // A payer with no explicit split row (CUSTOM/PER_PERSON splits omit them) covered the rest of the total themselves.
+                      const amount = split ? split.amount : isPayerRow ? viewingExpense.amount - viewingExpense.splits.reduce((s, x) => s + x.amount, 0) : 0;
+                      const statusLabel = isPayerRow ? "Paid" : split?.status === "PAID" ? "Paid" : split?.status === "PENDING_CASH" ? "Pending cash" : "Owes";
+                      const statusColor = statusLabel === "Paid" ? "text-green-600" : statusLabel === "Pending cash" ? "text-amber-600" : "text-red-500";
+                      return (
+                        <div key={p.userId} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                          <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                            {p.user.name[0]?.toUpperCase()}
+                          </span>
+                          <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{p.user.name}</span>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-900">${amount.toFixed(2)}</p>
+                            <p className={`text-xs font-medium ${statusColor}`}>{statusLabel}{split?.method ? ` · ${split.method}` : ""}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {vIsPayer && (
+                <div className="px-6 pb-6 pt-2 flex gap-2">
+                  {viewingExpense.status === "ACTIVE" && !vPendingRequest && (
+                    <button
+                      onClick={() => {
+                        if (vIsLocked) {
+                          setRequestingEdit(viewingExpense.id);
+                          setRequestForm({ title: viewingExpense.title, amount: viewingExpense.amount.toString(), category: viewingExpense.category, notes: viewingExpense.notes ?? "" });
+                        } else {
+                          setEditingExpense(viewingExpense.id);
+                          setEditForm({ title: viewingExpense.title, amount: viewingExpense.amount.toString(), category: viewingExpense.category, notes: viewingExpense.notes ?? "" });
+                        }
+                        setViewingExpense(null);
+                      }}
+                      className="flex-1 text-center text-sm font-medium text-blue-600 border border-blue-200 rounded-xl py-2.5 hover:bg-blue-50 transition-colors">
+                      {vIsLocked ? "Request Edit" : "Edit Expense"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setViewingExpense(null); deleteExpense(viewingExpense.id); }}
+                    className="flex-1 text-center text-sm font-medium text-red-500 border border-red-200 rounded-xl py-2.5 hover:bg-red-50 transition-colors">
+                    Delete
+                  </button>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

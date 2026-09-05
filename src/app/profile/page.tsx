@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { ShieldIcon, KeyIcon, LogInIcon } from "@/components/icons";
 
 const DIETARY_OPTIONS: { key: string; label: string }[] = [
   { key: "VEGAN", label: "🌱 Vegan" },
@@ -44,6 +45,7 @@ export default function ProfilePage() {
   const [backupCodesGenerated, setBackupCodesGenerated] = useState<string[] | null>(null);
   const [generatingCodes, setGeneratingCodes] = useState(false);
   const [loginEvents, setLoginEvents] = useState<{ id: string; ip: string; userAgent: string | null; success: boolean; createdAt: string }[]>([]);
+  const [memberSince, setMemberSince] = useState<string | null>(null);
 
   useEffect(() => {
     setDarkMode(document.documentElement.classList.contains("dark"));
@@ -74,6 +76,7 @@ export default function ProfilePage() {
       setEmailVerified(data.emailVerified ?? false);
       setTwoFAEnabled(data.twoFactorEnabled ?? false);
       setMemberships(data.memberships ?? []);
+      if (data.createdAt) setMemberSince(data.createdAt);
       setLoading(false);
     });
     apiFetch("/api/users/2fa/backup-codes").then(async res => {
@@ -181,6 +184,25 @@ export default function ProfilePage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-10">
+        {/* Profile header */}
+        <div className="flex flex-col items-center text-center mb-6">
+          {form.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={form.photo} alt="Avatar" className="w-20 h-20 rounded-full object-cover border border-gray-200" />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center text-3xl font-bold text-indigo-600">
+              {form.name ? form.name[0].toUpperCase() : "?"}
+            </div>
+          )}
+          <p className="text-lg font-bold text-gray-900 mt-3">{form.name || "Your profile"}</p>
+          <p className="text-sm text-gray-400">{email}</p>
+          {memberSince && (
+            <p className="text-xs text-gray-400 mt-1">
+              Member since {new Date(memberSince).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+            </p>
+          )}
+        </div>
+
         {/* Apartments */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
           <h2 className="text-sm font-semibold text-gray-900 mb-4">My apartments</h2>
@@ -351,11 +373,9 @@ export default function ProfilePage() {
           </button>
         </form>
 
-        {/* Notification preferences */}
+        {/* Preferences */}
         <div className="bg-white rounded-2xl border border-gray-200 p-8 space-y-4 mt-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-900">Preferences</h2>
-          </div>
+          <h2 className="text-sm font-semibold text-gray-900">Preferences</h2>
           <label className="flex items-center justify-between cursor-pointer">
             <div>
               <p className="text-sm font-medium text-gray-700">Dark mode</p>
@@ -366,48 +386,6 @@ export default function ProfilePage() {
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? "translate-x-5" : ""}`} />
             </button>
           </label>
-          <label className="flex items-center justify-between cursor-pointer">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Two-factor authentication</p>
-              <p className="text-xs text-gray-400">Require a code from your email on each login</p>
-            </div>
-            <button type="button" disabled={twoFASaving} onClick={async () => {
-              setTwoFASaving(true);
-              const res = await apiFetch("/api/users/2fa", { method: "PATCH", body: JSON.stringify({ enabled: !twoFAEnabled }) });
-              if (res.ok) setTwoFAEnabled(!twoFAEnabled);
-              setTwoFASaving(false);
-            }} className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${twoFAEnabled ? "bg-indigo-600" : "bg-gray-300"}`}>
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${twoFAEnabled ? "translate-x-5" : ""}`} />
-            </button>
-          </label>
-
-          {twoFAEnabled && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Backup codes</p>
-                  <p className="text-xs text-gray-400">
-                    {backupCodesGenerated ? "Save these now — they won't be shown again." :
-                      backupCodesRemaining !== null && backupCodesRemaining > 0 ? `${backupCodesRemaining} unused code${backupCodesRemaining === 1 ? "" : "s"} remaining` :
-                      "Use if you can't get the emailed code"}
-                  </p>
-                </div>
-                <button type="button" onClick={generateBackupCodes} disabled={generatingCodes}
-                  className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors flex-shrink-0">
-                  {generatingCodes ? "Generating…" : backupCodesRemaining ? "Regenerate" : "Generate codes"}
-                </button>
-              </div>
-              {backupCodesGenerated && (
-                <div className="bg-white border border-gray-200 rounded-lg p-3">
-                  <div className="grid grid-cols-2 gap-1.5 font-mono text-xs text-gray-700">
-                    {backupCodesGenerated.map(code => <span key={code}>{code}</span>)}
-                  </div>
-                  <button type="button" onClick={() => { navigator.clipboard.writeText(backupCodesGenerated.join("\n")); }}
-                    className="text-xs text-indigo-600 hover:underline mt-2">Copy all</button>
-                </div>
-              )}
-            </div>
-          )}
 
           <hr className="border-gray-100" />
           <h2 className="text-sm font-semibold text-gray-900">Notification preferences</h2>
@@ -442,22 +420,84 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        {/* Recent login activity */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 space-y-3 mt-6">
-          <h2 className="text-sm font-semibold text-gray-900">Recent login activity</h2>
+        {/* Two-Factor Authentication */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 mt-6">
+          <div className="flex flex-col items-center text-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
+              <ShieldIcon className="w-8 h-8 text-indigo-600" />
+            </div>
+            <h2 className="text-base font-bold text-gray-900 mt-3">Secure Your Account</h2>
+            <p className="text-sm text-gray-400 mt-1">Two-factor authentication adds an extra layer of security to your account.</p>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            <div className="flex items-center gap-3 py-3">
+              <span className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                <ShieldIcon className="w-[18px] h-[18px]" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800">Email 2FA</p>
+                <p className="text-xs text-gray-400">Require a code from your email on each login</p>
+              </div>
+              <button type="button" disabled={twoFASaving} onClick={async () => {
+                setTwoFASaving(true);
+                const res = await apiFetch("/api/users/2fa", { method: "PATCH", body: JSON.stringify({ enabled: !twoFAEnabled }) });
+                if (res.ok) setTwoFAEnabled(!twoFAEnabled);
+                setTwoFASaving(false);
+              }} className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 flex-shrink-0 ${twoFAEnabled ? "bg-indigo-600" : "bg-gray-300"}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${twoFAEnabled ? "translate-x-5" : ""}`} />
+              </button>
+            </div>
+
+            {twoFAEnabled && (
+              <div className="py-3">
+                <div className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <KeyIcon className="w-[18px] h-[18px]" />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800">Backup Codes</p>
+                    <p className="text-xs text-gray-400">
+                      {backupCodesGenerated ? "Save these now — they won't be shown again." :
+                        backupCodesRemaining !== null && backupCodesRemaining > 0 ? `${backupCodesRemaining} unused code${backupCodesRemaining === 1 ? "" : "s"} remaining` :
+                        "Use if you can't get the emailed code"}
+                    </p>
+                  </div>
+                  <button type="button" onClick={generateBackupCodes} disabled={generatingCodes}
+                    className="text-xs text-indigo-600 font-medium hover:underline flex-shrink-0">
+                    {generatingCodes ? "…" : backupCodesRemaining ? "Regenerate" : "Generate"}
+                  </button>
+                </div>
+                {backupCodesGenerated && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mt-3 ml-12">
+                    <div className="grid grid-cols-2 gap-1.5 font-mono text-xs text-gray-700">
+                      {backupCodesGenerated.map(code => <span key={code}>{code}</span>)}
+                    </div>
+                    <button type="button" onClick={() => { navigator.clipboard.writeText(backupCodesGenerated.join("\n")); }}
+                      className="text-xs text-indigo-600 hover:underline mt-2">Copy all</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mt-6 mb-2">Recent Activity</h3>
           {loginEvents.length === 0 ? (
             <p className="text-sm text-gray-400">No login activity recorded yet.</p>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="space-y-1">
               {loginEvents.map(ev => (
-                <div key={ev.id} className="flex items-center justify-between py-2.5">
-                  <div>
-                    <p className="text-sm text-gray-700">{describeUserAgent(ev.userAgent)}</p>
-                    <p className="text-xs text-gray-400">{ev.ip} · {new Date(ev.createdAt).toLocaleString()}</p>
-                  </div>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ev.success ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                    {ev.success ? "Success" : "Failed"}
+                <div key={ev.id} className="flex items-center gap-3 py-2">
+                  <span className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${ev.success ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+                    <LogInIcon className="w-[18px] h-[18px]" />
                   </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-800">{ev.success ? "Successful login" : "Failed login attempt"}</p>
+                    <p className="text-xs text-gray-400 truncate">{describeUserAgent(ev.userAgent)} · {ev.ip}</p>
+                  </div>
+                  <p className="text-xs text-gray-400 flex-shrink-0 text-right">
+                    {new Date(ev.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  </p>
                 </div>
               ))}
             </div>

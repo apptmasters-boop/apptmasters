@@ -4,6 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
+import IconBadge from "@/components/IconBadge";
+import { ChoresIcon } from "@/components/icons";
 
 interface Member { id: string; name: string }
 interface SwapRequest { id: string; fromUser: { id: string; name: string }; toUser: { id: string; name: string }; status: string }
@@ -36,8 +38,9 @@ export default function AllChoresPage() {
   const [view, setView] = useState<"active" | "history">("active");
 
   // Filters
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [quickFilter, setQuickFilter] = useState<"all" | "mine" | "overdue">("all");
   const [filterMember, setFilterMember] = useState<string>("all");
+  const filterStatus = quickFilter === "overdue" ? "OVERDUE" : "all";
 
   async function load() {
     const [choresRes, aptRes] = await Promise.all([
@@ -97,10 +100,12 @@ export default function AllChoresPage() {
     c.swapRequests.some(s => s.toUser.id === currentUserId && s.status === "PENDING")
   );
 
+  const effectiveMemberFilter = quickFilter === "mine" ? currentUserId : filterMember;
+
   const filtered = chores.filter(c => {
     if (c.status === "DONE") return false;
     if (filterStatus !== "all" && c.status !== filterStatus) return false;
-    if (filterMember !== "all" && c.assignedTo?.id !== filterMember) return false;
+    if (effectiveMemberFilter !== "all" && c.assignedTo?.id !== effectiveMemberFilter) return false;
     return true;
   });
 
@@ -177,8 +182,9 @@ export default function AllChoresPage() {
               chores
                 .filter(c => c.status === "DONE" && (filterMember === "all" || (c as unknown as { completedBy: { id: string } | null }).completedBy?.id === filterMember || c.assignedTo?.id === filterMember))
                 .map(chore => (
-                  <div key={chore.id} className="bg-white border border-green-100 rounded-xl px-5 py-4 flex items-center justify-between">
-                    <div>
+                  <div key={chore.id} className="bg-white border border-green-100 rounded-xl px-5 py-4 flex items-center gap-3">
+                    <IconBadge icon={<ChoresIcon />} color="green" />
+                    <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-800">{chore.title}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {FREQ_LABELS[chore.frequency]} · {chore.points} pts
@@ -186,7 +192,7 @@ export default function AllChoresPage() {
                         {chore.completedBy && ` · Done by ${chore.completedBy.name}`}
                       </p>
                     </div>
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">Done</span>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex-shrink-0">Done</span>
                   </div>
                 ))
             )}
@@ -224,22 +230,28 @@ export default function AllChoresPage() {
               </div>
             )}
 
-            <div className="flex gap-2 flex-wrap">
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="all">All statuses</option>
-                <option value="PENDING">Pending</option>
-                <option value="OVERDUE">Overdue</option>
-              </select>
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+              {([
+                { key: "all", label: "All" },
+                { key: "mine", label: "My Chores" },
+                { key: "overdue", label: "Overdue" },
+              ] as const).map(f => (
+                <button key={f.key} onClick={() => setQuickFilter(f.key)}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${quickFilter === f.key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {quickFilter !== "mine" && (
               <select value={filterMember} onChange={e => setFilterMember(e.target.value)}
                 className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="all">All members</option>
-                <option value={currentUserId}>My chores</option>
-                {members.filter(m => m.id !== currentUserId).map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
+                {members.map(m => (
+                  <option key={m.id} value={m.id}>{m.id === currentUserId ? `${m.name} (you)` : m.name}</option>
                 ))}
               </select>
-            </div>
+            )}
 
             {filtered.length === 0 && (
               <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
@@ -317,21 +329,28 @@ function ChoreCard({
 
   return (
     <div className={`bg-white border rounded-xl px-5 py-4 ${chore.status === "OVERDUE" ? "border-red-200" : "border-gray-200"}`}>
-      <div className="flex items-start justify-between mb-1">
-        <div>
-          <p className="font-medium text-gray-900">{chore.title}</p>
-          <p className="text-xs text-gray-400 mt-0.5">
+      <div className="flex items-start gap-3 mb-3">
+        <IconBadge icon={<ChoresIcon />} color={chore.status === "OVERDUE" ? "red" : "orange"} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-medium text-gray-900">{chore.title}</p>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_COLORS[chore.status] ?? "bg-gray-100 text-gray-500"}`}>
+              {chore.status}
+            </span>
+          </div>
+          <p className={`text-xs mt-0.5 ${chore.status === "OVERDUE" ? "text-red-500 font-medium" : "text-gray-400"}`}>
             {FREQ_LABELS[chore.frequency]} · {chore.points} pts
             {chore.room && <> · <Link href={`/apartment/${apartmentId}/rooms/${chore.room.id}`} className="hover:text-indigo-500">{chore.room.name}</Link></>}
             {chore.dueDate && ` · Due ${new Date(chore.dueDate).toLocaleDateString()}`}
           </p>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-600 text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+              {chore.assignedTo?.name[0]?.toUpperCase() ?? "?"}
+            </span>
+            <p className="text-xs text-gray-500">{chore.assignedTo?.name ?? "Unassigned"}</p>
+          </div>
         </div>
-        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[chore.status] ?? "bg-gray-100 text-gray-500"}`}>
-          {chore.status}
-        </span>
       </div>
-
-      <p className="text-xs text-gray-500 mb-3">{chore.assignedTo?.name ?? "Unassigned"}</p>
 
       {incomingSwap && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3 flex items-center justify-between">

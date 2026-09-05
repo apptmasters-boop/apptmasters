@@ -42,7 +42,12 @@ export async function GET(req: NextRequest) {
 
   const where: Record<string, unknown> = { status: "APPROVED" };
   if (type) where.type = type;
-  if (city) where.city = { contains: city, mode: "insensitive" };
+  if (city) {
+    where.OR = [
+      { city: { contains: city, mode: "insensitive" } },
+      { title: { contains: city, mode: "insensitive" } },
+    ];
+  }
   if (bedrooms) where.bedrooms = Number(bedrooms);
   if (minPrice || maxPrice) {
     where.price = {
