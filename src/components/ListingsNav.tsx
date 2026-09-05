@@ -17,7 +17,7 @@ export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void })
   }, [pathname]);
 
   const linkClass = (href: string) =>
-    `text-sm font-medium transition-colors ${pathname === href ? "text-indigo-600" : "text-gray-500 hover:text-gray-800"}`;
+    `text-sm font-medium transition-colors ${pathname === href ? "text-blue-600" : "text-gray-500 hover:text-gray-800"}`;
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between">
@@ -31,7 +31,7 @@ export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void })
           </button>
         )}
         <Link href="/listings" className="font-bold text-gray-900">
-          ApptMasters <span className="text-indigo-600">Listings</span>
+          ApptMasters <span className="text-blue-600">Listings</span>
         </Link>
         <nav className="hidden sm:flex items-center gap-5">
           <Link href="/listings" className={linkClass("/listings")}>Browse</Link>
@@ -53,7 +53,7 @@ export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void })
         ) : (
           <>
             <Link href="/login?returnTo=/listings" className="text-sm text-gray-500 hover:text-gray-800">Sign in</Link>
-            <Link href="/listings/signup" className="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            <Link href="/listings/signup" className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
               Sign up
             </Link>
           </>

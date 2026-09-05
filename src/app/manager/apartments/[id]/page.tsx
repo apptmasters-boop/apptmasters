@@ -14,7 +14,7 @@ interface Apartment {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  ADMIN: "bg-indigo-100 text-indigo-700",
+  ADMIN: "bg-blue-100 text-blue-700",
   MEMBER: "bg-gray-100 text-gray-600",
   GUEST: "bg-amber-100 text-amber-700",
 };
@@ -127,7 +127,7 @@ export default function ManagerApartmentPage() {
             <p className="font-mono font-semibold text-gray-900 text-lg">{apt.inviteCode}</p>
           </div>
           <button onClick={copyInviteLink}
-            className="text-sm text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors">
+            className="text-sm text-blue-600 border border-blue-200 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors">
             {copied ? "Copied!" : "Copy invite link"}
           </button>
         </div>
@@ -152,16 +152,16 @@ export default function ManagerApartmentPage() {
             <input
               type="email" placeholder="tenant@email.com" required value={addEmail}
               onChange={e => setAddEmail(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <select value={addRole} onChange={e => setAddRole(e.target.value as "ADMIN" | "MEMBER" | "GUEST")}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="MEMBER">Member</option>
               <option value="ADMIN">Admin</option>
               <option value="GUEST">Guest</option>
             </select>
             <button type="submit" disabled={adding}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
               {adding ? "Adding…" : "Add"}
             </button>
           </form>
@@ -179,7 +179,7 @@ export default function ManagerApartmentPage() {
             <div className="divide-y divide-gray-100">
               {apt.members.map(m => (
                 <div key={m.id} className="px-5 py-4 flex items-center gap-4">
-                  <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-600 flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">
                     {m.user.photo
                       ? <img src={m.user.photo} alt="" className="w-9 h-9 rounded-full object-cover" />
                       : m.user.name[0]?.toUpperCase()}
@@ -194,7 +194,7 @@ export default function ManagerApartmentPage() {
                   <div className="flex items-center gap-2">
                     {m.role !== "ADMIN" && (
                       <button onClick={() => setRole(m.id, "ADMIN")} disabled={working === m.id}
-                        className="text-xs text-indigo-600 hover:underline disabled:opacity-50">
+                        className="text-xs text-blue-600 hover:underline disabled:opacity-50">
                         Make Admin
                       </button>
                     )}

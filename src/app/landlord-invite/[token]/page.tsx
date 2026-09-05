@@ -62,7 +62,7 @@ export default function LandlordInvitePage() {
               ? "This invite has expired. Contact the platform admin for a new one."
               : "This invite link is not valid."}
           </p>
-          <a href="/login" className="inline-block w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 transition-colors">
+          <a href="/login" className="inline-block w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
             Go to sign in
           </a>
         </div>
@@ -90,7 +90,7 @@ export default function LandlordInvitePage() {
               <input
                 type="text" value={name} onChange={e => setName(e.target.value)}
                 required placeholder="Your name"
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -101,7 +101,7 @@ export default function LandlordInvitePage() {
                 required minLength={8} pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
                 title="At least 8 characters, with at least one letter and one number"
                 placeholder="Create a password"
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-400 mt-1">At least 8 characters, with a letter and a number</p>
             </div>
@@ -109,14 +109,14 @@ export default function LandlordInvitePage() {
             {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
             <button type="submit" disabled={submitting}
-              className="w-full bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+              className="w-full bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors">
               {submitting ? "Creating account…" : "Create account"}
             </button>
           </form>
 
           <p className="text-xs text-gray-400 text-center mt-5">
             Already have an account?{" "}
-            <a href="/login" className="text-indigo-600 hover:underline">Sign in</a>
+            <a href="/login" className="text-blue-600 hover:underline">Sign in</a>
           </p>
         </div>
       </div>

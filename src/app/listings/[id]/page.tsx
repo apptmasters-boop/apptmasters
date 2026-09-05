@@ -92,7 +92,7 @@ export default function ListingDetailPage() {
         <p className="text-4xl mb-3">🔍</p>
         <p className="text-gray-700 font-medium mb-1">Listing not found</p>
         <p className="text-sm text-gray-400 mb-5">It may have been removed or isn't public yet.</p>
-        <Link href="/listings" className="text-sm text-indigo-600 font-medium hover:underline">← Back to browse</Link>
+        <Link href="/listings" className="text-sm text-blue-600 font-medium hover:underline">← Back to browse</Link>
       </main>
     );
   }
@@ -119,7 +119,7 @@ export default function ListingDetailPage() {
               {listing.photos.map((p, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img key={p.url} src={p.url} onClick={() => setActivePhoto(i)} alt=""
-                  className={`w-16 h-16 rounded-lg object-cover cursor-pointer border-2 flex-shrink-0 ${i === activePhoto ? "border-indigo-500" : "border-transparent"}`} />
+                  className={`w-16 h-16 rounded-lg object-cover cursor-pointer border-2 flex-shrink-0 ${i === activePhoto ? "border-blue-500" : "border-transparent"}`} />
               ))}
             </div>
           )}
@@ -131,7 +131,7 @@ export default function ListingDetailPage() {
               {listing.status === "PENDING" ? "Pending review — only visible to you" : listing.status}
             </p>
           )}
-          <span className="text-xs font-medium text-indigo-600 uppercase tracking-wide">
+          <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">
             {listing.type === "APARTMENT_FOR_RENT" ? "Apartment for rent" : "Room to share"}
           </span>
           <h1 className="text-2xl font-bold text-gray-900 mt-1">{listing.title}</h1>
@@ -154,8 +154,8 @@ export default function ListingDetailPage() {
             listing.roommateGenderPref || listing.roommateAgeMin || listing.roommateAgeMax || listing.roommateOccupation ||
             listing.roommateSmoking || listing.roommatePets || lifestyleTags.length > 0 || listing.roommateCulturalNotes
           ) && (
-            <div className="mt-5 bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-              <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide mb-2">Roommate they're looking for</p>
+            <div className="mt-5 bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2">Roommate they're looking for</p>
               {fieldRow("Gender preference", listing.roommateGenderPref === "ANY" ? "No preference" : listing.roommateGenderPref)}
               {fieldRow("Age range", (listing.roommateAgeMin || listing.roommateAgeMax) ? `${listing.roommateAgeMin ?? "Any"}–${listing.roommateAgeMax ?? "Any"}` : null)}
               {fieldRow("Occupation", listing.roommateOccupation)}
@@ -164,7 +164,7 @@ export default function ListingDetailPage() {
               {lifestyleTags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {lifestyleTags.map(tag => (
-                    <span key={tag} className="text-xs bg-white border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded-full">{tag}</span>
+                    <span key={tag} className="text-xs bg-white border border-blue-200 text-blue-700 px-2 py-0.5 rounded-full">{tag}</span>
                   ))}
                 </div>
               )}
@@ -179,7 +179,7 @@ export default function ListingDetailPage() {
           <div className="flex gap-2 mt-5">
             {isOwner ? (
               <>
-                <Link href="/listings/mine" className="flex-1 text-center bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 transition-colors">
+                <Link href="/listings/mine" className="flex-1 text-center bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700 transition-colors">
                   Manage this listing
                 </Link>
                 <Link href="/listings/inbox" className="flex-1 text-center border border-gray-300 text-gray-700 rounded-xl py-2.5 text-sm font-semibold hover:bg-gray-50 transition-colors">
@@ -188,7 +188,7 @@ export default function ListingDetailPage() {
               </>
             ) : (
               <button onClick={messageOwner}
-                className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 transition-colors">
+                className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700 transition-colors">
                 Message {listing.owner.name.split(" ")[0]}
               </button>
             )}
@@ -213,11 +213,11 @@ export default function ListingDetailPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
             <h2 className="font-bold text-gray-900">Report this listing</h2>
             <select value={reportReason} onChange={e => setReportReason(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               {REPORT_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
             <textarea placeholder="Details (optional)" value={reportNotes} onChange={e => setReportNotes(e.target.value)}
-              rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <div className="flex gap-2">
               <button onClick={submitReport} disabled={reportSubmitting}
                 className="flex-1 bg-red-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors">

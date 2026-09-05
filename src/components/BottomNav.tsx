@@ -75,7 +75,7 @@ export default function BottomNav({ apartmentId }: { apartmentId: string }) {
           return (
             <Link key={item.href} href={item.href}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-                active ? "text-indigo-600" : "text-gray-400 hover:text-gray-600"
+                active ? "text-blue-600" : "text-gray-400 hover:text-gray-600"
               }`}>
               {item.icon}
               <span className="text-[10px] font-medium">{item.label}</span>

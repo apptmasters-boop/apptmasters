@@ -101,7 +101,7 @@ export default function AgreementsPage() {
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">WiFi Quick Connect</p>
               <button onClick={() => setShowWifiQR(s => !s)}
-                className="text-xs text-indigo-500 hover:underline font-medium">
+                className="text-xs text-blue-500 hover:underline font-medium">
                 {showWifiQR ? "Hide QR" : "Show QR code"}
               </button>
             </div>
@@ -128,7 +128,7 @@ export default function AgreementsPage() {
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
                 {isAdmin && !isEditing && (
                   <button onClick={() => { setEditing(key); setValues(v => ({ ...v, [key]: existing?.value ?? "" })); }}
-                    className="text-xs text-indigo-500 hover:underline">
+                    className="text-xs text-blue-500 hover:underline">
                     {existing ? "Edit" : "Set"}
                   </button>
                 )}
@@ -137,9 +137,9 @@ export default function AgreementsPage() {
                 <div className="flex gap-2 mt-2">
                   <input type="text" value={values[key] ?? ""} placeholder={placeholder}
                     onChange={e => setValues(v => ({ ...v, [key]: e.target.value }))}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   <button onClick={() => save(key, label)} disabled={saving}
-                    className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                    className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                     {saving ? "…" : "Save"}
                   </button>
                   <button onClick={() => setEditing(null)} className="text-xs text-gray-500 px-2">Cancel</button>
@@ -163,16 +163,16 @@ export default function AgreementsPage() {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{a.label}</p>
               {isAdmin && (
                 <button onClick={() => { setEditing(a.key); setValues(v => ({ ...v, [a.key]: a.value })); }}
-                  className="text-xs text-indigo-500 hover:underline">Edit</button>
+                  className="text-xs text-blue-500 hover:underline">Edit</button>
               )}
             </div>
             {editing === a.key ? (
               <div className="flex gap-2 mt-2">
                 <input type="text" value={values[a.key] ?? ""}
                   onChange={e => setValues(v => ({ ...v, [a.key]: e.target.value }))}
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 <button onClick={() => save(a.key, a.label)} disabled={saving}
-                  className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                  className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                   {saving ? "…" : "Save"}
                 </button>
                 <button onClick={() => setEditing(null)} className="text-xs text-gray-500 px-2">Cancel</button>
@@ -190,13 +190,13 @@ export default function AgreementsPage() {
               <h3 className="text-sm font-semibold text-gray-700">Add custom info</h3>
               <input required type="text" placeholder="Label (e.g. Parking spot)" value={customLabel}
                 onChange={e => setCustomLabel(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input required type="text" placeholder="Value" value={customValue}
                 onChange={e => setCustomValue(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <div className="flex gap-2">
                 <button type="submit" disabled={saving}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                   {saving ? "…" : "Add"}
                 </button>
                 <button type="button" onClick={() => setShowCustom(false)} className="text-sm text-gray-500 px-4 py-2">Cancel</button>

@@ -77,7 +77,7 @@ export default function MoveOutReportPage() {
                 status: r.status,
               })),
             });
-          }} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          }} className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             Download PDF
           </button>
           <button onClick={() => window.print()}

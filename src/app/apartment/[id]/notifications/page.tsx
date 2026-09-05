@@ -101,12 +101,12 @@ export default function NotificationsPage() {
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Notifications</span>
           {unreadCount > 0 && (
-            <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full font-medium">{unreadCount}</span>
+            <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium">{unreadCount}</span>
           )}
         </div>
         {unreadCount > 0 && (
           <button onClick={markAllRead} disabled={markingAll}
-            className="text-sm text-indigo-600 font-medium hover:underline disabled:opacity-50">
+            className="text-sm text-blue-600 font-medium hover:underline disabled:opacity-50">
             {markingAll ? "Marking…" : "Mark all read"}
           </button>
         )}
@@ -127,7 +127,7 @@ export default function NotificationsPage() {
 
         {notifications.map(n => (
           <button key={n.id} onClick={() => handleNotificationClick(n)}
-            className={`w-full text-left bg-white border rounded-xl px-5 py-4 flex items-start gap-4 transition-colors ${n.read ? "border-gray-100 opacity-60" : "border-gray-200 hover:border-indigo-200"}`}>
+            className={`w-full text-left bg-white border rounded-xl px-5 py-4 flex items-start gap-4 transition-colors ${n.read ? "border-gray-100 opacity-60" : "border-gray-200 hover:border-blue-200"}`}>
             <span className="text-2xl flex-shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? "🔔"}</span>
             <div className="flex-1 min-w-0">
               <p className={`text-sm ${n.read ? "text-gray-500" : "text-gray-900 font-semibold"}`}>{n.title}</p>
@@ -136,10 +136,10 @@ export default function NotificationsPage() {
                 {new Date(n.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               </p>
               {n.link ? (
-                <p className="text-xs text-indigo-600 font-medium mt-2">Open linked item →</p>
+                <p className="text-xs text-blue-600 font-medium mt-2">Open linked item →</p>
               ) : null}
             </div>
-            {!n.read && <span className="w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0 mt-1.5" />}
+            {!n.read && <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1.5" />}
           </button>
         ))}
       </main>

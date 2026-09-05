@@ -88,7 +88,7 @@ function MessagesThread() {
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col" style={{ height: "75vh" }}>
         <div className="border-b border-gray-200 px-4 py-3 flex items-center gap-3 flex-shrink-0">
           <Link href={`/listings/${listingId}`} className="text-sm text-gray-400 hover:text-gray-600">←</Link>
-          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-600">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-600">
             {otherName[0]?.toUpperCase() ?? "?"}
           </div>
           <div>
@@ -99,7 +99,7 @@ function MessagesThread() {
 
         {error ? (
           <div className="flex-1 flex items-center justify-center text-sm text-gray-400 text-center px-4">
-            <p>{error} <Link href="/listings/inbox" className="text-indigo-600 hover:underline">Go to inbox</Link></p>
+            <p>{error} <Link href="/listings/inbox" className="text-blue-600 hover:underline">Go to inbox</Link></p>
           </div>
         ) : (
           <>
@@ -110,7 +110,7 @@ function MessagesThread() {
                 return (
                   <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[75%] flex flex-col ${isMe ? "items-end" : "items-start"}`}>
-                      <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
+                      <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
                         {msg.content}
                       </div>
                       <p className="text-[10px] text-gray-400 mt-0.5 mx-1">
@@ -133,10 +133,10 @@ function MessagesThread() {
                 onKeyDown={e => {
                   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); }
                 }}
-                className="flex-1 resize-none border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 max-h-32"
+                className="flex-1 resize-none border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-32"
               />
               <button type="submit" disabled={sending || !content.trim()}
-                className="bg-indigo-600 text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors flex-shrink-0">
+                className="bg-blue-600 text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors flex-shrink-0">
                 Send
               </button>
             </form>

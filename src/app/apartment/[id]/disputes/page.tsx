@@ -212,7 +212,7 @@ export default function DisputesPage() {
                     )}
                   </div>
                   <button onClick={() => setExpandedId(isExpanded ? null : d.id)}
-                    className="text-xs text-indigo-500 hover:underline whitespace-nowrap">
+                    className="text-xs text-blue-500 hover:underline whitespace-nowrap">
                     {isExpanded ? "Hide" : `Comments (${d.comments.length})`}
                   </button>
                 </div>
@@ -240,11 +240,11 @@ export default function DisputesPage() {
                       {d.comments.map(c => {
                         const isFocusedComment = focusedCommentId === c.id;
                         return (
-                          <div id={`comment-${c.id}`} key={c.id} className={`flex gap-2 ${c.user.id === currentUserId ? "flex-row-reverse" : ""} ${isFocusedComment ? "ring-2 ring-indigo-500/60 bg-indigo-50 rounded-3xl" : ""}`}>
+                          <div id={`comment-${c.id}`} key={c.id} className={`flex gap-2 ${c.user.id === currentUserId ? "flex-row-reverse" : ""} ${isFocusedComment ? "ring-2 ring-blue-500/60 bg-blue-50 rounded-3xl" : ""}`}>
                             <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">
                               {c.user.name.charAt(0)}
                             </div>
-                            <div className={`max-w-xs px-3 py-2 rounded-xl text-sm ${c.user.id === currentUserId ? "bg-indigo-100 text-indigo-900" : "bg-gray-100 text-gray-900"}`}>
+                            <div className={`max-w-xs px-3 py-2 rounded-xl text-sm ${c.user.id === currentUserId ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"}`}>
                               <p className="text-[10px] font-semibold text-gray-500 mb-0.5">{c.user.name}</p>
                               {c.body}
                             </div>
@@ -258,9 +258,9 @@ export default function DisputesPage() {
                       <input type="text" placeholder="Add a comment…" value={commentText[d.id] ?? ""}
                         onChange={e => setCommentText(t => ({ ...t, [d.id]: e.target.value }))}
                         onKeyDown={e => { if (e.key === "Enter") addComment(d.id); }}
-                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
                       <button onClick={() => addComment(d.id)} disabled={commenting === d.id}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                         {commenting === d.id ? "…" : "Send"}
                       </button>
                     </div>
@@ -281,7 +281,7 @@ export default function DisputesPage() {
               <label className="text-xs text-gray-500 mb-1 block">Resolution note (optional)</label>
               <textarea rows={3} placeholder="Describe what was decided…" value={resolution}
                 onChange={e => setResolution(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
             <div className="flex gap-2">
               <button onClick={resolveDispute} disabled={resolving}

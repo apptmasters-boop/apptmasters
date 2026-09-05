@@ -90,7 +90,7 @@ export default function PushNotificationButton() {
           <span>{errorMsg}</span>
         </div>
         <button onClick={() => setState("unsubscribed")}
-          className="text-xs text-indigo-600 hover:underline text-left">Try again</button>
+          className="text-xs text-blue-600 hover:underline text-left">Try again</button>
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function PushNotificationButton() {
 
   return (
     <button onClick={subscribe} disabled={working}
-      className="flex items-center gap-2 text-xs text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-100 transition-colors disabled:opacity-50">
+      className="flex items-center gap-2 text-xs text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100 transition-colors disabled:opacity-50">
       <span>🔔</span>
       {working ? "Enabling…" : "Enable push notifications"}
     </button>

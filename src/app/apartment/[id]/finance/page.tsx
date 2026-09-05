@@ -254,7 +254,7 @@ export default function FinancePage() {
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Finance</span>
           <Link href={`/apartment/${apartmentId}/analytics`}
-            className="text-xs text-indigo-500 hover:text-indigo-700 transition-colors">
+            className="text-xs text-blue-500 hover:text-blue-700 transition-colors">
             Analytics →
           </Link>
         </div>
@@ -294,7 +294,7 @@ export default function FinancePage() {
               </button>
             </div>
           )}
-          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             + Add expense
           </button>
         </div>
@@ -315,7 +315,7 @@ export default function FinancePage() {
 
         {/* Rent link */}
         <Link href={`/apartment/${apartmentId}/rent`}
-          className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-5 py-4 hover:border-indigo-300 transition-colors">
+          className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-5 py-4 hover:border-blue-300 transition-colors">
           <div>
             <p className="font-semibold text-gray-900">Rent</p>
             <p className="text-xs text-gray-400 mt-0.5">Track monthly rent payments</p>
@@ -325,22 +325,22 @@ export default function FinancePage() {
 
         {/* Add expense form */}
         {showAdd && (
-          <form onSubmit={addExpense} className="bg-white border border-indigo-200 rounded-xl p-5 space-y-3">
+          <form onSubmit={addExpense} className="bg-white border border-blue-200 rounded-xl p-5 space-y-3">
             <h3 className="font-semibold text-gray-900">New expense</h3>
             <input type="text" required placeholder="What was it for?" value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Amount ($)</label>
                 <input type="number" required min="0.01" step="0.01" placeholder="0.00" value={form.amount}
                   onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Category</label>
                 <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
@@ -356,7 +356,7 @@ export default function FinancePage() {
                     setCustomSplits(Object.fromEntries(others.map(m => [m.id, share])));
                   }
                 }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="EQUAL">Equal split</option>
                   <option value="CUSTOM">Custom amounts</option>
                   <option value="PER_PERSON">Per person</option>
@@ -365,7 +365,7 @@ export default function FinancePage() {
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Date</label>
                 <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             </div>
             {form.splitMethod === "CUSTOM" && (() => {
@@ -374,8 +374,8 @@ export default function FinancePage() {
               const allocated = others.reduce((s, m) => s + (parseFloat(customSplits[m.id] || "0") || 0), 0);
               const remaining = total - allocated;
               return (
-                <div className="border border-indigo-200 rounded-lg p-3 space-y-2 bg-indigo-50">
-                  <p className="text-xs font-medium text-indigo-700">How much does each person owe?</p>
+                <div className="border border-blue-200 rounded-lg p-3 space-y-2 bg-blue-50">
+                  <p className="text-xs font-medium text-blue-700">How much does each person owe?</p>
                   {others.map(m => (
                     <div key={m.id} className="flex items-center gap-2">
                       <span className="text-sm text-gray-700 flex-1 truncate">{m.name}</span>
@@ -384,11 +384,11 @@ export default function FinancePage() {
                         <input type="number" min="0" step="0.01" placeholder="0.00"
                           value={customSplits[m.id] ?? ""}
                           onChange={e => setCustomSplits(s => ({ ...s, [m.id]: e.target.value }))}
-                          className="w-full border border-gray-300 rounded-lg pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                          className="w-full border border-gray-300 rounded-lg pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       </div>
                     </div>
                   ))}
-                  <div className={`flex items-center justify-between text-xs pt-1 border-t border-indigo-200 ${Math.abs(remaining) < 0.01 ? "text-green-600" : remaining < 0 ? "text-red-600" : "text-gray-500"}`}>
+                  <div className={`flex items-center justify-between text-xs pt-1 border-t border-blue-200 ${Math.abs(remaining) < 0.01 ? "text-green-600" : remaining < 0 ? "text-red-600" : "text-gray-500"}`}>
                     <span>Allocated: ${allocated.toFixed(2)} / ${total.toFixed(2)}</span>
                     <span>{Math.abs(remaining) < 0.01 ? "✓ balanced" : remaining > 0 ? `You absorb $${remaining.toFixed(2)}` : `⚠ over by $${(-remaining).toFixed(2)}`}</span>
                   </div>
@@ -397,9 +397,9 @@ export default function FinancePage() {
             })()}
             <textarea placeholder="Notes (optional)" value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
             <div className="flex items-center gap-3">
-              <label className="flex-1 cursor-pointer border border-dashed border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors text-center">
+              <label className="flex-1 cursor-pointer border border-dashed border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors text-center">
                 <input type="file" accept="image/*,application/pdf" className="hidden"
                   onChange={handleReceiptUpload} disabled={uploadingReceipt} />
                 {uploadingReceipt ? "Uploading…" : form.receiptUrl ? "Receipt attached ✓" : "Attach receipt (optional)"}
@@ -414,14 +414,14 @@ export default function FinancePage() {
               Recurring expense
               {form.isRecurring && (
                 <select value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value }))}
-                  className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="WEEKLY">Weekly</option>
                   <option value="MONTHLY">Monthly</option>
                 </select>
               )}
             </label>
             <div className="flex gap-2">
-              <button type="submit" disabled={adding} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+              <button type="submit" disabled={adding} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {adding ? "Adding…" : "Add expense"}
               </button>
               <button type="button" onClick={() => setShowAdd(false)} className="text-sm text-gray-500 px-4 py-2">Cancel</button>
@@ -436,7 +436,7 @@ export default function FinancePage() {
               className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors relative ${tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
               {t}
               {t === "approvals" && editRequests.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
                   {editRequests.length}
                 </span>
               )}
@@ -464,7 +464,7 @@ export default function FinancePage() {
                       const link = PAYMENT_LINKS[method]?.(b.toName, b.amount);
                       return link ? (
                         <a key={method} href={link} target="_blank" rel="noopener noreferrer"
-                          className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-lg font-medium hover:bg-indigo-100 transition-colors">
+                          className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg font-medium hover:bg-blue-100 transition-colors">
                           Pay via {method}
                         </a>
                       ) : null;
@@ -478,7 +478,7 @@ export default function FinancePage() {
                     <button
                       onClick={() => bulkSettle(b.to, b.toName, b.amount, "BANK")}
                       disabled={bulkSettling === `${b.to}:BANK`}
-                      className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-lg font-medium hover:bg-indigo-100 disabled:opacity-50 transition-colors">
+                      className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-lg font-medium hover:bg-blue-100 disabled:opacity-50 transition-colors">
                       {bulkSettling === `${b.to}:BANK` ? "…" : "Paid via bank"}
                     </button>
                   </div>
@@ -514,8 +514,8 @@ export default function FinancePage() {
                       <p className="text-gray-500">${req.originalAmount.toFixed(2)} · {req.originalCategory}</p>
                       {req.originalNotes && <p className="text-gray-400 italic">{req.originalNotes}</p>}
                     </div>
-                    <div className="bg-indigo-50 rounded-lg p-2.5">
-                      <p className="text-indigo-500 font-medium mb-1">Proposed</p>
+                    <div className="bg-blue-50 rounded-lg p-2.5">
+                      <p className="text-blue-500 font-medium mb-1">Proposed</p>
                       <p className="text-gray-700">{req.proposedTitle ?? req.originalTitle}</p>
                       <p className="text-gray-500">${(req.proposedAmount ?? req.originalAmount).toFixed(2)} · {req.proposedCategory ?? req.originalCategory}</p>
                       {(req.proposedNotes !== null && req.proposedNotes !== undefined ? req.proposedNotes : req.originalNotes) && (
@@ -532,7 +532,7 @@ export default function FinancePage() {
 
                   {!isRequester && !alreadyApproved && (
                     <button onClick={() => approveRequest(req.id)} disabled={approvingRequest === req.id}
-                      className="w-full text-sm bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                      className="w-full text-sm bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                       {approvingRequest === req.id ? "Approving…" : "Approve edit"}
                     </button>
                   )}
@@ -565,44 +565,44 @@ export default function FinancePage() {
                   {isEditing ? (
                     <div className="space-y-2">
                       <input type="text" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <div className="grid grid-cols-2 gap-2">
                         <input type="number" min="0.01" step="0.01" value={editForm.amount} onChange={e => setEditForm(f => ({ ...f, amount: e.target.value }))}
-                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <select value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
-                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                       <input type="text" placeholder="Notes (optional)" value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <div className="flex gap-2">
-                        <button onClick={() => saveEdit(exp.id)} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">Save</button>
+                        <button onClick={() => saveEdit(exp.id)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">Save</button>
                         <button onClick={() => setEditingExpense(null)} className="text-xs text-gray-500 px-3 py-1.5">Cancel</button>
                       </div>
                     </div>
                   ) : isRequestingEdit ? (
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold text-indigo-700 mb-1">Request edit — propose changes</p>
+                      <p className="text-xs font-semibold text-blue-700 mb-1">Request edit — propose changes</p>
                       <input type="text" placeholder={`Title (current: ${exp.title})`} value={requestForm.title}
                         onChange={e => setRequestForm(f => ({ ...f, title: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <div className="grid grid-cols-2 gap-2">
                         <input type="number" min="0.01" step="0.01" placeholder={`Amount (${exp.amount.toFixed(2)})`}
                           value={requestForm.amount} onChange={e => setRequestForm(f => ({ ...f, amount: e.target.value }))}
-                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <select value={requestForm.category || exp.category}
                           onChange={e => setRequestForm(f => ({ ...f, category: e.target.value }))}
-                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                       <input type="text" placeholder="Notes (optional)" value={requestForm.notes}
                         onChange={e => setRequestForm(f => ({ ...f, notes: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <div className="flex gap-2">
                         <button onClick={() => submitEditRequest(exp.id)} disabled={submittingRequest}
-                          className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                           {submittingRequest ? "Submitting…" : "Submit request"}
                         </button>
                         <button onClick={() => setRequestingEdit(null)} className="text-xs text-gray-500 px-3 py-1.5">Cancel</button>
@@ -614,7 +614,7 @@ export default function FinancePage() {
                         <div>
                           <div className="flex items-center gap-2">
                             <button onClick={() => { setViewingExpense(exp); setDetailTab("details"); }}
-                              className="font-medium text-gray-900 hover:text-indigo-600 hover:underline text-left transition-colors">
+                              className="font-medium text-gray-900 hover:text-blue-600 hover:underline text-left transition-colors">
                               {exp.title}
                             </button>
                             {exp.receiptUrl && (
@@ -722,7 +722,7 @@ export default function FinancePage() {
                               className="text-xs text-amber-500 hover:text-amber-700 font-medium">Request edit</button>
                           ) : (
                             <button onClick={() => { setEditingExpense(exp.id); setEditForm({ title: exp.title, amount: exp.amount.toString(), category: exp.category, notes: exp.notes ?? "" }); }}
-                              className="text-xs text-indigo-400 hover:text-indigo-600 font-medium">Edit</button>
+                              className="text-xs text-blue-400 hover:text-blue-600 font-medium">Edit</button>
                           )
                         )}
                         {isPayer && (
@@ -784,7 +784,7 @@ export default function FinancePage() {
                       <span className="flex items-center gap-1.5">
                         <span className="flex -space-x-2">
                           {everyone.slice(0, 4).map(p => (
-                            <span key={p.userId} className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                            <span key={p.userId} className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-[10px] font-bold flex items-center justify-center border-2 border-white">
                               {p.user.name[0]?.toUpperCase()}
                             </span>
                           ))}
@@ -798,7 +798,7 @@ export default function FinancePage() {
                     {viewingExpense.notes && <div className="pt-1 border-t border-gray-100"><p className="text-gray-400 text-xs mb-1">Notes</p><p className="text-gray-700">{viewingExpense.notes}</p></div>}
                     {viewingExpense.receiptUrl && (
                       <a href={viewingExpense.receiptUrl} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-indigo-600 hover:underline pt-1">
+                        className="flex items-center gap-2 text-blue-600 hover:underline pt-1">
                         🧾 View receipt
                       </a>
                     )}
@@ -814,7 +814,7 @@ export default function FinancePage() {
                       const statusColor = statusLabel === "Paid" ? "text-green-600" : statusLabel === "Pending cash" ? "text-amber-600" : "text-red-500";
                       return (
                         <div key={p.userId} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                          <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                          <span className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
                             {p.user.name[0]?.toUpperCase()}
                           </span>
                           <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{p.user.name}</span>

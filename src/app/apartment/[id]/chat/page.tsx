@@ -199,7 +199,7 @@ export default function ChatPage() {
             <Link key={m.id} href={`/apartment/${apartmentId}/chat/dm/${m.id}`}
               className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
               onClick={() => setShowDMs(false)}>
-              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">
+              <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold text-blue-600">
                 {m.name[0].toUpperCase()}
               </div>
               <p className="text-sm text-gray-700">{m.name}</p>
@@ -229,7 +229,7 @@ export default function ChatPage() {
               <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"} flex flex-col`}>
                 {!isMe && <p className="text-[10px] text-gray-400 mb-1 ml-1">{msg.sender.name}</p>}
                 {msg.replyTo && (
-                  <div className={`text-[10px] px-2 py-1 rounded-lg mb-1 border-l-2 ${isMe ? "border-indigo-300 bg-indigo-50 text-indigo-600" : "border-gray-300 bg-gray-100 text-gray-500"}`}>
+                  <div className={`text-[10px] px-2 py-1 rounded-lg mb-1 border-l-2 ${isMe ? "border-blue-300 bg-blue-50 text-blue-600" : "border-gray-300 bg-gray-100 text-gray-500"}`}>
                     <span className="font-medium">{msg.replyTo.sender.name}:</span>{" "}
                     {msg.replyTo.type === "AUDIO" ? "🎙 Voice message" : msg.replyTo.content.slice(0, 60)}{msg.replyTo.content.length > 60 && msg.replyTo.type !== "AUDIO" ? "…" : ""}
                   </div>
@@ -249,7 +249,7 @@ export default function ChatPage() {
                 ) : (
                   <div className={`px-4 py-2.5 rounded-2xl text-sm relative ${
                     isEmergency ? "bg-red-500 text-white font-semibold" :
-                    isMe ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-800"
+                    isMe ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"
                   }`}>
                     {isEmergency && <span className="mr-1">🚨</span>}
                     {msg.content}
@@ -275,12 +275,12 @@ export default function ChatPage() {
 
       {/* Reply banner */}
       {replyTo && (
-        <div className="px-4 py-2 bg-indigo-50 border-t border-indigo-100 flex items-center justify-between flex-shrink-0">
-          <p className="text-xs text-indigo-600">
+        <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 flex items-center justify-between flex-shrink-0">
+          <p className="text-xs text-blue-600">
             Replying to <span className="font-semibold">{replyTo.sender.name}</span>:{" "}
             {replyTo.type === "AUDIO" ? "🎙 Voice message" : replyTo.content.slice(0, 50) + "…"}
           </p>
-          <button onClick={() => setReplyTo(null)} className="text-xs text-indigo-400 hover:text-indigo-600 ml-2">×</button>
+          <button onClick={() => setReplyTo(null)} className="text-xs text-blue-400 hover:text-blue-600 ml-2">×</button>
         </div>
       )}
 
@@ -311,13 +311,13 @@ export default function ChatPage() {
                     e.currentTarget.form?.requestSubmit();
                   }
                 }}
-                className="flex-1 border border-gray-300 rounded-2xl px-4 py-2 text-sm leading-snug resize-none max-h-52 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 border border-gray-300 rounded-2xl px-4 py-2 text-sm leading-snug resize-none max-h-52 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {content.trim() ? (
                 // Has text → show Send + Emergency
                 <>
                   <button type="submit" disabled={sending}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors flex-shrink-0">
+                    className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 disabled:opacity-40 transition-colors flex-shrink-0">
                     Send
                   </button>
                   <button type="button" onClick={sendEmergency} disabled={sending}

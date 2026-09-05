@@ -75,7 +75,7 @@ export default function AnalyticsPage() {
           </div>
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <p className="text-xs text-gray-500 mb-1">Your share</p>
-            <p className="text-2xl font-bold text-indigo-600">${data.myShareLast6Months.toFixed(0)}</p>
+            <p className="text-2xl font-bold text-blue-600">${data.myShareLast6Months.toFixed(0)}</p>
             <p className="text-xs text-gray-400 mt-0.5">
               {data.totalLast6Months > 0
                 ? `${((data.myShareLast6Months / data.totalLast6Months) * 100).toFixed(0)}% of total`
@@ -96,14 +96,14 @@ export default function AnalyticsPage() {
                     <span className="font-medium text-gray-900">${data.byMonth[m].total.toFixed(0)}</span>
                   </div>
                   <div className="h-3 bg-gray-100 rounded-full overflow-hidden flex">
-                    <div className="h-full bg-indigo-500 rounded-l-full transition-all duration-700"
+                    <div className="h-full bg-blue-500 rounded-l-full transition-all duration-700"
                       style={{ width: `${(data.byMonth[m].myShare / maxMonthTotal) * 100}%` }} />
-                    <div className="h-full bg-indigo-200 transition-all duration-700"
+                    <div className="h-full bg-blue-200 transition-all duration-700"
                       style={{ width: `${((data.byMonth[m].total - data.byMonth[m].myShare) / maxMonthTotal) * 100}%` }} />
                   </div>
                   <div className="flex gap-3 text-[10px] text-gray-400">
-                    <span><span className="inline-block w-2 h-2 rounded-full bg-indigo-500 mr-1" />Your share: ${data.byMonth[m].myShare.toFixed(0)}</span>
-                    <span><span className="inline-block w-2 h-2 rounded-full bg-indigo-200 mr-1" />Others: ${(data.byMonth[m].total - data.byMonth[m].myShare).toFixed(0)}</span>
+                    <span><span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1" />Your share: ${data.byMonth[m].myShare.toFixed(0)}</span>
+                    <span><span className="inline-block w-2 h-2 rounded-full bg-blue-200 mr-1" />Others: ${(data.byMonth[m].total - data.byMonth[m].myShare).toFixed(0)}</span>
                   </div>
                 </div>
               ))}

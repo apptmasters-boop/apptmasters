@@ -102,7 +102,7 @@ export default function AudioRecorder({ onSend, onActiveChange, sending }: Props
       <button
         type="button"
         onClick={startRecording}
-        className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 transition-colors flex-shrink-0"
+        className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors flex-shrink-0"
         title="Record voice message">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2}
           strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -156,7 +156,7 @@ export default function AudioRecorder({ onSend, onActiveChange, sending }: Props
         type="button"
         onClick={handleSend}
         disabled={sending}
-        className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors flex-shrink-0">
+        className="bg-blue-600 text-white px-3 py-1.5 rounded-full text-sm font-medium hover:bg-blue-700 disabled:opacity-40 transition-colors flex-shrink-0">
         Send
       </button>
     </div>

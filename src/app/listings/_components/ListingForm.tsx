@@ -143,7 +143,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
           {(["APARTMENT_FOR_RENT", "ROOM_TO_SHARE"] as const).map(t => (
             <button key={t} type="button" onClick={() => setForm(f => ({ ...f, type: t }))}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
-                form.type === t ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400"
+                form.type === t ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
               }`}>
               {t === "APARTMENT_FOR_RENT" ? "Apartment for rent" : "Room to share"}
             </button>
@@ -155,14 +155,14 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
         <label className="block text-xs font-medium text-gray-700 mb-1">Title</label>
         <input type="text" required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
           placeholder="e.g. Sunny 2BR near downtown"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
 
       <div>
         <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
         <textarea required rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="Tell people about the place…"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -171,12 +171,12 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
             {form.type === "ROOM_TO_SHARE" ? "Rent ($/mo)" : "Price ($/mo)"}
           </label>
           <input type="number" required min="0" step="1" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Up to (optional, for a range)</label>
           <input type="number" min="0" step="1" value={form.priceMax} onChange={e => setForm(f => ({ ...f, priceMax: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
 
@@ -184,31 +184,31 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">City</label>
           <input type="text" required value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">State (optional)</label>
           <input type="text" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
 
       <div>
         <label className="block text-xs font-medium text-gray-700 mb-1">Address (optional — shown to everyone browsing)</label>
         <input type="text" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Bedrooms (0 = studio)</label>
           <input type="number" min="0" value={form.bedrooms} onChange={e => setForm(f => ({ ...f, bedrooms: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Bathrooms</label>
           <input type="number" min="0" step="0.5" value={form.bathrooms} onChange={e => setForm(f => ({ ...f, bathrooms: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
 
@@ -216,24 +216,24 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Available from</label>
           <input type="date" value={form.availableFrom} onChange={e => setForm(f => ({ ...f, availableFrom: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Lease length</label>
           <input type="text" placeholder="e.g. 1 year, month-to-month" value={form.leaseLength} onChange={e => setForm(f => ({ ...f, leaseLength: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
 
       {form.type === "ROOM_TO_SHARE" && (
-        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 space-y-4">
-          <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide">Roommate you're looking for (all optional)</p>
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-4">
+          <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Roommate you're looking for (all optional)</p>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Gender preference</label>
               <select value={form.roommateGenderPref} onChange={e => setForm(f => ({ ...f, roommateGenderPref: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">No preference</option>
                 <option value="ANY">Any</option>
                 <option value="MALE">Male</option>
@@ -243,7 +243,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Occupation</label>
               <select value={form.roommateOccupation} onChange={e => setForm(f => ({ ...f, roommateOccupation: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">No preference</option>
                 <option value="STUDENT">Student</option>
                 <option value="PROFESSIONAL">Working professional</option>
@@ -256,12 +256,12 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Age min</label>
               <input type="number" min="18" value={form.roommateAgeMin} onChange={e => setForm(f => ({ ...f, roommateAgeMin: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Age max</label>
               <input type="number" min="18" value={form.roommateAgeMax} onChange={e => setForm(f => ({ ...f, roommateAgeMax: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
             </div>
           </div>
 
@@ -269,7 +269,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Smoking</label>
               <select value={form.roommateSmoking} onChange={e => setForm(f => ({ ...f, roommateSmoking: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">No preference</option>
                 <option value="NO">Non-smoker preferred</option>
                 <option value="YES">Smoking ok</option>
@@ -279,7 +279,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Pets</label>
               <select value={form.roommatePets} onChange={e => setForm(f => ({ ...f, roommatePets: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">No preference</option>
                 <option value="NO">No pets</option>
                 <option value="YES">Pets ok</option>
@@ -294,7 +294,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
               {LIFESTYLE_OPTIONS.map(({ key, label }) => (
                 <button key={key} type="button" onClick={() => toggleLifestyleTag(key)}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                    form.roommateLifestyleTags.includes(key) ? "bg-indigo-600 text-white border-indigo-600" : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
+                    form.roommateLifestyleTags.includes(key) ? "bg-blue-600 text-white border-blue-600" : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
                   }`}>
                   {label}
                 </button>
@@ -306,7 +306,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
             <label className="block text-xs font-medium text-gray-700 mb-1">Language / cultural / religious notes (optional)</label>
             <textarea rows={2} value={form.roommateCulturalNotes} onChange={e => setForm(f => ({ ...f, roommateCulturalNotes: e.target.value }))}
               placeholder="e.g. Fulani-speaking household, halal kitchen…"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
           </div>
         </div>
       )}
@@ -326,7 +326,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
           ))}
           {form.photoUrls.length < 8 && (
             <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-              className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 hover:border-indigo-400 hover:text-indigo-500 transition-colors disabled:opacity-50">
+              className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors disabled:opacity-50">
               {uploading ? "…" : "+"}
             </button>
           )}
@@ -338,7 +338,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <button type="submit" disabled={submitting || uploading || form.photoUrls.length === 0}
-        className="w-full bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+        className="w-full bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors">
         {submitting ? "Saving…" : submitLabel}
       </button>
     </form>

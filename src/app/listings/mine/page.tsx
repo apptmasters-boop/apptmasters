@@ -56,7 +56,7 @@ export default function MyListingsPage() {
     <main className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">My listings</h1>
-        <Link href="/listings/new" className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+        <Link href="/listings/new" className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
           + New listing
         </Link>
       </div>
@@ -88,7 +88,7 @@ export default function MyListingsPage() {
                 )}
                 <div className="flex gap-3 mt-2">
                   {l.status !== "REMOVED" && (
-                    <Link href={`/listings/${l.id}/edit`} className="text-xs text-indigo-600 font-medium hover:underline">
+                    <Link href={`/listings/${l.id}/edit`} className="text-xs text-blue-600 font-medium hover:underline">
                       {l.status === "REJECTED" ? "Edit & resubmit" : "Edit"}
                     </Link>
                   )}

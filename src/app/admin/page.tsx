@@ -249,10 +249,10 @@ export default function AdminPage() {
                 <input
                   type="email" placeholder="landlord@email.com" value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)} required
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50"
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
                 />
                 <button type="submit" disabled={inviting}
-                  className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                  className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                   {inviting ? "Sending…" : "Send invite"}
                 </button>
               </form>
@@ -269,7 +269,7 @@ export default function AdminPage() {
             <input
               type="text" placeholder="Search by name or email…" value={userQuery}
               onChange={e => setUserQuery(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             />
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
               <table className="w-full text-sm">
@@ -301,7 +301,7 @@ export default function AdminPage() {
                           <button
                             onClick={() => exportUser(u.id, u.name)} disabled={exporting === u.id}
                             title="Download full data export for law enforcement"
-                            className={`text-xs font-medium disabled:opacity-50 ${exportDone === u.id ? "text-green-600" : "text-indigo-500 hover:text-indigo-700"}`}>
+                            className={`text-xs font-medium disabled:opacity-50 ${exportDone === u.id ? "text-green-600" : "text-blue-500 hover:text-blue-700"}`}>
                             {exporting === u.id ? "Exporting…" : exportDone === u.id ? "Exported ✓" : "Export"}
                           </button>
                           {u.systemRole === "USER" && (
@@ -389,7 +389,7 @@ export default function AdminPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-gray-900">{log.action.replace(/_/g, " ")}</span>
                       {log.user && <span className="text-xs text-gray-400">by {log.user.name}</span>}
-                      {log.apartment && <span className="text-xs text-indigo-500">{log.apartment.name}</span>}
+                      {log.apartment && <span className="text-xs text-blue-500">{log.apartment.name}</span>}
                     </div>
                     {Object.keys(meta).length > 0 && (
                       <p className="text-xs text-gray-500 mt-0.5">

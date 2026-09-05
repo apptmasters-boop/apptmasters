@@ -190,7 +190,7 @@ export default function ProfilePage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={form.photo} alt="Avatar" className="w-20 h-20 rounded-full object-cover border border-gray-200" />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center text-3xl font-bold text-indigo-600">
+            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-3xl font-bold text-blue-600">
               {form.name ? form.name[0].toUpperCase() : "?"}
             </div>
           )}
@@ -212,7 +212,7 @@ export default function ProfilePage() {
             <div className="space-y-2 mb-4">
               {memberships.map(({ role, apartment }) => (
                 <Link key={apartment.id} href={`/apartment/${apartment.id}`}
-                  className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300 hover:shadow-sm transition-all">
+                  className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{apartment.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{role}</p>
@@ -223,8 +223,8 @@ export default function ProfilePage() {
             </div>
           )}
           <div className="flex gap-4">
-            <Link href="/apartment/create" className="text-sm text-indigo-600 font-medium hover:underline">+ Create apartment</Link>
-            <Link href="/apartment/join" className="text-sm text-indigo-600 font-medium hover:underline">+ Join with code</Link>
+            <Link href="/apartment/create" className="text-sm text-blue-600 font-medium hover:underline">+ Create apartment</Link>
+            <Link href="/apartment/join" className="text-sm text-blue-600 font-medium hover:underline">+ Join with code</Link>
           </div>
         </div>
 
@@ -235,7 +235,7 @@ export default function ProfilePage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={form.photo} alt="Avatar" className="w-16 h-16 rounded-full object-cover border border-gray-200" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-2xl font-bold text-indigo-600">
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-600">
                 {form.name ? form.name[0].toUpperCase() : "?"}
               </div>
             )}
@@ -252,7 +252,7 @@ export default function ProfilePage() {
                   type="button"
                   disabled={uploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full border border-dashed border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                  className="w-full border border-dashed border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
                 >
                   {uploading ? "Uploading…" : "Upload from device"}
                 </button>
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                   <span className="text-xs text-green-600">Email sent!</span>
                 ) : (
                   <button type="button" onClick={resendVerification} disabled={resending}
-                    className="text-xs text-indigo-600 hover:underline disabled:opacity-50">
+                    className="text-xs text-blue-600 hover:underline disabled:opacity-50">
                     {resending ? "Sending…" : "Resend email"}
                   </button>
                 )}
@@ -298,7 +298,7 @@ export default function ProfilePage() {
             <input
               type="text" required value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -307,7 +307,7 @@ export default function ProfilePage() {
               type="text" placeholder="e.g. Master bedroom, Room 2…"
               value={form.roomAssignment}
               onChange={e => setForm(f => ({ ...f, roomAssignment: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -315,7 +315,7 @@ export default function ProfilePage() {
             <input
               type="date" value={form.moveInDate}
               onChange={e => setForm(f => ({ ...f, moveInDate: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -323,7 +323,7 @@ export default function ProfilePage() {
             <div className="flex flex-wrap gap-2">
               {DIETARY_OPTIONS.map(({ key, label }) => (
                 <button key={key} type="button" onClick={() => toggleFlag(key)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${form.dietaryFlags.includes(key) ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${form.dietaryFlags.includes(key) ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
                   {label}
                 </button>
               ))}
@@ -331,7 +331,7 @@ export default function ProfilePage() {
           </div>
           <button
             type="submit" disabled={saving}
-            className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {saved ? "Saved!" : saving ? "Saving…" : "Save profile"}
           </button>
@@ -344,7 +344,7 @@ export default function ProfilePage() {
             <input
               type="password" required value={pwForm.currentPassword}
               onChange={e => setPwForm(f => ({ ...f, currentPassword: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -352,7 +352,7 @@ export default function ProfilePage() {
             <input
               type="password" required minLength={8} value={pwForm.newPassword}
               onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-xs text-gray-400 mt-0.5">Min. 8 characters — uppercase, lowercase, number, and special character</p>
           </div>
@@ -361,7 +361,7 @@ export default function ProfilePage() {
             <input
               type="password" required value={pwForm.confirmPassword}
               onChange={e => setPwForm(f => ({ ...f, confirmPassword: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           {pwError && <p className="text-sm text-red-500">{pwError}</p>}
@@ -382,7 +382,7 @@ export default function ProfilePage() {
               <p className="text-xs text-gray-400">Switch between light and dark theme</p>
             </div>
             <button type="button" onClick={toggleDarkMode}
-              className={`relative w-11 h-6 rounded-full transition-colors ${darkMode ? "bg-indigo-600" : "bg-gray-300"}`}>
+              className={`relative w-11 h-6 rounded-full transition-colors ${darkMode ? "bg-blue-600" : "bg-gray-300"}`}>
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? "translate-x-5" : ""}`} />
             </button>
           </label>
@@ -396,7 +396,7 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-400">Browser / device alerts</p>
               </div>
               <button type="button" onClick={() => setNotifPrefs(p => ({ ...p, pushEnabled: !p.pushEnabled }))}
-                className={`relative w-11 h-6 rounded-full transition-colors ${notifPrefs.pushEnabled ? "bg-indigo-600" : "bg-gray-300"}`}>
+                className={`relative w-11 h-6 rounded-full transition-colors ${notifPrefs.pushEnabled ? "bg-blue-600" : "bg-gray-300"}`}>
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notifPrefs.pushEnabled ? "translate-x-5" : ""}`} />
               </button>
             </label>
@@ -406,7 +406,7 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-400">Expenses, disputes, messages</p>
               </div>
               <button type="button" onClick={() => setNotifPrefs(p => ({ ...p, emailEnabled: !p.emailEnabled }))}
-                className={`relative w-11 h-6 rounded-full transition-colors ${notifPrefs.emailEnabled ? "bg-indigo-600" : "bg-gray-300"}`}>
+                className={`relative w-11 h-6 rounded-full transition-colors ${notifPrefs.emailEnabled ? "bg-blue-600" : "bg-gray-300"}`}>
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notifPrefs.emailEnabled ? "translate-x-5" : ""}`} />
               </button>
             </label>
@@ -423,8 +423,8 @@ export default function ProfilePage() {
         {/* Two-Factor Authentication */}
         <div className="bg-white rounded-2xl border border-gray-200 p-8 mt-6">
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
-              <ShieldIcon className="w-8 h-8 text-indigo-600" />
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+              <ShieldIcon className="w-8 h-8 text-blue-600" />
             </div>
             <h2 className="text-base font-bold text-gray-900 mt-3">Secure Your Account</h2>
             <p className="text-sm text-gray-400 mt-1">Two-factor authentication adds an extra layer of security to your account.</p>
@@ -432,7 +432,7 @@ export default function ProfilePage() {
 
           <div className="divide-y divide-gray-100">
             <div className="flex items-center gap-3 py-3">
-              <span className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+              <span className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
                 <ShieldIcon className="w-[18px] h-[18px]" />
               </span>
               <div className="flex-1 min-w-0">
@@ -444,7 +444,7 @@ export default function ProfilePage() {
                 const res = await apiFetch("/api/users/2fa", { method: "PATCH", body: JSON.stringify({ enabled: !twoFAEnabled }) });
                 if (res.ok) setTwoFAEnabled(!twoFAEnabled);
                 setTwoFASaving(false);
-              }} className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 flex-shrink-0 ${twoFAEnabled ? "bg-indigo-600" : "bg-gray-300"}`}>
+              }} className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 flex-shrink-0 ${twoFAEnabled ? "bg-blue-600" : "bg-gray-300"}`}>
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${twoFAEnabled ? "translate-x-5" : ""}`} />
               </button>
             </div>
@@ -464,7 +464,7 @@ export default function ProfilePage() {
                     </p>
                   </div>
                   <button type="button" onClick={generateBackupCodes} disabled={generatingCodes}
-                    className="text-xs text-indigo-600 font-medium hover:underline flex-shrink-0">
+                    className="text-xs text-blue-600 font-medium hover:underline flex-shrink-0">
                     {generatingCodes ? "…" : backupCodesRemaining ? "Regenerate" : "Generate"}
                   </button>
                 </div>
@@ -474,7 +474,7 @@ export default function ProfilePage() {
                       {backupCodesGenerated.map(code => <span key={code}>{code}</span>)}
                     </div>
                     <button type="button" onClick={() => { navigator.clipboard.writeText(backupCodesGenerated.join("\n")); }}
-                      className="text-xs text-indigo-600 hover:underline mt-2">Copy all</button>
+                      className="text-xs text-blue-600 hover:underline mt-2">Copy all</button>
                   </div>
                 )}
               </div>

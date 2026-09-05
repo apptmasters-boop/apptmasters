@@ -46,7 +46,7 @@ export default function ApartmentSidebar({ apartmentId, apartmentName, isSuperAd
   function linkClass(href: string) {
     const active = pathname === href;
     return `flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm transition-colors ${
-      active ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-600 hover:bg-gray-100"
+      active ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-100"
     }`;
   }
 
@@ -62,7 +62,7 @@ export default function ApartmentSidebar({ apartmentId, apartmentName, isSuperAd
         md:translate-x-0 md:sticky md:top-0
         ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2.5">
-          <span className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
+          <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
             <HouseIcon className="w-[18px] h-[18px] text-white" />
           </span>
           <p className="font-bold text-gray-900 truncate flex-1 min-w-0">{apartmentName}</p>

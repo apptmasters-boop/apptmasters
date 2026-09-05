@@ -74,7 +74,7 @@ export default function StatsPage() {
           </div>
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
             <p className="text-xs text-gray-400 font-medium">This month</p>
-            <p className="text-xl font-bold text-indigo-600 mt-0.5">${stats.thisMonthSpend.toFixed(0)}</p>
+            <p className="text-xl font-bold text-blue-600 mt-0.5">${stats.thisMonthSpend.toFixed(0)}</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
             <p className="text-xs text-gray-400 font-medium">Chores done</p>
@@ -134,7 +134,7 @@ export default function StatsPage() {
                       <span className="font-medium text-gray-900">{m.name}</span>
                       <span className="text-gray-500">paid ${m.paid.toFixed(2)} · owed ${m.owed.toFixed(2)}</span>
                     </div>
-                    <Bar pct={(m.paid / maxMemberPaid) * 100} color="bg-indigo-500" />
+                    <Bar pct={(m.paid / maxMemberPaid) * 100} color="bg-blue-500" />
                   </div>
                 ))}
               </div>

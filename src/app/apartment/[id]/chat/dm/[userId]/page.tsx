@@ -126,7 +126,7 @@ export default function DMPage() {
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
           <Link href={`/apartment/${apartmentId}/chat`} className="text-sm text-gray-400 hover:text-gray-600">←</Link>
-          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-600">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-600">
             {otherName[0]?.toUpperCase()}
           </div>
           <span className="font-bold text-gray-900">{otherName}</span>
@@ -163,7 +163,7 @@ export default function DMPage() {
                 {isAudio ? (
                   <VoiceMessage src={msg.content} isMe={isMe} />
                 ) : (
-                  <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? "bg-indigo-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
+                  <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
                     {msg.content}
                   </div>
                 )}
@@ -199,11 +199,11 @@ export default function DMPage() {
                   e.currentTarget.form?.requestSubmit();
                 }
               }}
-              className="flex-1 border border-gray-300 rounded-2xl px-4 py-2 text-sm leading-snug resize-none max-h-52 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 border border-gray-300 rounded-2xl px-4 py-2 text-sm leading-snug resize-none max-h-52 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {content.trim() ? (
               <button type="submit" disabled={sending}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors flex-shrink-0">
+                className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 disabled:opacity-40 transition-colors flex-shrink-0">
                 Send
               </button>
             ) : (

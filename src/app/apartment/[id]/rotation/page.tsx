@@ -97,7 +97,7 @@ export default function RotationPage() {
           <NotificationBell apartmentId={apartmentId} />
           {isAdmin && (
             <button onClick={() => setShowForm(s => !s)}
-              className="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+              className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
               + Rotation
             </button>
           )}
@@ -111,20 +111,20 @@ export default function RotationPage() {
 
         {/* Create form */}
         {showForm && (
-          <form onSubmit={createRotation} className="bg-white border border-indigo-200 rounded-xl p-5 space-y-4">
+          <form onSubmit={createRotation} className="bg-white border border-blue-200 rounded-xl p-5 space-y-4">
             <h3 className="font-semibold text-gray-900">New rotation</h3>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Item name</label>
               <input required type="text" placeholder="e.g. Toilet paper, Dish soap…" value={form.itemName}
                 onChange={e => setForm(f => ({ ...f, itemName: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Frequency</label>
               <div className="flex gap-2">
                 {FREQUENCIES.map(freq => (
                   <button key={freq} type="button" onClick={() => setForm(f => ({ ...f, frequency: freq }))}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${form.frequency === freq ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${form.frequency === freq ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
                     {freq.charAt(0) + freq.slice(1).toLowerCase()}
                   </button>
                 ))}
@@ -137,9 +137,9 @@ export default function RotationPage() {
                   const pos = form.memberIds.indexOf(m.id);
                   return (
                     <button key={m.id} type="button" onClick={() => toggleMember(m.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-colors ${pos !== -1 ? "bg-indigo-50 border-indigo-300 text-indigo-800" : "border-gray-200 text-gray-700 hover:bg-gray-50"}`}>
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-colors ${pos !== -1 ? "bg-blue-50 border-blue-300 text-blue-800" : "border-gray-200 text-gray-700 hover:bg-gray-50"}`}>
                       <span>{m.name}</span>
-                      {pos !== -1 && <span className="text-xs font-bold text-indigo-600">#{pos + 1}</span>}
+                      {pos !== -1 && <span className="text-xs font-bold text-blue-600">#{pos + 1}</span>}
                     </button>
                   );
                 })}
@@ -148,7 +148,7 @@ export default function RotationPage() {
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={saving || form.memberIds.length < 2}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {saving ? "Creating…" : "Create"}
               </button>
               <button type="button" onClick={() => setShowForm(false)} className="text-sm text-gray-500 px-4 py-2">Cancel</button>
@@ -170,8 +170,8 @@ export default function RotationPage() {
             ? Math.floor((Date.now() - new Date(rot.lastBought).getTime()) / (1000 * 60 * 60 * 24))
             : null;
           return (
-            <div key={rot.id} className={`bg-white border rounded-xl overflow-hidden ${isMyTurn ? "border-indigo-300" : "border-gray-200"}`}>
-              <div className={`px-5 py-4 ${isMyTurn ? "bg-indigo-50" : ""}`}>
+            <div key={rot.id} className={`bg-white border rounded-xl overflow-hidden ${isMyTurn ? "border-blue-300" : "border-gray-200"}`}>
+              <div className={`px-5 py-4 ${isMyTurn ? "bg-blue-50" : ""}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -180,7 +180,7 @@ export default function RotationPage() {
                         {rot.frequency.charAt(0) + rot.frequency.slice(1).toLowerCase()}
                       </span>
                       {isMyTurn && (
-                        <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-medium">
+                        <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium">
                           Your turn!
                         </span>
                       )}
@@ -208,7 +208,7 @@ export default function RotationPage() {
                   {rot.memberOrder.map((m, i) => {
                     const isCurrent = i === rot.currentIndex % rot.memberOrder.length;
                     return (
-                      <span key={m.id} className={`text-xs px-2 py-0.5 rounded-full font-medium ${isCurrent ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500"}`}>
+                      <span key={m.id} className={`text-xs px-2 py-0.5 rounded-full font-medium ${isCurrent ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500"}`}>
                         {m.name}
                       </span>
                     );
@@ -217,7 +217,7 @@ export default function RotationPage() {
 
                 {/* Mark as bought */}
                 <button onClick={() => advance(rot.id)} disabled={advancing === rot.id || !isMyTurn}
-                  className={`mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${isMyTurn ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-gray-100 text-gray-600"}`}>
+                  className={`mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${isMyTurn ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-100 text-gray-600"}`}>
                   {advancing === rot.id ? "Marking…" : isMyTurn ? "✓ I bought it — advance turn" : "Waiting for current buyer"}
                 </button>
               </div>

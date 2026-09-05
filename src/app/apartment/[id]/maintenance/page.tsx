@@ -78,7 +78,7 @@ export default function MaintenancePage() {
           <span className="font-bold text-gray-900">Maintenance</span>
         </div>
         <button onClick={() => setShowForm(s => !s)}
-          className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
           + New request
         </button>
       </header>
@@ -93,7 +93,7 @@ export default function MaintenancePage() {
                 type="text" required value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="e.g. Leaking faucet in bathroom"
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -102,7 +102,7 @@ export default function MaintenancePage() {
                 required rows={3} value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                 placeholder="Describe the issue in detail…"
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
             <div>
@@ -111,7 +111,7 @@ export default function MaintenancePage() {
                 {(["LOW", "MEDIUM", "URGENT"] as const).map(p => (
                   <button key={p} type="button"
                     onClick={() => setForm(f => ({ ...f, priority: p }))}
-                    className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${form.priority === p ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>
+                    className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${form.priority === p ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>
                     {p === "LOW" ? "Low" : p === "MEDIUM" ? "Medium" : "Urgent"}
                   </button>
                 ))}
@@ -120,7 +120,7 @@ export default function MaintenancePage() {
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-3">
               <button type="submit" disabled={submitting}
-                className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {submitting ? "Submitting…" : "Submit request"}
               </button>
               <button type="button" onClick={() => setShowForm(false)}

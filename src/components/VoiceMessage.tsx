@@ -16,7 +16,7 @@ export default function VoiceMessage({ src, isMe }: Props) {
   if (!src) {
     return (
       <div className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl ${
-        isMe ? "bg-indigo-600" : "bg-white border border-gray-200"
+        isMe ? "bg-blue-600" : "bg-white border border-gray-200"
       }`}>
         <svg className={`w-4 h-4 flex-shrink-0 ${isMe ? "text-white/50" : "text-gray-300"}`}
           fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -73,7 +73,7 @@ export default function VoiceMessage({ src, isMe }: Props) {
 
   return (
     <div className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl w-[200px] ${
-      isMe ? "bg-indigo-600" : "bg-white border border-gray-200"
+      isMe ? "bg-blue-600" : "bg-white border border-gray-200"
     }`}>
       <audio ref={audioRef} src={src} preload="metadata" />
 
@@ -81,7 +81,7 @@ export default function VoiceMessage({ src, isMe }: Props) {
         className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
           isMe
             ? "bg-white/20 text-white hover:bg-white/30"
-            : "bg-indigo-100 text-indigo-600 hover:bg-indigo-200"
+            : "bg-blue-100 text-blue-600 hover:bg-blue-200"
         }`}>
         {playing ? (
           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">

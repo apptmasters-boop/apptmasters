@@ -55,7 +55,7 @@ export default function OnboardingPage() {
   const progress = Math.round((step / (STEPS.length - 1)) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Progress bar */}
         <div className="mb-8">
@@ -64,7 +64,7 @@ export default function OnboardingPage() {
             <span>{step + 1} of {STEPS.length}</span>
           </div>
           <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-indigo-600 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+            <div className="h-full bg-blue-600 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export default function OnboardingPage() {
               <h1 className="text-2xl font-bold text-gray-900">Welcome to ApptMasters!</h1>
               <p className="text-gray-500 text-sm">Let's take 60 seconds to set up your profile so your roommates know who you are.</p>
               <button onClick={() => setStep(1)}
-                className="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 transition-colors">
+                className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 transition-colors">
                 Get started
               </button>
               <button onClick={() => router.replace("/dashboard")}
@@ -95,19 +95,19 @@ export default function OnboardingPage() {
               <div className="flex flex-col items-center gap-4">
                 {photo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt="Your photo" className="w-24 h-24 rounded-full object-cover border-2 border-indigo-200" />
+                  <img src={photo} alt="Your photo" className="w-24 h-24 rounded-full object-cover border-2 border-blue-200" />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center text-4xl">👤</div>
+                  <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-4xl">👤</div>
                 )}
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={uploadPhoto} />
                 <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                  className="border border-dashed border-indigo-300 text-indigo-600 px-6 py-2 rounded-lg text-sm hover:bg-indigo-50 transition-colors disabled:opacity-50">
+                  className="border border-dashed border-blue-300 text-blue-600 px-6 py-2 rounded-lg text-sm hover:bg-blue-50 transition-colors disabled:opacity-50">
                   {uploading ? "Uploading…" : photo ? "Change photo" : "Upload photo"}
                 </button>
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setStep(2)}
-                  className="flex-1 bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 transition-colors">
+                  className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 transition-colors">
                   {photo ? "Next" : "Skip"}
                 </button>
               </div>
@@ -122,21 +122,21 @@ export default function OnboardingPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Display name</label>
                 <input type="text" value={name} onChange={e => setName(e.target.value)}
                   placeholder="Your name"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Room assignment</label>
                 <input type="text" value={roomAssignment} onChange={e => setRoomAssignment(e.target.value)}
                   placeholder="e.g. Master bedroom, Room 2…"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Move-in date</label>
                 <input type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <button onClick={() => setStep(3)}
-                className="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 transition-colors">
+                className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 transition-colors">
                 Next
               </button>
             </div>
@@ -150,13 +150,13 @@ export default function OnboardingPage() {
               <div className="flex flex-wrap gap-2">
                 {DIETARY_OPTIONS.map(({ key, label }) => (
                   <button key={key} type="button" onClick={() => toggleFlag(key)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${dietaryFlags.includes(key) ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${dietaryFlags.includes(key) ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
                     {label}
                   </button>
                 ))}
               </div>
               <button onClick={() => setStep(4)}
-                className="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 transition-colors">
+                className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 transition-colors">
                 Next
               </button>
             </div>
@@ -169,7 +169,7 @@ export default function OnboardingPage() {
               <h2 className="text-2xl font-bold text-gray-900">You're all set!</h2>
               <p className="text-gray-500 text-sm">Your profile is ready. Head to your dashboard to explore your apartment.</p>
               <button onClick={finish} disabled={saving}
-                className="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {saving ? "Saving…" : "Go to dashboard"}
               </button>
             </div>

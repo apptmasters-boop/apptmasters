@@ -79,7 +79,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <span className="text-lg font-bold text-indigo-600">ApptMasters</span>
+        <span className="text-lg font-bold text-blue-600">ApptMasters</span>
         <div className="flex items-center gap-3">
           {user?.systemRole === "SUPER_ADMIN" && (
             <Link href="/admin"
@@ -98,7 +98,7 @@ export default function DashboardPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={user.photo} alt={user.name} className="w-7 h-7 rounded-full object-cover border border-gray-200" />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+              <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">
                 {user?.name?.[0]?.toUpperCase() ?? "?"}
               </div>
             )}
@@ -112,12 +112,12 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Your apartments</h1>
         <p className="text-sm text-gray-400 mb-6">{user?.email}</p>
 
-        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4 mb-6 sm:flex sm:items-center sm:justify-between sm:gap-4">
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-4 mb-6 sm:flex sm:items-center sm:justify-between sm:gap-4">
           <div>
             <p className="text-sm font-semibold text-gray-900">Looking for a place, or have one to share?</p>
             <p className="text-sm text-gray-500 mt-0.5">Browse or post listings — free, no broker fee.</p>
           </div>
-          <Link href="/listings" className="mt-3 inline-flex sm:mt-0 text-sm bg-white border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg font-medium hover:bg-indigo-100 transition-colors">
+          <Link href="/listings" className="mt-3 inline-flex sm:mt-0 text-sm bg-white border border-blue-200 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors">
             Browse listings →
           </Link>
         </div>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-400 mb-6">Create or join an apartment to get started.</p>
             <div className="flex gap-3 justify-center">
               <Link href="/apartment/create"
-                className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                className="bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
                 Create apartment
               </Link>
               <Link href="/apartment/join"
@@ -154,7 +154,7 @@ export default function DashboardPage() {
 
               return (
                 <Link key={apartment.id} href={`/apartment/${apartment.id}`}
-                  className="block bg-white rounded-xl border border-gray-200 px-5 py-4 hover:border-indigo-300 hover:shadow-sm transition-all">
+                  className="block bg-white rounded-xl border border-gray-200 px-5 py-4 hover:border-blue-300 hover:shadow-sm transition-all">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-semibold text-gray-900">{apartment.name}</p>
@@ -179,8 +179,8 @@ export default function DashboardPage() {
             })}
 
             <div className="flex gap-4 pt-2">
-              <Link href="/apartment/create" className="text-sm text-indigo-600 font-medium hover:underline">+ Create apartment</Link>
-              <Link href="/apartment/join" className="text-sm text-indigo-600 font-medium hover:underline">+ Join with code</Link>
+              <Link href="/apartment/create" className="text-sm text-blue-600 font-medium hover:underline">+ Create apartment</Link>
+              <Link href="/apartment/join" className="text-sm text-blue-600 font-medium hover:underline">+ Join with code</Link>
             </div>
           </div>
         )}

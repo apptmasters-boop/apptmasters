@@ -11,10 +11,10 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-lg font-bold text-indigo-600">ApptMasters</Link>
+          <Link href="/" className="text-lg font-bold text-blue-600">ApptMasters</Link>
           <div className="flex gap-4 text-sm text-gray-500">
-            <Link href="/terms" className="hover:text-indigo-600 transition-colors">Terms of Service</Link>
-            <Link href="/login" className="hover:text-indigo-600 transition-colors">Sign in</Link>
+            <Link href="/terms" className="hover:text-blue-600 transition-colors">Terms of Service</Link>
+            <Link href="/login" className="hover:text-blue-600 transition-colors">Sign in</Link>
           </div>
         </div>
       </header>
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
               ApptMasters (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy. This Privacy
               Policy explains what information we collect, how we use it, who we share it with, and your
               rights regarding your data when you use our roommate management platform at{" "}
-              <a href="https://apptmasters.com" className="text-indigo-600 hover:underline">apptmasters.com</a>.
+              <a href="https://apptmasters.com" className="text-blue-600 hover:underline">apptmasters.com</a>.
             </p>
             <p className="mt-2">
               By using the Service, you consent to the practices described in this Privacy Policy. If you
@@ -199,7 +199,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-2">
               To exercise any of these rights, contact us at{" "}
-              <a href="mailto:apptmasters@gmail.com" className="text-indigo-600 hover:underline">apptmasters@gmail.com</a>.
+              <a href="mailto:apptmasters@gmail.com" className="text-blue-600 hover:underline">apptmasters@gmail.com</a>.
               We will respond within 30 days.
             </p>
           </section>
@@ -232,17 +232,17 @@ export default function PrivacyPage() {
             </p>
             <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-4">
               <p className="font-medium text-gray-900">ApptMasters — Privacy Team</p>
-              <p>Email: <a href="mailto:apptmasters@gmail.com" className="text-indigo-600 hover:underline">apptmasters@gmail.com</a></p>
-              <p>Website: <a href="https://apptmasters.com" className="text-indigo-600 hover:underline">apptmasters.com</a></p>
+              <p>Email: <a href="mailto:apptmasters@gmail.com" className="text-blue-600 hover:underline">apptmasters@gmail.com</a></p>
+              <p>Website: <a href="https://apptmasters.com" className="text-blue-600 hover:underline">apptmasters.com</a></p>
             </div>
           </section>
 
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-200 flex flex-wrap gap-4 text-sm text-gray-500">
-          <Link href="/terms" className="text-indigo-600 hover:underline">Terms of Service</Link>
-          <Link href="/register" className="text-indigo-600 hover:underline">Create an account</Link>
-          <Link href="/login" className="text-indigo-600 hover:underline">Sign in</Link>
+          <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link>
+          <Link href="/register" className="text-blue-600 hover:underline">Create an account</Link>
+          <Link href="/login" className="text-blue-600 hover:underline">Sign in</Link>
         </div>
       </main>
     </div>

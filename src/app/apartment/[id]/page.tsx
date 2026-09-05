@@ -315,7 +315,7 @@ export default function ApartmentPage() {
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-bold text-gray-900 truncate">{apt.name}</span>
           {isGuest && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Guest</span>}
-          {isAdmin && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Admin</span>}
+          {isAdmin && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Admin</span>}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <Link href={`/apartment/${apt.id}/search`}
@@ -444,10 +444,10 @@ export default function ApartmentPage() {
         <div className="space-y-4">
               {/* Profile link */}
               <Link href="/profile"
-                className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 hover:border-indigo-300 hover:shadow-sm transition-all">
+                className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 hover:border-blue-300 hover:shadow-sm transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -460,16 +460,16 @@ export default function ApartmentPage() {
               </Link>
 
               {/* Invite code */}
-              <div className="bg-indigo-50 border border-indigo-200 rounded-2xl px-5 py-4 flex items-center justify-between">
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-indigo-400 mb-0.5">Invite code</p>
-                  <p className="text-2xl font-mono font-bold text-indigo-700 tracking-widest">{apt.inviteCode}</p>
+                  <p className="text-xs font-medium text-blue-400 mb-0.5">Invite code</p>
+                  <p className="text-2xl font-mono font-bold text-blue-700 tracking-widest">{apt.inviteCode}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1.5">
-                  <button onClick={copyCode} className="text-sm text-indigo-600 font-medium hover:underline">
+                  <button onClick={copyCode} className="text-sm text-blue-600 font-medium hover:underline">
                     {copied ? "Copied!" : "Copy code"}
                   </button>
-                  <button onClick={copyInviteLink} className="text-xs text-indigo-400 hover:text-indigo-600">
+                  <button onClick={copyInviteLink} className="text-xs text-blue-400 hover:text-blue-600">
                     {linkCopied ? "Link copied!" : "Copy invite link"}
                   </button>
                 </div>
@@ -481,10 +481,10 @@ export default function ApartmentPage() {
                   <input
                     type="email" placeholder="Invite by email…" value={inviteEmail}
                     onChange={e => setInviteEmail(e.target.value)} required
-                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button type="submit" disabled={inviteSending}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                    className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                     {inviteSent ? "Sent!" : inviteSending ? "…" : "Invite"}
                   </button>
                 </form>
@@ -516,7 +516,7 @@ export default function ApartmentPage() {
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={m.user.photo} alt={m.user.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
                             ) : (
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${activeTravelPeriod ? "bg-amber-100 text-amber-600" : "bg-indigo-100 text-indigo-600"}`}>
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${activeTravelPeriod ? "bg-amber-100 text-amber-600" : "bg-blue-100 text-blue-600"}`}>
                                 {activeTravelPeriod ? "✈" : m.user.name[0].toUpperCase()}
                               </div>
                             )}
@@ -611,9 +611,9 @@ export default function ApartmentPage() {
                       <div className="flex gap-2">
                         <input type="text" required placeholder={isAdmin ? "Add a house rule…" : "Propose a rule…"}
                           value={newRule} onChange={e => setNewRule(e.target.value)}
-                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <button type="submit" disabled={addingRule}
-                          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                           {addingRule ? "…" : isAdmin ? "Add" : "Propose"}
                         </button>
                       </div>
@@ -660,14 +660,14 @@ export default function ApartmentPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-500">Manage members, roles, and statuses.</p>
-                    <Link href={`/apartment/${id}/audit`} className="text-xs text-gray-400 hover:text-indigo-600 transition-colors">View audit log →</Link>
+                    <Link href={`/apartment/${id}/audit`} className="text-xs text-gray-400 hover:text-blue-600 transition-colors">View audit log →</Link>
                   </div>
                   {apt.members.map(m => (
                     <div key={m.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4">
                       <div className="flex items-center justify-between mb-3">
                         <p className="font-medium text-gray-900">{m.user.name}</p>
                         <div className="flex items-center gap-3">
-                          <Link href={`/apartment/${id}/moveout/${m.user.id}`} className="text-xs text-indigo-500 hover:underline">Report</Link>
+                          <Link href={`/apartment/${id}/moveout/${m.user.id}`} className="text-xs text-blue-500 hover:underline">Report</Link>
                           <button onClick={() => removeMember(m.id, m.user.id === currentUserId)} className="text-xs text-red-400 hover:text-red-600">
                             {m.user.id === currentUserId ? "Leave" : "Remove"}
                           </button>
@@ -676,7 +676,7 @@ export default function ApartmentPage() {
                       <div className="flex gap-2 flex-wrap">
                         {(["ADMIN", "MEMBER", "GUEST"] as const).map(r => (
                           <button key={r} onClick={() => updateMember(m.id, { role: r })}
-                            className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${m.role === r ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>{r}</button>
+                            className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${m.role === r ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>{r}</button>
                         ))}
                         <div className="w-px bg-gray-200 mx-1" />
                         {(["ACTIVE", "VACATION", "MOVED_OUT"] as const).map(s => (
@@ -694,7 +694,7 @@ export default function ApartmentPage() {
                             type="date"
                             defaultValue={m.expiresAt ? m.expiresAt.split("T")[0] : ""}
                             onChange={e => setGuestExpiry(m.id, e.target.value || null)}
-                            className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                            className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
                           />
                           {m.expiresAt && (
                             <span className="text-xs text-amber-600 font-medium">
@@ -725,7 +725,7 @@ export default function ApartmentPage() {
                             <div className="flex gap-2 flex-shrink-0">
                               <button
                                 onClick={() => approveJoin(jr.id)}
-                                className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                                className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors font-medium">
                                 Approve
                               </button>
                               <button
@@ -752,18 +752,18 @@ export default function ApartmentPage() {
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Start date</label>
                   <input type="date" value={travelForm.startDate} onChange={e => setTravelForm(f => ({ ...f, startDate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Return date (optional)</label>
                   <input type="date" value={travelForm.endDate} onChange={e => setTravelForm(f => ({ ...f, endDate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Notes (optional)</label>
                   <input type="text" placeholder="Visiting family, work trip…" value={travelForm.notes}
                     onChange={e => setTravelForm(f => ({ ...f, notes: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
               </div>
               <p className="text-xs text-gray-400">While traveling: cleaning rotation skips this person, and new expenses with equal split exclude them.</p>
@@ -789,7 +789,7 @@ export default function ApartmentPage() {
         <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="font-bold text-gray-900">{apt.name}</span>
-            {isAdmin && <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Admin</span>}
+            {isAdmin && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Admin</span>}
           </div>
           <div className="flex items-center gap-2">
             <Link href={`/apartment/${apt.id}/search`} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors" aria-label="Search">
@@ -880,7 +880,7 @@ export default function ApartmentPage() {
                   ))}
                 </div>
               ) : <p className="text-xs text-gray-400">No recent activity.</p>}
-              <Link href={`/apartment/${apt.id}/feed`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">View All Activity</Link>
+              <Link href={`/apartment/${apt.id}/feed`} className="text-xs text-blue-600 hover:underline mt-3 inline-block">View All Activity</Link>
             </div>
             <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
               <p className="text-sm font-semibold text-gray-900 mb-3">Upcoming</p>
@@ -894,7 +894,7 @@ export default function ApartmentPage() {
                   ))}
                 </div>
               ) : <p className="text-xs text-gray-400">Nothing on the calendar.</p>}
-              <Link href={`/apartment/${apt.id}/calendar`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">View Calendar</Link>
+              <Link href={`/apartment/${apt.id}/calendar`} className="text-xs text-blue-600 hover:underline mt-3 inline-block">View Calendar</Link>
             </div>
           </div>
 
@@ -912,14 +912,14 @@ export default function ApartmentPage() {
                           <span>{c.category}</span><span>${c.amount.toFixed(2)}</span>
                         </div>
                         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round((c.amount / total) * 100)}%` }} />
+                          <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.round((c.amount / total) * 100)}%` }} />
                         </div>
                       </div>
                     );
                   })}
                 </div>
               ) : <p className="text-xs text-gray-400">No expenses yet.</p>}
-              <Link href={`/apartment/${apt.id}/finance`} className="text-xs text-indigo-600 hover:underline mt-3 inline-block">View All Expenses</Link>
+              <Link href={`/apartment/${apt.id}/finance`} className="text-xs text-blue-600 hover:underline mt-3 inline-block">View All Expenses</Link>
             </div>
             <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
               <div className="flex items-center justify-between mb-3">
@@ -933,7 +933,7 @@ export default function ApartmentPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={m.user.photo} alt={m.user.name} className="w-7 h-7 rounded-full object-cover border border-gray-200" />
                     ) : (
-                      <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">{m.user.name[0]?.toUpperCase()}</div>
+                      <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold text-blue-600">{m.user.name[0]?.toUpperCase()}</div>
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-medium text-gray-800 truncate">{m.user.name}{m.user.id === currentUserId ? " (you)" : ""}</p>
@@ -947,13 +947,13 @@ export default function ApartmentPage() {
                 ))}
               </div>
             </div>
-            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4 flex flex-col justify-between">
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-4 flex flex-col justify-between">
               <div>
                 <IconBadge icon={<HouseIcon />} color="blue" size="lg" className="mb-2" />
                 <p className="text-sm font-semibold text-gray-900 mb-1">Find Your Next Home</p>
                 <p className="text-xs text-gray-500">Browse listings and find the perfect place.</p>
               </div>
-              <Link href="/listings" className="mt-3 inline-block text-center bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+              <Link href="/listings" className="mt-3 inline-block text-center bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                 Search Listings
               </Link>
             </div>
@@ -963,16 +963,16 @@ export default function ApartmentPage() {
           <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
             <p className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</p>
             <div className="grid grid-cols-4 gap-3">
-              <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors">
+              <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors">
                 <IconBadge icon={<FinanceIcon />} color="blue" size="sm" /> Add Expense
               </Link>
-              <Link href={`/apartment/${apt.id}/chores`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors">
+              <Link href={`/apartment/${apt.id}/chores`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors">
                 <IconBadge icon={<ChoresIcon />} color="orange" size="sm" /> Create Chore
               </Link>
-              <Link href={`/apartment/${apt.id}/maintenance`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors">
+              <Link href={`/apartment/${apt.id}/maintenance`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors">
                 <IconBadge icon={<MaintenanceIcon />} color="amber" size="sm" /> Add Maintenance
               </Link>
-              <button onClick={copyInviteLink} className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition-colors text-left">
+              <button onClick={copyInviteLink} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors text-left">
                 <IconBadge icon={<ProfileIcon />} color="indigo" size="sm" /> {linkCopied ? "Link copied!" : "Invite Roommate"}
               </button>
             </div>

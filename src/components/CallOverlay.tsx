@@ -377,7 +377,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
       <audio ref={audioRef} autoPlay playsInline />
 
       <div className="relative z-10 text-center">
-        <div className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-3xl font-bold text-white mx-auto mb-4">
+        <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-3xl font-bold text-white mx-auto mb-4">
           {incomingCall ? "?" : receiverId ? "?" : "G"}
         </div>
         <p className="text-white font-semibold text-lg">
@@ -411,7 +411,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
         </button>
 
         <button onClick={toggleSpeaker}
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${speakerOn ? "bg-indigo-500 text-white" : "bg-gray-700 text-white"}`}>
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${speakerOn ? "bg-blue-500 text-white" : "bg-gray-700 text-white"}`}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             {speakerOn ? (

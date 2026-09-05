@@ -64,13 +64,13 @@ export default function BrowseListingsPage() {
           </svg>
           <input type="text" placeholder="Search by city, title, or keyword" value={filters.city}
             onChange={e => setFilters(f => ({ ...f, city: e.target.value }))}
-            className="w-full border border-gray-200 rounded-2xl pl-11 pr-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-200 rounded-2xl pl-11 pr-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </form>
 
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <button type="button" onClick={() => setShowFilters(s => !s)}
-          className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors ${showFilters || filters.type || filters.minPrice || filters.maxPrice || filters.bedrooms ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+          className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors ${showFilters || filters.type || filters.minPrice || filters.maxPrice || filters.bedrooms ? "bg-blue-50 border-blue-200 text-blue-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M6 12h12M10 20h4" />
           </svg>
@@ -93,21 +93,21 @@ export default function BrowseListingsPage() {
       {showFilters && (
         <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
           <select value={filters.type} onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 col-span-2 sm:col-span-1">
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 col-span-2 sm:col-span-1">
             <option value="">Any type</option>
             <option value="APARTMENT_FOR_RENT">Apartment for rent</option>
             <option value="ROOM_TO_SHARE">Room to share</option>
           </select>
           <input type="number" placeholder="Min $" value={filters.minPrice}
             onChange={e => setFilters(f => ({ ...f, minPrice: e.target.value }))}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <input type="number" placeholder="Max $" value={filters.maxPrice}
             onChange={e => setFilters(f => ({ ...f, maxPrice: e.target.value }))}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <input type="number" placeholder="Bedrooms" value={filters.bedrooms}
             onChange={e => setFilters(f => ({ ...f, bedrooms: e.target.value }))}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-          <button type="button" onClick={load} className="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 transition-colors">
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button type="button" onClick={load} className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
             Apply
           </button>
         </div>
@@ -120,7 +120,7 @@ export default function BrowseListingsPage() {
           <p className="text-4xl mb-3">🔍</p>
           <p className="text-gray-600 font-medium mb-1">No listings match yet</p>
           <p className="text-sm text-gray-400 mb-5">Be the first to post one, or check back soon.</p>
-          <Link href="/listings/new" className="text-sm bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          <Link href="/listings/new" className="text-sm bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             Post a listing
           </Link>
         </div>
@@ -130,10 +130,10 @@ export default function BrowseListingsPage() {
             const isNew = Date.now() - new Date(l.createdAt).getTime() < 3 * 24 * 60 * 60 * 1000;
             return (
             <Link key={l.id} href={`/listings/${l.id}`}
-              className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-indigo-300 hover:shadow-sm transition-all">
+              className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-blue-300 hover:shadow-sm transition-all">
               <div className="aspect-[4/3] bg-gray-100 relative">
                 {isNew && (
-                  <span className="absolute top-2 left-2 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-md z-10">New</span>
+                  <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-md z-10">New</span>
                 )}
                 {l.photos[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -143,7 +143,7 @@ export default function BrowseListingsPage() {
                 )}
               </div>
               <div className="p-4">
-                <span className="text-[11px] font-medium text-indigo-600 uppercase tracking-wide">{TYPE_LABELS[l.type]}</span>
+                <span className="text-[11px] font-medium text-blue-600 uppercase tracking-wide">{TYPE_LABELS[l.type]}</span>
                 <p className="font-semibold text-gray-900 mt-0.5 truncate">{l.title}</p>
                 <p className="text-sm text-gray-500">{l.city}{l.state ? `, ${l.state}` : ""}</p>
                 {(l.bedrooms !== null || l.bathrooms !== null) && (

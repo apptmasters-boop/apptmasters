@@ -241,12 +241,12 @@ export default function BuildingPage() {
                 <input
                   type="text" placeholder="Unit number (e.g. 101, A, 2B)…" value={unitNumber}
                   onChange={e => { setUnitNumber(e.target.value); setUnitError(null); }}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {unitError && <p className="text-xs text-red-500 mt-1">{unitError}</p>}
               </div>
               <button type="submit" disabled={addingUnit || !unitNumber.trim()}
-                className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {addingUnit ? "Adding…" : "+ Add unit"}
               </button>
             </form>
@@ -298,10 +298,10 @@ export default function BuildingPage() {
                         <input
                           type="email" placeholder="tenant@email.com" value={inviteEmail}
                           onChange={e => setInviteEmail(e.target.value)} autoFocus
-                          className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button onClick={() => sendInvite(unit.id)} disabled={inviteLoading || !inviteEmail.trim()}
-                          className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                           {inviteLoading ? "Sending…" : "Send"}
                         </button>
                         <button onClick={() => { setInvitingUnit(null); setInviteEmail(""); }}
@@ -309,7 +309,7 @@ export default function BuildingPage() {
                       </div>
                     ) : (
                       <button onClick={() => { setInvitingUnit(unit.id); setInviteEmail(""); }}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">
                         {inviteSent === unit.id ? "✓ Invite sent!" : "+ Send invite"}
                       </button>
                     )}
@@ -380,10 +380,10 @@ export default function BuildingPage() {
                               <input
                                 type="number" value={rentInput} onChange={e => setRentInput(e.target.value)}
                                 autoFocus placeholder="0"
-                                className="w-24 border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-24 border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
                               <button onClick={() => saveRent(unit.unitId)} disabled={savingRent === unit.unitId}
-                                className="text-xs bg-indigo-600 text-white px-2 py-1 rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+                                className="text-xs bg-blue-600 text-white px-2 py-1 rounded-lg hover:bg-blue-700 disabled:opacity-50">
                                 {savingRent === unit.unitId ? "…" : "Save"}
                               </button>
                               <button onClick={() => { setEditingRent(null); setRentInput(""); }}
@@ -391,7 +391,7 @@ export default function BuildingPage() {
                             </div>
                           ) : (
                             <button onClick={() => { setEditingRent(unit.unitId); setRentInput(unit.rentAmount?.toString() ?? ""); }}
-                              className="text-xs text-gray-400 hover:text-indigo-600 transition-colors">
+                              className="text-xs text-gray-400 hover:text-blue-600 transition-colors">
                               {unit.rentAmount ? `$${unit.rentAmount.toLocaleString()}/mo` : "Set rent"}
                             </button>
                           )}
@@ -438,7 +438,7 @@ export default function BuildingPage() {
                       <p className="text-xs text-gray-400 mt-1">by {r.submittedBy.name} · {new Date(r.createdAt).toLocaleDateString()}</p>
                     </div>
                     <button onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex-shrink-0">
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium flex-shrink-0">
                       {expandedId === r.id ? "Close" : "Update"}
                     </button>
                   </div>
@@ -459,7 +459,7 @@ export default function BuildingPage() {
                             <button key={s} type="button"
                               onClick={() => updateRequest(r.id, s, noteInputs[r.id])}
                               disabled={updatingId === r.id || r.status === s}
-                              className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors disabled:opacity-40 ${r.status === s ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600"}`}>
+                              className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors disabled:opacity-40 ${r.status === s ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"}`}>
                               {M_STATUS_LABELS[s]}
                             </button>
                           ))}
@@ -472,12 +472,12 @@ export default function BuildingPage() {
                             type="text" placeholder="e.g. Plumber coming Friday…"
                             value={noteInputs[r.id] ?? r.landlordNote ?? ""}
                             onChange={e => setNoteInputs(n => ({ ...n, [r.id]: e.target.value }))}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                           <button
                             onClick={() => updateRequest(r.id, undefined, noteInputs[r.id] ?? "")}
                             disabled={updatingId === r.id}
-                            className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+                            className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50">
                             {updatingId === r.id ? "…" : "Save note"}
                           </button>
                         </div>

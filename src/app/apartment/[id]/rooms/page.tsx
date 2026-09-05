@@ -104,7 +104,7 @@ export default function RoomsPage() {
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell apartmentId={apartmentId} />
-          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             + Add room
           </button>
         </div>
@@ -112,19 +112,19 @@ export default function RoomsPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">
         {showAdd && (
-          <form onSubmit={addRoom} className="bg-white border border-indigo-200 rounded-xl p-5 space-y-3">
+          <form onSubmit={addRoom} className="bg-white border border-blue-200 rounded-xl p-5 space-y-3">
             <h3 className="font-semibold text-gray-900">New room</h3>
             <div className="flex gap-3">
               <input type="text" required placeholder="Room name" value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value as typeof ROOM_TYPES[number] }))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 {ROOM_TYPES.map(t => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
               </select>
             </div>
             <div className="flex gap-2">
-              <button type="submit" disabled={adding} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+              <button type="submit" disabled={adding} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {adding ? "Adding…" : "Add room"}
               </button>
               <button type="button" onClick={() => setShowAdd(false)} className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2">Cancel</button>
@@ -143,7 +143,7 @@ export default function RoomsPage() {
           <div key={room.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
             <div className="px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Link href={`/apartment/${apartmentId}/rooms/${room.id}`} className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors">
+                <Link href={`/apartment/${apartmentId}/rooms/${room.id}`} className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">
                   {room.name}
                 </Link>
                 {room.maintenanceFlag && (
@@ -199,7 +199,7 @@ export default function RoomsPage() {
                   </div>
                 ))}
                 {room.chores.length > 3 && (
-                  <Link href={`/apartment/${apartmentId}/rooms/${room.id}`} className="text-xs text-indigo-500 hover:underline">
+                  <Link href={`/apartment/${apartmentId}/rooms/${room.id}`} className="text-xs text-blue-500 hover:underline">
                     +{room.chores.length - 3} more →
                   </Link>
                 )}

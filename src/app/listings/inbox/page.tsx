@@ -51,7 +51,7 @@ export default function ListingsInboxPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className={`text-sm ${c.unread ? "font-bold text-gray-900" : "font-medium text-gray-700"}`}>{c.otherUserName}</p>
-                  {c.unread && <span className="w-2 h-2 rounded-full bg-indigo-600 flex-shrink-0" />}
+                  {c.unread && <span className="w-2 h-2 rounded-full bg-blue-600 flex-shrink-0" />}
                 </div>
                 <p className="text-xs text-gray-400 truncate">{c.listingTitle}</p>
                 <p className={`text-sm truncate mt-0.5 ${c.unread ? "text-gray-800" : "text-gray-500"}`}>{c.lastMessage}</p>

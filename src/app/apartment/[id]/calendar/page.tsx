@@ -7,14 +7,14 @@ import NotificationBell from "@/components/NotificationBell";
 
 const EVENT_TYPES = ["EVENT", "MAINTENANCE", "GUEST", "RENT", "TRAVEL"] as const;
 const TYPE_COLORS: Record<string, string> = {
-  EVENT: "bg-indigo-100 text-indigo-700",
+  EVENT: "bg-blue-100 text-blue-700",
   MAINTENANCE: "bg-orange-100 text-orange-700",
   GUEST: "bg-green-100 text-green-700",
   RENT: "bg-blue-100 text-blue-700",
   TRAVEL: "bg-purple-100 text-purple-700",
 };
 const TYPE_DOT: Record<string, string> = {
-  EVENT: "bg-indigo-400",
+  EVENT: "bg-blue-400",
   MAINTENANCE: "bg-orange-400",
   GUEST: "bg-green-400",
   RENT: "bg-blue-400",
@@ -171,7 +171,7 @@ export default function CalendarPage() {
             </button>
           </div>
           <button onClick={() => { setShowForm(s => !s); setEditingEvent(null); }}
-            className="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             + Event
           </button>
         </div>
@@ -222,8 +222,8 @@ export default function CalendarPage() {
                 const isSelected = iso === selectedDate;
                 return (
                   <button key={i} onClick={() => setSelectedDate(isSelected ? null : iso)}
-                    className={`border-b border-r border-gray-50 p-1.5 min-h-[52px] text-left transition-colors hover:bg-gray-50 ${isSelected ? "bg-indigo-50" : ""}`}>
-                    <span className={`text-xs font-medium inline-flex w-5 h-5 items-center justify-center rounded-full ${isToday ? "bg-indigo-600 text-white" : "text-gray-700"}`}>
+                    className={`border-b border-r border-gray-50 p-1.5 min-h-[52px] text-left transition-colors hover:bg-gray-50 ${isSelected ? "bg-blue-50" : ""}`}>
+                    <span className={`text-xs font-medium inline-flex w-5 h-5 items-center justify-center rounded-full ${isToday ? "bg-blue-600 text-white" : "text-gray-700"}`}>
                       {day}
                     </span>
                     <div className="flex flex-wrap gap-0.5 mt-0.5">
@@ -246,7 +246,7 @@ export default function CalendarPage() {
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-400">No events</p>
                     <button onClick={() => { setForm({ ...BLANK_FORM, startDate: selectedDate }); setShowForm(true); setSelectedDate(null); }}
-                      className="text-xs text-indigo-600 hover:underline">+ Add event</button>
+                      className="text-xs text-blue-600 hover:underline">+ Add event</button>
                   </div>
                 ) : selectedEvents.map(ev => (
                   <div key={ev.id} className="flex items-start justify-between gap-3">
@@ -260,7 +260,7 @@ export default function CalendarPage() {
                     </div>
                     {(ev.user.id === currentUserId || isAdmin) && (
                       <div className="flex gap-2 shrink-0">
-                        <button onClick={() => startEdit(ev)} className="text-xs text-indigo-400 hover:text-indigo-600">Edit</button>
+                        <button onClick={() => startEdit(ev)} className="text-xs text-blue-400 hover:text-blue-600">Edit</button>
                         <button onClick={() => deleteEvent(ev.id)} className="text-xs text-gray-300 hover:text-red-400">×</button>
                       </div>
                     )}
@@ -321,40 +321,40 @@ function EventForm({ form, setForm, saving, onSubmit, onCancel, editing = false 
   saving: boolean; onSubmit: (e: React.FormEvent) => void; onCancel: () => void; editing?: boolean;
 }) {
   return (
-    <form onSubmit={onSubmit} className="bg-white border border-indigo-200 rounded-xl p-5 space-y-3">
+    <form onSubmit={onSubmit} className="bg-white border border-blue-200 rounded-xl p-5 space-y-3">
       <h3 className="font-semibold text-gray-900">{editing ? "Edit event" : "New event"}</h3>
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
           <label className="text-xs text-gray-500 mb-1 block">Title</label>
           <input required type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 block">Type</label>
           <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             {EVENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 block">Start date</label>
           <input required type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 block">End date (optional)</label>
           <input type="date" value={form.endDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div className="col-span-2">
           <label className="text-xs text-gray-500 mb-1 block">Notes</label>
           <input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
       <div className="flex gap-2">
         <button type="submit" disabled={saving}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
           {saving ? "Saving…" : editing ? "Update" : "Save"}
         </button>
         <button type="button" onClick={onCancel} className="text-sm text-gray-500 px-4 py-2">Cancel</button>
@@ -386,7 +386,7 @@ function EventCard({ event, currentUserId, isAdmin, onEdit, onDelete }: {
       </div>
       {canAct && (
         <div className="flex gap-3 shrink-0">
-          <button onClick={onEdit} className="text-xs text-indigo-400 hover:text-indigo-600 transition-colors">Edit</button>
+          <button onClick={onEdit} className="text-xs text-blue-400 hover:text-blue-600 transition-colors">Edit</button>
           <button onClick={onDelete} className="text-xs text-gray-300 hover:text-red-400 transition-colors">×</button>
         </div>
       )}

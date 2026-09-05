@@ -102,7 +102,7 @@ export default function ScoresPage() {
             <div className="flex gap-2">
               {(["EXACT", "TIER", "PRIVATE"] as const).map(v => (
                 <button key={v} onClick={() => saveVisibility(v)} disabled={savingVis}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-50 ${me.visibility === v ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-50 ${me.visibility === v ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
                   {v === "EXACT" ? "Show number" : v === "TIER" ? "Show tier" : "Private"}
                 </button>
               ))}
@@ -123,7 +123,7 @@ export default function ScoresPage() {
                 <div className="px-5 py-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-700">
+                      <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700">
                         {entry.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -140,7 +140,7 @@ export default function ScoresPage() {
                       <div className="flex gap-1.5">
                         {(entry.isSelf || isAdmin) && entry.logs.length > 0 && (
                           <button onClick={() => setExpandedId(isExpanded ? null : entry.userId)}
-                            className="text-xs text-indigo-500 hover:underline">
+                            className="text-xs text-blue-500 hover:underline">
                             {isExpanded ? "Hide" : "History"}
                           </button>
                         )}
@@ -189,17 +189,17 @@ export default function ScoresPage() {
                 <label className="text-xs text-gray-500 mb-1 block">Delta (positive or negative)</label>
                 <input type="number" required value={adjustForm.delta}
                   onChange={e => setAdjustForm(f => f ? { ...f, delta: e.target.value } : f)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Reason</label>
                 <input type="text" required placeholder="e.g. Late on dishes three times" value={adjustForm.reason}
                   onChange={e => setAdjustForm(f => f ? { ...f, reason: e.target.value } : f)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
               <div className="flex gap-2">
                 <button type="submit" disabled={adjusting}
-                  className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                  className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors">
                   {adjusting ? "Saving…" : "Apply"}
                 </button>
                 <button type="button" onClick={() => setAdjustForm(null)}
@@ -218,7 +218,7 @@ export default function ScoresPage() {
             {scores.map(entry => (
               (entry.isSelf || isAdmin) && (
                 <Link key={entry.userId} href={`/apartment/${apartmentId}/moveout/${entry.userId}`}
-                  className="flex items-center justify-between py-1.5 text-sm text-indigo-600 hover:underline">
+                  className="flex items-center justify-between py-1.5 text-sm text-blue-600 hover:underline">
                   <span>{entry.name}{entry.isSelf ? " (you)" : ""}</span>
                   <span className="text-gray-400 text-xs">View report →</span>
                 </Link>

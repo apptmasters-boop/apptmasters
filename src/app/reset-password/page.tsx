@@ -34,7 +34,7 @@ function ResetForm() {
     return (
       <div className="text-center space-y-3">
         <p className="text-red-500 font-medium">Invalid reset link.</p>
-        <Link href="/forgot-password" className="text-sm text-indigo-600 hover:underline">Request a new one</Link>
+        <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">Request a new one</Link>
       </div>
     );
   }
@@ -55,7 +55,7 @@ function ResetForm() {
         <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
         <input type="password" required minLength={8} value={password}
           onChange={e => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-xs text-gray-400 mt-0.5">Minimum 8 characters</p>
       </div>
@@ -63,12 +63,12 @@ function ResetForm() {
         <label className="block text-sm font-medium text-gray-700 mb-1">Confirm new password</label>
         <input type="password" required value={confirm}
           onChange={e => setConfirm(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
       <button type="submit" disabled={loading}
-        className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+        className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
         {loading ? "Saving…" : "Set new password"}
       </button>
     </form>
@@ -80,7 +80,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-indigo-600">ApptMasters</h1>
+          <h1 className="text-2xl font-bold text-blue-600">ApptMasters</h1>
           <p className="text-gray-500 text-sm mt-1">Choose a new password</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-8">

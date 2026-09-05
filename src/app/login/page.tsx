@@ -15,9 +15,9 @@ function ResendVerification({ email }: { email: string }) {
     setSent(true);
   }
 
-  if (sent) return <span className="block mt-1 text-indigo-600">Verification email sent!</span>;
+  if (sent) return <span className="block mt-1 text-blue-600">Verification email sent!</span>;
   return (
-    <button onClick={resend} disabled={sending} className="block mt-1 text-indigo-600 hover:underline disabled:opacity-50 text-left">
+    <button onClick={resend} disabled={sending} className="block mt-1 text-blue-600 hover:underline disabled:opacity-50 text-left">
       {sending ? "Sending…" : "Resend verification email"}
     </button>
   );
@@ -109,27 +109,27 @@ function LoginForm() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input type="email" required autoComplete="email"
                   value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input type="password" required autoComplete="current-password"
                   value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <button type="submit" disabled={loading}
-                className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {loading ? "Signing in…" : "Sign in"}
               </button>
               <div className="text-center">
-                <Link href="/forgot-password" className="text-sm text-gray-400 hover:text-indigo-600 transition-colors">
+                <Link href="/forgot-password" className="text-sm text-gray-400 hover:text-blue-600 transition-colors">
                   Forgot your password?
                 </Link>
               </div>
             </form>
             <p className="mt-6 text-center text-sm text-gray-500">
               Don&apos;t have an account?{" "}
-              <a href="/register" className="text-indigo-600 font-medium hover:underline">Sign up</a>
+              <a href="/register" className="text-blue-600 font-medium hover:underline">Sign up</a>
             </p>
           </>
         ) : (
@@ -147,10 +147,10 @@ function LoginForm() {
                 type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required
                 value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ""))}
                 placeholder="000000"
-                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button type="submit" disabled={loading || code.length !== 6}
-                className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {loading ? "Verifying…" : "Verify"}
               </button>
               <button type="button" onClick={() => { setStep("credentials"); setCode(""); setError(""); }}

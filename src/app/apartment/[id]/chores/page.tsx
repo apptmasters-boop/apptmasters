@@ -123,14 +123,14 @@ export default function AllChoresPage() {
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell apartmentId={apartmentId} />
-          <Link href={`/apartment/${apartmentId}/rooms`} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          <Link href={`/apartment/${apartmentId}/rooms`} className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             Rooms
           </Link>
         </div>
       </header>
 
       {nudged && (
-        <div className="bg-indigo-600 text-white text-sm text-center py-2 px-4">{nudged}</div>
+        <div className="bg-blue-600 text-white text-sm text-center py-2 px-4">{nudged}</div>
       )}
 
 
@@ -139,7 +139,7 @@ export default function AllChoresPage() {
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
             <p className="text-xs text-gray-400 font-medium">My chores</p>
-            <p className="text-xl font-bold text-indigo-600 mt-0.5">{myChores.length}</p>
+            <p className="text-xl font-bold text-blue-600 mt-0.5">{myChores.length}</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
             <p className="text-xs text-gray-400 font-medium">Total pending</p>
@@ -166,7 +166,7 @@ export default function AllChoresPage() {
           <div className="space-y-3">
             <div className="flex gap-2">
               <select value={filterMember} onChange={e => setFilterMember(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="all">All members</option>
                 <option value={currentUserId}>My chores</option>
                 {members.filter(m => m.id !== currentUserId).map(m => (
@@ -245,7 +245,7 @@ export default function AllChoresPage() {
 
             {quickFilter !== "mine" && (
               <select value={filterMember} onChange={e => setFilterMember(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="all">All members</option>
                 {members.map(m => (
                   <option key={m.id} value={m.id}>{m.id === currentUserId ? `${m.name} (you)` : m.name}</option>
@@ -340,11 +340,11 @@ function ChoreCard({
           </div>
           <p className={`text-xs mt-0.5 ${chore.status === "OVERDUE" ? "text-red-500 font-medium" : "text-gray-400"}`}>
             {FREQ_LABELS[chore.frequency]} · {chore.points} pts
-            {chore.room && <> · <Link href={`/apartment/${apartmentId}/rooms/${chore.room.id}`} className="hover:text-indigo-500">{chore.room.name}</Link></>}
+            {chore.room && <> · <Link href={`/apartment/${apartmentId}/rooms/${chore.room.id}`} className="hover:text-blue-500">{chore.room.name}</Link></>}
             {chore.dueDate && ` · Due ${new Date(chore.dueDate).toLocaleDateString()}`}
           </p>
           <div className="flex items-center gap-1.5 mt-1.5">
-            <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-600 text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+            <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 text-[9px] font-bold flex items-center justify-center flex-shrink-0">
               {chore.assignedTo?.name[0]?.toUpperCase() ?? "?"}
             </span>
             <p className="text-xs text-gray-500">{chore.assignedTo?.name ?? "Unassigned"}</p>
@@ -369,8 +369,8 @@ function ChoreCard({
       )}
 
       {outgoingSwap && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2 mb-3">
-          <p className="text-xs text-indigo-700">Swap pending → {outgoingSwap.toUser.name}</p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-3">
+          <p className="text-xs text-blue-700">Swap pending → {outgoingSwap.toUser.name}</p>
         </div>
       )}
 
@@ -378,7 +378,7 @@ function ChoreCard({
         <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 mb-3 space-y-2">
           <p className="text-xs font-medium text-gray-700">Request swap with:</p>
           <select value={swapToUserId} onChange={e => onSwapToChange(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">Pick a roommate…</option>
             {members.filter(m => m.id !== currentUserId).map(m => (
               <option key={m.id} value={m.id}>{m.name}</option>
@@ -386,7 +386,7 @@ function ChoreCard({
           </select>
           <div className="flex gap-2">
             <button onClick={onSwapRequest} disabled={!swapToUserId}
-              className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+              className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-40 transition-colors">
               Send request
             </button>
             <button onClick={onSwapClose} className="text-xs text-gray-500 px-3 py-1.5">Cancel</button>

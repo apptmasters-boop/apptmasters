@@ -186,7 +186,7 @@ export default function CleaningPage() {
         <div className="flex items-center gap-2">
           <NotificationBell apartmentId={apartmentId} />
           <button onClick={() => setShowForm(s => !s)}
-            className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             + New rotation
           </button>
         </div>
@@ -196,7 +196,7 @@ export default function CleaningPage() {
 
         {/* Create form */}
         {showForm && (
-          <form onSubmit={create} className="bg-white border border-indigo-200 rounded-xl p-5 space-y-4">
+          <form onSubmit={create} className="bg-white border border-blue-200 rounded-xl p-5 space-y-4">
             <h3 className="font-semibold text-gray-900">New cleaning rotation</h3>
             <div>
               <label className="text-xs text-gray-500 mb-2 block font-medium">Frequency</label>
@@ -204,7 +204,7 @@ export default function CleaningPage() {
                 {FREQS.map(f => (
                   <button key={f} type="button" onClick={() => setForm(prev => ({ ...prev, frequency: f }))}
                     className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                      form.frequency === f ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400"
+                      form.frequency === f ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
                     }`}>
                     {FREQ_LABELS[f]}
                   </button>
@@ -215,7 +215,7 @@ export default function CleaningPage() {
               <div>
                 <label className="text-xs text-gray-500 mb-2 block font-medium">Due day (fixed every week)</label>
                 <select value={form.dueWeekday ?? ""} onChange={e => setForm(prev => ({ ...prev, dueWeekday: e.target.value === "" ? null : Number(e.target.value) }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">No fixed day — 7 days from creation</option>
                   {WEEKDAYS.map((day, i) => (
                     <option key={day} value={i}>{day}</option>
@@ -229,7 +229,7 @@ export default function CleaningPage() {
               <div className="flex flex-wrap gap-2 mb-3">
                 {members.filter(m => !form.memberIds.includes(m.id)).map(m => (
                   <button key={m.id} type="button" onClick={() => toggleMember(m.id)}
-                    className="text-xs border border-gray-300 rounded-full px-3 py-1 hover:border-indigo-400 hover:text-indigo-600 transition-colors">
+                    className="text-xs border border-gray-300 rounded-full px-3 py-1 hover:border-blue-400 hover:text-blue-600 transition-colors">
                     + {m.name}
                   </button>
                 ))}
@@ -239,8 +239,8 @@ export default function CleaningPage() {
                   {form.memberIds.map((id, i) => {
                     const name = members.find(m => m.id === id)?.name ?? id;
                     return (
-                      <div key={id} className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
-                        <span className="w-5 h-5 bg-indigo-600 text-white text-xs rounded-full flex items-center justify-center font-bold flex-shrink-0">{i + 1}</span>
+                      <div key={id} className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                        <span className="w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center font-bold flex-shrink-0">{i + 1}</span>
                         <span className="text-sm text-gray-800 flex-1">{name}</span>
                         <button type="button" onClick={() => moveMember(id, -1)} disabled={i === 0} className="text-gray-400 hover:text-gray-600 disabled:opacity-20 text-lg leading-none">↑</button>
                         <button type="button" onClick={() => moveMember(id, 1)} disabled={i === form.memberIds.length - 1} className="text-gray-400 hover:text-gray-600 disabled:opacity-20 text-lg leading-none">↓</button>
@@ -254,7 +254,7 @@ export default function CleaningPage() {
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={saving || form.memberIds.length < 2}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {saving ? "Creating…" : "Create rotation"}
               </button>
               <button type="button" onClick={() => setShowForm(false)} className="text-sm text-gray-500 px-4 py-2">Cancel</button>
@@ -268,7 +268,7 @@ export default function CleaningPage() {
             <p className="font-medium text-gray-600 mb-1">No cleaning rotation yet</p>
             <p className="text-sm mb-4">Set up a rotation so everyone takes turns cleaning the apartment.</p>
             <button onClick={() => setShowForm(true)}
-              className="text-sm bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+              className="text-sm bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
               Create one
             </button>
           </div>
@@ -280,24 +280,24 @@ export default function CleaningPage() {
           const hasPending = !!rot.pendingAdvanceById;
           const canAdvance = (!rot.nextDue || new Date(rot.nextDue) <= new Date()) && !hasPending;
           return (
-            <div key={rot.id} className={`bg-white border rounded-2xl overflow-hidden ${isMyTurn ? "border-indigo-300 shadow-sm" : "border-gray-200"}`}>
+            <div key={rot.id} className={`bg-white border rounded-2xl overflow-hidden ${isMyTurn ? "border-blue-300 shadow-sm" : "border-gray-200"}`}>
               {/* Header */}
-              <div className={`px-5 py-4 ${isMyTurn ? "bg-indigo-600" : "bg-gray-50 border-b border-gray-100"}`}>
+              <div className={`px-5 py-4 ${isMyTurn ? "bg-blue-600" : "bg-gray-50 border-b border-gray-100"}`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`text-xs font-semibold uppercase tracking-wide mb-0.5 ${isMyTurn ? "text-indigo-200" : "text-gray-400"}`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-0.5 ${isMyTurn ? "text-blue-200" : "text-gray-400"}`}>
                       {FREQ_LABELS[rot.frequency]} cleaning
                     </p>
                     <p className={`font-bold text-lg ${isMyTurn ? "text-white" : "text-gray-900"}`}>
                       {isMyTurn ? "Your turn to clean!" : `${rot.currentUserName}'s turn`}
                     </p>
                     {rot.nextDue && (
-                      <p className={`text-xs mt-0.5 ${isMyTurn ? "text-indigo-200" : "text-gray-400"}`}>
+                      <p className={`text-xs mt-0.5 ${isMyTurn ? "text-blue-200" : "text-gray-400"}`}>
                         Due {new Date(rot.nextDue).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                       </p>
                     )}
                   </div>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0 ${isMyTurn ? "bg-white/20 text-white" : "bg-indigo-100 text-indigo-700"}`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0 ${isMyTurn ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
                     {rot.currentUserName[0]?.toUpperCase()}
                   </div>
                 </div>
@@ -339,7 +339,7 @@ export default function CleaningPage() {
                   {rot.memberOrder.map((m, i) => (
                     <div key={m.id} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${
                       m.id === rot.currentUserId
-                        ? "bg-indigo-600 text-white border-indigo-600"
+                        ? "bg-blue-600 text-white border-blue-600"
                         : m.traveling ? "bg-amber-50 text-amber-600 border-amber-200"
                         : "bg-gray-50 text-gray-600 border-gray-200"
                     }`}>
@@ -388,7 +388,7 @@ export default function CleaningPage() {
 
               <div className="px-5 pb-4 flex gap-2 border-t border-gray-100 pt-3">
                 <button onClick={() => openDoneModal(rot.id)} disabled={!canAdvance}
-                  className="flex-1 text-sm bg-indigo-600 text-white py-2 rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors">
+                  className="flex-1 text-sm bg-blue-600 text-white py-2 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors">
                   {hasPending
                     ? "Pending admin approval"
                     : !canAdvance && rot.nextDue
@@ -433,7 +433,7 @@ export default function CleaningPage() {
                 </div>
               ) : (
                 <button onClick={() => fileRef.current?.click()}
-                  className="w-full border-2 border-dashed border-gray-300 rounded-xl py-8 flex flex-col items-center gap-2 text-gray-400 hover:border-indigo-400 hover:text-indigo-500 transition-colors">
+                  className="w-full border-2 border-dashed border-gray-300 rounded-xl py-8 flex flex-col items-center gap-2 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -445,13 +445,13 @@ export default function CleaningPage() {
 
             <input type="text" placeholder="Notes (optional)" value={doneNotes}
               onChange={e => setDoneNotes(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
             {doneError && <p className="text-sm text-red-600">{doneError}</p>}
 
             <div className="flex gap-2">
               <button onClick={submitDone} disabled={advancing || uploading}
-                className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {uploading ? "Uploading…" : advancing ? "Saving…" : modalIsMyTurn ? "Done — pass to next" : "Send request"}
               </button>
               <button onClick={() => setDoneModal(null)}

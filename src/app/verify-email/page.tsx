@@ -39,7 +39,7 @@ export default function VerifyEmailPage() {
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
         {status === "loading" && (
           <>
-            <div className="h-8 w-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <div className="h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-sm text-gray-500">Verifying your email…</p>
           </>
         )}
@@ -59,7 +59,7 @@ export default function VerifyEmailPage() {
             <p className="text-sm text-gray-500 mb-6">{errorMsg}</p>
             <Link
               href="/login"
-              className="inline-block w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 transition-colors"
+              className="inline-block w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Back to sign in
             </Link>

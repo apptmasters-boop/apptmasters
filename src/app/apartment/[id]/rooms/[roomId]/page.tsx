@@ -121,42 +121,42 @@ export default function RoomDetailPage() {
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell apartmentId={apartmentId} />
-          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          <button onClick={() => setShowAdd(s => !s)} className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             + Add chore
           </button>
         </div>
       </header>
 
       {nudged && (
-        <div className="bg-indigo-600 text-white text-sm text-center py-2 px-4">{nudged}</div>
+        <div className="bg-blue-600 text-white text-sm text-center py-2 px-4">{nudged}</div>
       )}
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">
         {showAdd && (
-          <form onSubmit={addChore} className="bg-white border border-indigo-200 rounded-xl p-5 space-y-3">
+          <form onSubmit={addChore} className="bg-white border border-blue-200 rounded-xl p-5 space-y-3">
             <h3 className="font-semibold text-gray-900">New chore</h3>
             <input type="text" required placeholder="Chore name" value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Assignment</label>
                 <select value={form.assignmentType} onChange={e => setForm(f => ({ ...f, assignmentType: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   {Object.entries(TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Frequency</label>
                 <select value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   {Object.entries(FREQ_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Assign to</label>
                 <select value={form.assignedUserId} onChange={e => setForm(f => ({ ...f, assignedUserId: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Unassigned</option>
                   {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
@@ -164,16 +164,16 @@ export default function RoomDetailPage() {
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Due date</label>
                 <input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Points (1–10)</label>
                 <input type="number" min={1} max={10} value={form.points} onChange={e => setForm(f => ({ ...f, points: Number(e.target.value) }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             </div>
             <div className="flex gap-2">
-              <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Add chore</button>
+              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Add chore</button>
               <button type="button" onClick={() => setShowAdd(false)} className="text-sm text-gray-500 px-4 py-2">Cancel</button>
             </div>
           </form>
@@ -228,8 +228,8 @@ export default function RoomDetailPage() {
 
               {/* Outgoing pending swap */}
               {outgoingSwap && (
-                <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2 mb-3">
-                  <p className="text-xs text-indigo-700">Swap requested → {outgoingSwap.toUser.name} (pending)</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-3">
+                  <p className="text-xs text-blue-700">Swap requested → {outgoingSwap.toUser.name} (pending)</p>
                 </div>
               )}
 
@@ -238,7 +238,7 @@ export default function RoomDetailPage() {
                 <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 mb-3 space-y-2">
                   <p className="text-xs font-medium text-gray-700">Request swap with:</p>
                   <select value={swapToUserId} onChange={e => setSwapToUserId(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Pick a roommate…</option>
                     {members.filter(m => m.id !== currentUserId).map(m => (
                       <option key={m.id} value={m.id}>{m.name}</option>
@@ -246,7 +246,7 @@ export default function RoomDetailPage() {
                   </select>
                   <div className="flex gap-2">
                     <button onClick={() => requestSwap(chore.id)} disabled={!swapToUserId}
-                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+                      className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-40 transition-colors">
                       Send request
                     </button>
                     <button onClick={() => { setSwapTarget(null); setSwapToUserId(""); }}

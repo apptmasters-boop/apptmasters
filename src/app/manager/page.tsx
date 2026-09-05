@@ -67,7 +67,7 @@ export default function ManagerPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-700">Your buildings ({buildings.length})</h2>
           <button onClick={() => setShowForm(s => !s)}
-            className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             + Add building
           </button>
         </div>
@@ -78,17 +78,17 @@ export default function ManagerPage() {
               <input
                 type="text" placeholder="Building name…" value={name} required
                 onChange={e => setName(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex gap-3">
               <input
                 type="text" placeholder="Street address…" value={address} required
                 onChange={e => setAddress(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button type="submit" disabled={creating}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {creating ? "Adding…" : "Add"}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
@@ -107,7 +107,7 @@ export default function ManagerPage() {
 
         {buildings.map(b => (
           <Link key={b.id} href={`/manager/buildings/${b.id}`}
-            className="block bg-white border border-gray-200 rounded-xl px-5 py-4 hover:border-indigo-300 transition-colors">
+            className="block bg-white border border-gray-200 rounded-xl px-5 py-4 hover:border-blue-300 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-gray-900">{b.name}</p>

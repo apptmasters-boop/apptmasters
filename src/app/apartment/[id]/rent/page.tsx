@@ -143,7 +143,7 @@ export default function RentPage() {
             </button>
           )}
           {isAdmin && (
-            <button onClick={() => setShowSetup(s => !s)} className="text-sm text-indigo-600 font-medium hover:underline">
+            <button onClick={() => setShowSetup(s => !s)} className="text-sm text-blue-600 font-medium hover:underline">
               {config ? "Edit setup" : "Setup rent"}
             </button>
           )}
@@ -153,32 +153,32 @@ export default function RentPage() {
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">
         {/* Setup form */}
         {showSetup && (
-          <form onSubmit={saveConfig} className="bg-white border border-indigo-200 rounded-xl p-5 space-y-4">
+          <form onSubmit={saveConfig} className="bg-white border border-blue-200 rounded-xl p-5 space-y-4">
             <h3 className="font-semibold text-gray-900">Rent setup</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Total rent ($)</label>
                 <input type="number" required step="0.01" value={configForm.totalAmount}
                   onChange={e => setConfigForm(f => ({ ...f, totalAmount: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Due day of month</label>
                 <input type="number" min="1" max="28" value={configForm.dueDay}
                   onChange={e => setConfigForm(f => ({ ...f, dueDay: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Landlord name</label>
                 <input type="text" value={configForm.landlordName}
                   onChange={e => setConfigForm(f => ({ ...f, landlordName: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Rent Payer</label>
                 <select required value={configForm.rentPayerId}
                   onChange={e => setConfigForm(f => ({ ...f, rentPayerId: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Select…</option>
                   {members.filter(m => m.role !== "GUEST").map(m => (
                     <option key={m.id} value={m.id}>{m.name}</option>
@@ -191,7 +191,7 @@ export default function RentPage() {
               Auto-rotate Rent Payer monthly
             </label>
             <div className="flex gap-2">
-              <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Save</button>
+              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Save</button>
               <button type="button" onClick={() => setShowSetup(false)} className="text-sm text-gray-500 px-4 py-2">Cancel</button>
             </div>
           </form>
@@ -216,13 +216,13 @@ export default function RentPage() {
                 </div>
                 {isAdmin && !currentCycle && (
                   <button onClick={createCycle} disabled={creatingCycle}
-                    className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                     {creatingCycle ? "Creating…" : "Mark rent paid"}
                   </button>
                 )}
                 {isRentPayer && !currentCycle && (
                   <button onClick={createCycle} disabled={creatingCycle}
-                    className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                     {creatingCycle ? "…" : "I paid the rent"}
                   </button>
                 )}
@@ -282,7 +282,7 @@ export default function RentPage() {
                                 return link ? (
                                   <a key={method} href={link} target="_blank" rel="noopener noreferrer"
                                     onClick={() => updatePayment(cycle.id, payment.id, "PAID", method)}
-                                    className="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-1 rounded font-medium hover:bg-indigo-100 transition-colors">
+                                    className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 rounded font-medium hover:bg-blue-100 transition-colors">
                                     {method}
                                   </a>
                                 ) : (

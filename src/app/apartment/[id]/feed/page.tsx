@@ -13,7 +13,7 @@ const REACTION_EMOJIS: Record<string, string> = {
 
 const TYPE_COLORS: Record<string, string> = {
   EXPENSE: "bg-emerald-100 text-emerald-700",
-  CHORE_DONE: "bg-indigo-100 text-indigo-700",
+  CHORE_DONE: "bg-blue-100 text-blue-700",
   MEMBER_JOINED: "bg-blue-100 text-blue-700",
   RULE_ADDED: "bg-amber-100 text-amber-700",
   ANNOUNCEMENT: "bg-violet-100 text-violet-700",
@@ -133,7 +133,7 @@ export default function FeedPage() {
             <div key={item.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4">
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex items-start gap-2 flex-1">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-semibold text-indigo-600 text-sm flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-semibold text-blue-600 text-sm flex-shrink-0 mt-0.5">
                     {item.user.name[0].toUpperCase()}
                   </div>
                   <div className="flex-1">
@@ -148,7 +148,7 @@ export default function FeedPage() {
                   </div>
                 </div>
                 {item.link && (
-                  <Link href={item.link} className="text-xs text-indigo-500 hover:underline flex-shrink-0">View →</Link>
+                  <Link href={item.link} className="text-xs text-blue-500 hover:underline flex-shrink-0">View →</Link>
                 )}
               </div>
 
@@ -160,7 +160,7 @@ export default function FeedPage() {
                   return (
                     <button key={key} onClick={() => react(item.id, key)}
                       className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                        isMe ? "bg-indigo-100 border-indigo-300 text-indigo-700" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
+                        isMe ? "bg-blue-100 border-blue-300 text-blue-700" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
                       {emoji} {count > 0 && <span>{count}</span>}
                     </button>
                   );

@@ -89,7 +89,7 @@ export default function NotificationBell({ apartmentId }: { apartmentId: string 
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <p className="font-semibold text-sm text-gray-900">Notifications</p>
             {unread > 0 && (
-              <button onClick={markAllRead} className="text-xs text-indigo-600 hover:underline">Mark all read</button>
+              <button onClick={markAllRead} className="text-xs text-blue-600 hover:underline">Mark all read</button>
             )}
           </div>
           <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
@@ -97,9 +97,9 @@ export default function NotificationBell({ apartmentId }: { apartmentId: string 
               <p className="text-sm text-gray-400 text-center py-6">No notifications yet.</p>
             ) : notifications.slice(0, 8).map(n => (
               <button key={n.id} onClick={() => handleClick(n)}
-                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${!n.read ? "bg-indigo-50/50" : ""}`}>
+                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${!n.read ? "bg-blue-50/50" : ""}`}>
                 <div className="flex items-start gap-2">
-                  {!n.read && <span className="mt-1.5 w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0" />}
+                  {!n.read && <span className="mt-1.5 w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />}
                   {n.read && <span className="mt-1.5 w-2 h-2 flex-shrink-0" />}
                   <div className="mt-0.5 text-lg">{TYPE_ICON[n.type] ?? "🔔"}</div>
                   <div>
@@ -113,7 +113,7 @@ export default function NotificationBell({ apartmentId }: { apartmentId: string 
           </div>
           <div className="border-t border-gray-100 px-4 py-2.5 text-center">
             <Link href={`/apartment/${apartmentId}/notifications`} onClick={() => setOpen(false)}
-              className="text-xs text-indigo-600 font-medium hover:underline">
+              className="text-xs text-blue-600 font-medium hover:underline">
               See all notifications →
             </Link>
           </div>

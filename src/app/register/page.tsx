@@ -10,7 +10,7 @@ export default function RegisterPage() {
           New accounts are not available yet. Check back soon!
         </p>
         <Link href="/login"
-          className="inline-block w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 transition-colors">
+          className="inline-block w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
           Back to sign in
         </Link>
       </div>

@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-indigo-600">ApptMasters</h1>
+          <h1 className="text-2xl font-bold text-blue-600">ApptMasters</h1>
           <p className="text-gray-500 text-sm mt-1">Reset your password</p>
         </div>
 
@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
               <p className="text-sm text-gray-500">
                 If an account exists for <strong>{email}</strong>, we sent a reset link. It expires in 1 hour.
               </p>
-              <Link href="/login" className="block text-sm text-indigo-600 hover:underline mt-4">
+              <Link href="/login" className="block text-sm text-blue-600 hover:underline mt-4">
                 Back to sign in
               </Link>
             </div>
@@ -47,11 +47,11 @@ export default function ForgotPasswordPage() {
                   type="email" required value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <button type="submit" disabled={loading}
-                className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+                className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {loading ? "Sending…" : "Send reset link"}
               </button>
               <div className="text-center">

@@ -40,13 +40,13 @@ function SignupForm() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
             <input type="text" required value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input type="email" required autoComplete="email" value={form.email}
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
@@ -54,17 +54,17 @@ function SignupForm() {
               title="At least 8 characters, with at least one letter and one number"
               value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <p className="text-xs text-gray-400 mt-1">At least 8 characters, with a letter and a number</p>
           </div>
           <button type="submit" disabled={loading}
-            className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+            className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
             {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
-          <Link href={`/login?returnTo=${encodeURIComponent(returnTo)}`} className="text-indigo-600 font-medium hover:underline">Sign in</Link>
+          <Link href={`/login?returnTo=${encodeURIComponent(returnTo)}`} className="text-blue-600 font-medium hover:underline">Sign in</Link>
         </p>
       </div>
     </div>

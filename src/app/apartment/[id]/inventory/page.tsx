@@ -301,7 +301,7 @@ export default function InventoryPage() {
                       {item.borrows.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {item.borrows.map(b => (
-                            <span key={b.id} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${b.borrower.id === currentUserId ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-600"}`}>
+                            <span key={b.id} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${b.borrower.id === currentUserId ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
                               {b.borrower.id === currentUserId ? "You have this" : `${b.borrower.name} borrowed`}
                             </span>
                           ))}
@@ -325,7 +325,7 @@ export default function InventoryPage() {
                       {item.isShared && (
                         myBorrow ? (
                           <button onClick={() => returnItem(item.id)} disabled={borrowing === item.id}
-                            className="text-xs bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-2.5 py-1 rounded-lg font-medium transition-colors disabled:opacity-50">
+                            className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2.5 py-1 rounded-lg font-medium transition-colors disabled:opacity-50">
                             {borrowing === item.id ? "…" : "Return"}
                           </button>
                         ) : (
@@ -335,7 +335,7 @@ export default function InventoryPage() {
                           </button>
                         )
                       )}
-                      <button onClick={() => openEdit(item)} className="text-xs text-indigo-500 hover:underline">Edit</button>
+                      <button onClick={() => openEdit(item)} className="text-xs text-blue-500 hover:underline">Edit</button>
                       <button onClick={() => deleteItem(item.id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
                     </div>
                   </div>

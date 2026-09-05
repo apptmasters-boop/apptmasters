@@ -104,12 +104,12 @@ export default function MemberProfilePage() {
           <Link href={`/apartment/${apartmentId}`} className="text-sm text-gray-400 hover:text-gray-600">← Apartment</Link>
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">{member.name}</span>
-          {isSelf && <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">You</span>}
+          {isSelf && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">You</span>}
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell apartmentId={apartmentId} />
           {isSelf && (
-            <Link href="/profile" className="text-xs text-indigo-500 hover:underline font-medium">Edit profile</Link>
+            <Link href="/profile" className="text-xs text-blue-500 hover:underline font-medium">Edit profile</Link>
           )}
         </div>
       </header>
@@ -117,7 +117,7 @@ export default function MemberProfilePage() {
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-5">
         {/* Identity card */}
         <div className="bg-white border border-gray-200 rounded-xl px-5 py-5 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-2xl font-bold text-indigo-600 flex-shrink-0 overflow-hidden">
+          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-600 flex-shrink-0 overflow-hidden">
             {member.photo
               ? <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
               : member.name[0].toUpperCase()}
@@ -128,7 +128,7 @@ export default function MemberProfilePage() {
             <div className="flex flex-wrap gap-2 mt-2">
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{member.role}</span>
               {member.roomAssignment && (
-                <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">{member.roomAssignment}</span>
+                <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{member.roomAssignment}</span>
               )}
               {member.moveInDate && (
                 <span className="text-xs text-gray-400">Joined {new Date(member.joinedAt).toLocaleDateString()}</span>
@@ -170,7 +170,7 @@ export default function MemberProfilePage() {
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Roommate score</p>
-            <button onClick={() => setShowLogs(s => !s)} className="text-xs text-indigo-500 hover:underline">
+            <button onClick={() => setShowLogs(s => !s)} className="text-xs text-blue-500 hover:underline">
               {showLogs ? "Hide history" : "View history"}
             </button>
           </div>
