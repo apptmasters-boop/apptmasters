@@ -12,23 +12,8 @@ export function clearToken() {
 }
 
 export async function redirectToApartment(router: { replace: (path: string) => void }) {
-  const res = await apiFetch("/api/auth/me");
-  if (res.ok) {
-    const data = await res.json();
-    if (data.systemRole === "SUPER_ADMIN") {
-      router.replace("/admin");
-      return;
-    }
-    if (data.systemRole === "MANAGER") {
-      router.replace("/manager");
-      return;
-    }
-    const memberships: { apartment: { id: string } }[] = data.memberships ?? [];
-    if (memberships.length > 0) {
-      router.replace(`/apartment/${memberships[0].apartment.id}`);
-      return;
-    }
-  }
+  // Every account lands on /dashboard first — it's the shared, role-aware
+  // welcome screen (stats + a "continue to your area" card), not a bounce.
   router.replace("/dashboard");
 }
 
