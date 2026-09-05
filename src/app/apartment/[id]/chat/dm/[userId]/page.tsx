@@ -118,8 +118,9 @@ export default function DMPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
 
   return (
-    // h-screen keeps header + footer pinned — only the message list scrolls
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    // Keeps header + footer pinned — only the message list scrolls. Height accounts for
+    // the layout's mobile menu bar (h-12) above it; at md+ that bar is hidden, so h-screen applies.
+    <div className="h-[calc(100vh-3rem)] md:h-screen bg-gray-50 flex flex-col overflow-hidden">
 
       {/* Sticky header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
