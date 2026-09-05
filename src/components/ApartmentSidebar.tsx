@@ -59,7 +59,7 @@ export default function ApartmentSidebar({ apartmentId, apartmentName, isSuperAd
 
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 flex flex-col border-r border-gray-200 bg-white h-screen overflow-y-auto
         transform transition-transform duration-200 ease-in-out
-        md:translate-x-0 md:sticky md:top-0
+        md:translate-x-0
         ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2.5">
           <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
