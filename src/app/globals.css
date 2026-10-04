@@ -29,6 +29,10 @@ html.dark {
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Marketplace landing palette */
+  --color-brand: #1d5c4b;
+  --color-brand-dark: #154536;
+  --color-brand-soft: #e7f0ec;
 }
 
 body {

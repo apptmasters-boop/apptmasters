@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import { LIFESTYLE_OPTIONS } from "@/components/landing/options";
 
 interface Listing {
   id: string; type: string; title: string; price: number; priceMax: number | null;
@@ -28,6 +29,7 @@ function BathIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
 }
 
 const TYPE_LABELS: Record<string, string> = { APARTMENT_FOR_RENT: "Apartment for rent", ROOM_TO_SHARE: "Room to share" };
+const LIFESTYLE_LABELS = Object.fromEntries(LIFESTYLE_OPTIONS.map(o => [o.value, o.label]));
 
 function priceLabel(price: number, priceMax: number | null) {
   return priceMax ? `$${price.toLocaleString()}–$${priceMax.toLocaleString()}/mo` : `$${price.toLocaleString()}/mo`;
@@ -36,19 +38,26 @@ function priceLabel(price: number, priceMax: number | null) {
 export default function BrowseListingsPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ type: "", city: "", minPrice: "", maxPrice: "", bedrooms: "" });
+  const [filters, setFilters] = useState({ type: "", city: "", minPrice: "", maxPrice: "", bedrooms: "", roommateLifestyleTag: "" });
   const [showFilters, setShowFilters] = useState(false);
 
-  async function load() {
+  async function load(f = filters) {
     setLoading(true);
     const params = new URLSearchParams();
-    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(f).forEach(([k, v]) => { if (v) params.set(k, v); });
     const res = await apiFetch(`/api/listings?${params.toString()}`);
     if (res.ok) setListings(await res.json());
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Start from any filters passed in the URL (e.g. from the landing page search).
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const initial = { ...filters };
+    (Object.keys(initial) as (keyof typeof initial)[]).forEach(k => { initial[k] = q.get(k) ?? ""; });
+    setFilters(initial);
+    load(initial);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-8">
@@ -87,6 +96,13 @@ export default function BrowseListingsPage() {
         {filters.bedrooms && (
           <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">{filters.bedrooms} bd</span>
         )}
+        {filters.roommateLifestyleTag && (
+          <button type="button" aria-label="Remove lifestyle filter"
+            onClick={() => { const f = { ...filters, roommateLifestyleTag: "" }; setFilters(f); load(f); }}
+            className="text-xs font-medium px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">
+            {LIFESTYLE_LABELS[filters.roommateLifestyleTag] ?? filters.roommateLifestyleTag} ×
+          </button>
+        )}
         <span className="text-xs text-gray-400 ml-auto">{loading ? "…" : `${listings.length} listing${listings.length === 1 ? "" : "s"} found`}</span>
       </div>
 
@@ -107,7 +123,7 @@ export default function BrowseListingsPage() {
           <input type="number" placeholder="Bedrooms" value={filters.bedrooms}
             onChange={e => setFilters(f => ({ ...f, bedrooms: e.target.value }))}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <button type="button" onClick={load} className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
+          <button type="button" onClick={() => load()} className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
             Apply
           </button>
         </div>
