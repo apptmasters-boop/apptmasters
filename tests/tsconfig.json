@@ -1,0 +1,8 @@
+{
+  // Type-checks the test suite separately. The root tsconfig excludes tests/ so
+  // `next build` on the server (which has no dev dependencies) never sees them.
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "incremental": false },
+  "include": ["../next-env.d.ts", "./**/*.ts", "../vitest.config.ts", "../src/**/*.ts", "../src/**/*.tsx"],
+  "exclude": ["../node_modules"]
+}
