@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { notifyApartment } from "@/lib/notify";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string; rotationId: string }> }) {
   const { id: apartmentId, rotationId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const rotation = await prisma.purchaseRotation.findFirst({ where: { id: rotationId, apartmentId } });
   if (!rotation) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const order: string[] = JSON.parse(rotation.memberOrder);
   const currentUserId = order[rotation.currentIndex % order.length];
-  if (payload.userId !== currentUserId) {
+  if (userId !== currentUserId) {
     return NextResponse.json({ error: "Not your turn" }, { status: 403 });
   }
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     data: { currentIndex: nextIndex, lastBought: new Date() },
   });
 
-  const buyer = await prisma.user.findUnique({ where: { id: payload.userId }, select: { name: true } });
+  const buyer = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
   const next = await prisma.user.findUnique({ where: { id: nextUserId }, select: { name: true } });
 
   await notifyApartment(
@@ -42,10 +43,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string; rotationId: string }> }) {
   const { id: apartmentId, rotationId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const member = await prisma.apartmentMember.findFirst({ where: { apartmentId, userId: payload.userId } });
+  const member = access.membership;
   if (member?.role !== "ADMIN") return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   await prisma.purchaseRotation.deleteMany({ where: { id: rotationId, apartmentId } });

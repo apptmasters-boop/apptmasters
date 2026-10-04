@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { notifyApartment } from "@/lib/notify";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string; itemId: string }> }) {
   const { id: apartmentId, itemId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const item = await prisma.inventoryItem.findFirst({ where: { id: itemId, apartmentId } });
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -43,8 +44,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string; itemId: string }> }) {
   const { id: apartmentId, itemId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const item = await prisma.inventoryItem.findFirst({ where: { id: itemId, apartmentId } });
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -13,14 +13,10 @@ export async function GET(
   const fakeReq = token
     ? new Request(req.url, { headers: { authorization: `Bearer ${token}` } })
     : req;
-  const payload = getTokenFromRequest(fakeReq as NextRequest);
-  if (!payload) return new Response("Unauthorized", { status: 401 });
-
   const { id: apartmentId, userId: otherUserId } = await params;
-  const member = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
-  });
-  if (!member) return new Response("Forbidden", { status: 403 });
+  const access = await requireApartmentMember(fakeReq as NextRequest, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId };
 
   let lastId = req.nextUrl.searchParams.get("lastId") ?? "";
   const encoder = new TextEncoder();

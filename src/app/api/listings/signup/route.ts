@@ -3,7 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
-import { rateLimit } from "@/lib/rateLimit";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 const schema = z.object({
   name: z.string().min(1, "Please enter your name").max(80, "Name is too long"),
@@ -16,7 +16,7 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  const ip = clientIp(req);
   const { ok } = rateLimit(`listings-signup:ip:${ip}`, 5, 60_000);
   if (!ok) return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
 

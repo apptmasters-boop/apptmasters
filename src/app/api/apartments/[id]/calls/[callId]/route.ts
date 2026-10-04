@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string; callId: string }> }) {
   const { id: apartmentId, callId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const call = await prisma.callSession.findFirst({ where: { id: callId, apartmentId } });
   if (!call) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -14,8 +15,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string; callId: string }> }) {
   const { id: apartmentId, callId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const call = await prisma.callSession.findFirst({ where: { id: callId, apartmentId } });
   if (!call) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -30,7 +32,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   // ICE candidates — append to the right side
   if (body.iceCandidate) {
-    const isCallee = call.callerId !== payload.userId;
+    const isCallee = call.callerId !== userId;
     const field = isCallee ? "receiverIce" : "callerIce";
     const existing: unknown[] = JSON.parse((call as unknown as Record<string, string>)[field] || "[]");
     existing.push(body.iceCandidate);

@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const membership = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
-  });
+  const membership = access.membership;
   if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
 
   const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";

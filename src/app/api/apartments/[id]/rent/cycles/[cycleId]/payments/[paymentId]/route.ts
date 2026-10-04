@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { adjustScore } from "@/lib/score";
 
@@ -13,16 +13,18 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; cycleId: string; paymentId: string }> }
 ) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId, cycleId, paymentId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId };
+
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
-  const payment = await prisma.rentPayment.findUnique({
-    where: { id: paymentId },
+  // The payment must belong to the cycle and apartment in the URL; score points are awarded per apartment.
+  const payment = await prisma.rentPayment.findFirst({
+    where: { id: paymentId, rentCycleId: cycleId, rentCycle: { apartmentId } },
     include: { rentCycle: true },
   });
   if (!payment) return NextResponse.json({ error: "Not found" }, { status: 404 });

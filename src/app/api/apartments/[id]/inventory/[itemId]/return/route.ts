@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { notifyApartment } from "@/lib/notify";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string; itemId: string }> }) {
   const { id: apartmentId, itemId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const borrow = await prisma.borrowRequest.findFirst({
-    where: { inventoryItemId: itemId, borrowerId: payload.userId, status: "ACTIVE" },
+    where: { inventoryItemId: itemId, borrowerId: userId, status: "ACTIVE", inventoryItem: { apartmentId } },
   });
   if (!borrow) return NextResponse.json({ error: "No active borrow found" }, { status: 404 });
 
@@ -19,10 +20,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   const item = await prisma.inventoryItem.findUnique({ where: { id: itemId }, select: { name: true } });
-  const user = await prisma.user.findUnique({ where: { id: payload.userId }, select: { name: true } });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
 
   await notifyApartment(
-    apartmentId, payload.userId, "ITEM_RETURNED",
+    apartmentId, userId, "ITEM_RETURNED",
     "Item returned",
     `${user?.name} returned "${item?.name}"`,
     `/apartment/${apartmentId}/inventory`,

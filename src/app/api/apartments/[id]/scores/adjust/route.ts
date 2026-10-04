@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { adjustScore } from "@/lib/score";
 import { notifyApartment } from "@/lib/notify";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const admin = await prisma.apartmentMember.findFirst({ where: { apartmentId, userId: payload.userId } });
+  const admin = access.membership;
   if (admin?.role !== "ADMIN") return NextResponse.json({ error: "Admins only" }, { status: 403 });
 
   const { userId, delta, reason } = await req.json().catch(() => ({}));

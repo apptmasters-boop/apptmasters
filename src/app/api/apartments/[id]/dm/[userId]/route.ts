@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { notify } from "@/lib/notify";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   const { id: apartmentId, userId: otherUserId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const messages = await prisma.directMessage.findMany({
     where: {
       apartmentId,
       OR: [
-        { senderId: payload.userId, receiverId: otherUserId },
-        { senderId: otherUserId, receiverId: payload.userId },
+        { senderId: userId, receiverId: otherUserId },
+        { senderId: otherUserId, receiverId: userId },
       ],
     },
     include: { sender: { select: { id: true, name: true } } },
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   // Mark received messages as read
   await prisma.directMessage.updateMany({
-    where: { apartmentId, senderId: otherUserId, receiverId: payload.userId, read: false },
+    where: { apartmentId, senderId: otherUserId, receiverId: userId, read: false },
     data: { read: true },
   });
 
@@ -32,10 +33,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   const { id: apartmentId, userId: receiverId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const member = await prisma.apartmentMember.findFirst({ where: { apartmentId, userId: payload.userId } });
+  const member = access.membership;
   if (!member || member.role === "GUEST") return NextResponse.json({ error: "Guests cannot send messages" }, { status: 403 });
 
   const { content, type } = await req.json();

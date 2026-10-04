@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 
 const schema = z.object({ method: z.enum(["VENMO", "PAYPAL", "CASHAPP", "CASH", "BANK"]).default("CASH") });
@@ -9,13 +9,18 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; expenseId: string }> }
 ) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId, expenseId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId };
+
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
   const method = parsed.success ? parsed.data.method : "CASH";
+
+  // The expense must belong to this apartment (the URL's apartmentId is used for notifications below)
+  const owner = await prisma.expense.findFirst({ where: { id: expenseId, apartmentId }, select: { id: true } });
+  if (!owner) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const split = await prisma.expenseSplit.findUnique({
     where: { expenseId_userId: { expenseId, userId: payload.userId } },

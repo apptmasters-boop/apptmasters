@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentAdmin } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
@@ -12,23 +12,15 @@ const updateSchema = z.object({
   expiresAt: z.string().datetime().nullable().optional(),
 });
 
-async function requireAdmin(userId: string, apartmentId: string) {
-  const m = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId, apartmentId } },
-  });
-  return m?.role === "ADMIN";
-}
-
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; memberId: string }> }
 ) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId, memberId } = await params;
-  const isAdmin = await requireAdmin(payload.userId, apartmentId);
-  if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const access = await requireApartmentAdmin(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
+
 
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
@@ -113,12 +105,11 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; memberId: string }> }
 ) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId, memberId } = await params;
-  const isAdmin = await requireAdmin(payload.userId, apartmentId);
-  if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const access = await requireApartmentAdmin(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
+
 
   const member = await prisma.apartmentMember.findUnique({ where: { id: memberId } });
   if (!member || member.apartmentId !== apartmentId) {

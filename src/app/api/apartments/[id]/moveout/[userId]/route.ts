@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; userId: string }> },
 ) {
   const { id: apartmentId, userId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
   // Only self or admin can view move-out report
-  const requester = await prisma.apartmentMember.findFirst({ where: { apartmentId, userId: payload.userId } });
+  const requester = access.membership;
   if (!requester) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (payload.userId !== userId && requester.role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

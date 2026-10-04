@@ -27,25 +27,45 @@ the live server without approval.
 
 ## Phase 1: Security review and fixes
 
-Findings so far (found while building Phase 0). Each has a test marked
-`it.fails` that flips to a normal test when fixed:
+Fixed on branch `fix/phase1-apartment-access` (2026-10-03), each covered by tests:
 
-- [ ] **HIGH: apartment data readable by non-members.** At least 20 routes
-      under `src/app/api/apartments/[id]/` check that the caller is signed in
-      but not that they belong to that apartment (chat, grocery, inventory,
-      calendar, feed, fund, notifications, expenses, rent payments, ...).
-      Test: `tests/apartment-access.test.ts`.
-- [ ] **HIGH: account lockout does not stop brute force.** After 5 failed
-      logins the lock only applies to wrong passwords; a correct guess still
-      logs in. Test: `tests/auth.test.ts`.
-- [ ] **MEDIUM: login IP rate limit is bypassable.** It keys on the raw
-      `x-forwarded-for` header, which the client controls. Use nginx's
-      `X-Real-IP` (set from the real connection) instead.
-- [ ] **MEDIUM: JWT secret has a hard-coded fallback** (`src/lib/auth.ts`).
-      If `JWT_SECRET` were ever missing, tokens would be signed with a public
-      string. Fail at startup instead.
-- [ ] **Dependencies:** `npm audit` reports 1 critical, 11 high and 5 moderate
-      issues. Update and re-test.
+- [x] **HIGH: apartment data readable by non-members.** 40 of 108 handlers
+      under `src/app/api/apartments/[id]/` only checked sign-in. All 108 now
+      call `requireApartmentMember` / `requireApartmentAdmin`
+      (`src/lib/access.ts`). Item routes also verify the item belongs to the
+      apartment in the URL. Test: `tests/apartment-access.test.ts`.
+- [x] **HIGH: members with a pending join request had access.** 55 handlers
+      let PENDING_APPROVAL members through, which made the admin-approval
+      step meaningless. Fixed by the same helper.
+- [x] **CRITICAL: two-factor sign-in was only enforced by the login page.**
+      `/api/auth/login` returned a full token after the password even for 2FA
+      accounts. Now it returns a short-lived challenge and emails the code;
+      `/api/auth/2fa/verify` needs challenge + code. See `src/lib/twoFactor.ts`.
+- [x] **HIGH: lockouts did not stop brute force** (login and 2FA codes): the
+      lock was only checked after a wrong guess. Now checked first (`isLocked`).
+- [x] **MEDIUM: per-IP rate limits were bypassable** via a client-supplied
+      `X-Forwarded-For`. All six routes now use `clientIp()` (nginx `X-Real-IP`).
+- [x] **MEDIUM: JWT secret had a public fallback.** Now throws in production
+      if `JWT_SECRET` is missing.
+- [x] 2FA codes now come from a cryptographic RNG (`crypto.randomInt`).
+- [x] Calendar events: only the creator or an admin may edit (matches delete).
+- [x] **Dependencies:** Next.js 16.2.6 → 16.3.8 (critical advisory), Prisma
+      7.8 → 7.10, `npm audit fix`. 1 critical / 11 high / 5 moderate → 4 high.
+- [ ] Remaining 4 high advisories are inside Prisma's CLI tooling
+      (`deepmerge-ts`, `mysql2` via `@prisma/dev`); npm's only offer is a
+      breaking downgrade to Prisma 6. Re-check on the next Prisma release.
+- [x] `next build` no longer crashes when email is not configured (Resend
+      client is created lazily), so CI can build.
+
+Still to do in Phase 1:
+
+- [ ] Real-time streams (`chat/stream`, `dm/[userId]/stream`) take the login
+      token in the URL, so it lands in nginx access logs. Use a short-lived
+      stream ticket instead.
+- [ ] 2FA page only accepts 6 digits, so backup codes (`XXXX-XXXX`) cannot
+      be entered.
+- [ ] Routes outside `/api/apartments` (listings, manager, admin, users,
+      upload, push, cron, invites) still to review.
 - [ ] Review every one of the 136 API routes: who may call it, what it checks.
       Produce a table in `docs/SECURITY.md`.
 - [ ] File uploads: type, size and naming checks; where files are stored.
@@ -60,10 +80,13 @@ Findings so far (found while building Phase 0). Each has a test marked
 
 ## Phase 2: Shared foundations (remove repeated logic)
 
-- [ ] One permission helper used by every route: `requireUser`,
-      `requireApartmentMember(apartmentId)`, `requireApartmentAdmin`,
-      `requireManager`, `requireSuperAdmin`. Fixes the Phase 1 access bugs at
-      the root.
+- [x] One apartment permission helper (`src/lib/access.ts`) used by all 108
+      apartment handlers; the three copies of `canManage` in manager routes
+      became `canManageApartment`. (Done early as part of the Phase 1 fix.)
+- [ ] Remove the `const payload = { userId: access.userId, ... }` shims the
+      migration left in some handlers; use `access.userId` directly.
+- [ ] `requireUser` for the remaining signed-in-only routes, and fold
+      `requireManager` / `requireSuperAdmin` into the same style.
 - [ ] One place for shared labels and formatting (listing types, prices,
       dates), shared icons and shared input validation.
 - [ ] Purely visual repetition stays where it is: merging look-alike markup

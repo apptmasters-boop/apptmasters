@@ -39,5 +39,5 @@ Email is replaced by a no-op (see `setup-env.ts`), so tests never send mail.
 
 A test written with `it.fails` documents a bug we know about but have not
 fixed yet: it passes while the bug exists. When you fix the bug, that test
-starts failing; change it to a plain `it` so the fix stays protected. Current
-gaps are listed under Phase 1 in `docs/ROADMAP.md`.
+starts failing; change it to a plain `it` so the fix stays protected. There
+are none right now; open security work is listed in `docs/ROADMAP.md`.

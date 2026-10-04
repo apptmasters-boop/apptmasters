@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { notifyApartment } from "@/lib/notify";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const { searchParams } = new URL(req.url);
   const before = searchParams.get("before");
@@ -30,13 +31,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     messages
       .filter(m => {
         const readBy: string[] = JSON.parse(m.readBy || "[]");
-        return !readBy.includes(payload.userId);
+        return !readBy.includes(userId);
       })
       .map(m => {
         const readBy: string[] = JSON.parse(m.readBy || "[]");
         return prisma.chatMessage.update({
           where: { id: m.id },
-          data: { readBy: JSON.stringify([...readBy, payload.userId]) },
+          data: { readBy: JSON.stringify([...readBy, userId]) },
         });
       }),
   );
@@ -46,10 +47,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const member = await prisma.apartmentMember.findFirst({ where: { apartmentId, userId: payload.userId } });
+  const member = access.membership;
   if (!member || member.role === "GUEST") return NextResponse.json({ error: "Guests cannot send messages" }, { status: 403 });
 
   const { content, type, replyToId } = await req.json();

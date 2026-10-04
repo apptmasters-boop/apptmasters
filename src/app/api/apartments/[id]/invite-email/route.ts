@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { sendEmail, inviteEmail, appUrl } from "@/lib/email";
 
@@ -10,10 +10,11 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
+
   const member = await prisma.apartmentMember.findUnique({
     where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
     include: { user: { select: { name: true } }, apartment: { select: { name: true, inviteCode: true } } },

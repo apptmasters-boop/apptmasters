@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { createFeedItem } from "@/lib/feed";
 import { notifyApartment } from "@/lib/notify";
@@ -8,14 +8,13 @@ import { notifyApartment } from "@/lib/notify";
 const schema = z.object({ content: z.string().min(1), propose: z.boolean().optional() });
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const membership = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
-  });
+
+  const membership = access.membership;
   if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { sendEmail, joinApprovedEmail } from "@/lib/email";
@@ -8,14 +8,13 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; memberId: string }> }
 ) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId, memberId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const caller = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
-  });
+
+  const caller = access.membership;
   if (!caller || caller.status !== "ACTIVE" || caller.role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

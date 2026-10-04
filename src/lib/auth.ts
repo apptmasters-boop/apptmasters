@@ -2,7 +2,21 @@ import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 
-const JWT_SECRET = process.env.JWT_SECRET ?? "apptmasters-dev-secret";
+/**
+ * The JWT signing secret. There is deliberately no fallback in production: a
+ * default string would be public (it is in this repo), and anyone could forge
+ * a login for any user. Read lazily so `next build` works without it.
+ */
+function jwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === "production") throw new Error("JWT_SECRET is not set");
+  return "apptmasters-dev-secret"; // local development only
+}
+
+// Two-factor challenges are signed with a different key, so a challenge can
+// never be used as a login token (and vice versa).
+const challengeSecret = () => `${jwtSecret()}:2fa-challenge`;
 
 export interface JwtPayload {
   userId: string;
@@ -10,11 +24,26 @@ export interface JwtPayload {
 }
 
 export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, jwtSecret(), { expiresIn: "7d" });
 }
 
 export function verifyToken(token: string): JwtPayload {
-  return jwt.verify(token, JWT_SECRET) as JwtPayload;
+  return jwt.verify(token, jwtSecret()) as JwtPayload;
+}
+
+/** Proof that the password step passed; exchanged for a login token at /api/auth/2fa/verify. */
+export function signTwoFactorChallenge(userId: string): string {
+  return jwt.sign({ userId }, challengeSecret(), { expiresIn: "10m" });
+}
+
+/** Returns the userId from a valid, unexpired challenge, or null. */
+export function verifyTwoFactorChallenge(challenge: string): string | null {
+  try {
+    const { userId } = jwt.verify(challenge, challengeSecret()) as { userId?: string };
+    return userId ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function getTokenFromRequest(req: NextRequest): JwtPayload | null {
