@@ -1,0 +1,52 @@
+# Runs on every push and pull request. A red result means the change must not
+# be deployed. See docs/ROADMAP.md (Phase 0) for why each step exists.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: apptmasters_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      # Throwaway CI database; the name must contain "test" (see tests/test-db.ts)
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apptmasters_test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apptmasters_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies (also generates the Prisma client)
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint (no new errors allowed)
+        run: npm run lint:ratchet
+
+      - name: Tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
