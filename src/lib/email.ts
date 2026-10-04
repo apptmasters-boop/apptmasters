@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Created on first send, not at import: the Resend constructor throws without an
+// API key, which used to crash `next build` anywhere email is not configured.
+let resend: Resend | null = null;
 const from = process.env.RESEND_FROM ?? "ApptMasters <noreply@apptmasters.com>";
 const appUrl = process.env.APP_URL ?? "http://localhost:3000";
 
@@ -11,6 +13,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
     console.warn(`[email] Resend not configured — skipping email to ${to}: ${subject}`);
     return;
   }
+  resend ??= new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({ from, to, subject, html });
 }
 

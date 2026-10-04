@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { nextDueDate, nextWeekdayDate } from "@/lib/rotation";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id: apartmentId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const membership = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
-  });
+  const membership = access.membership;
   if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const rotations = await prisma.cleaningRotation.findMany({
@@ -68,13 +67,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id: apartmentId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const membership = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
-  });
+  const membership = access.membership;
   if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { frequency, memberIds, dueWeekday } = await req.json();

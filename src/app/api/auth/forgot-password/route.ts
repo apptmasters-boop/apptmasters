@@ -3,12 +3,12 @@ import { z } from "zod";
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
 import { sendEmail, passwordResetEmail, appUrl } from "@/lib/email";
-import { rateLimit } from "@/lib/rateLimit";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 const schema = z.object({ email: z.string().email() });
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  const ip = clientIp(req);
   const { ok } = rateLimit(`forgot:ip:${ip}`, 5, 60_000);
   if (!ok) return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
 

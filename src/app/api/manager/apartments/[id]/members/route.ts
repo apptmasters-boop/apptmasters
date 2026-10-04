@@ -3,18 +3,12 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { canManageApartment } from "@/lib/access";
 
 const schema = z.object({
   email: z.string().email(),
   role: z.enum(["ADMIN", "MEMBER", "GUEST"]).optional().default("MEMBER"),
 });
-
-async function canManage(userId: string, apartmentId: string): Promise<boolean> {
-  const apt = await prisma.apartment.findUnique({ where: { id: apartmentId }, select: { managerId: true } });
-  if (!apt) return false;
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { systemRole: true } });
-  return apt.managerId === userId || user?.systemRole === "SUPER_ADMIN";
-}
 
 function randomPassword(length = 12): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#";
@@ -29,7 +23,7 @@ export async function POST(
   if (!payload) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id: apartmentId } = await params;
-  if (!(await canManage(payload.userId, apartmentId))) {
+  if (!(await canManageApartment(payload.userId, apartmentId))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

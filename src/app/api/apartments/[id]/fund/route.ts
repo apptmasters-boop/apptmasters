@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { notifyApartment } from "@/lib/notify";
 
 async function getOrCreateFund(apartmentId: string) {
@@ -13,8 +13,9 @@ async function getOrCreateFund(apartmentId: string) {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const fund = await getOrCreateFund(apartmentId);
   const transactions = await prisma.fundTransaction.findMany({
@@ -29,8 +30,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const { type, amount, description } = await req.json();
   if (!type || !amount || !description) return NextResponse.json({ error: "type, amount, description required" }, { status: 400 });
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const delta = type === "CONTRIBUTION" ? amount : -amount;
-  const user = await prisma.user.findUnique({ where: { id: payload.userId }, select: { name: true } });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
 
   const [updatedFund, transaction] = await prisma.$transaction([
     prisma.apartmentFund.update({
@@ -52,14 +54,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       data: { balance: { increment: delta } },
     }),
     prisma.fundTransaction.create({
-      data: { fundId: fund.id, apartmentId, userId: payload.userId, type, amount, description },
+      data: { fundId: fund.id, apartmentId, userId, type, amount, description },
       include: { user: { select: { id: true, name: true } } },
     }),
   ]);
 
   await notifyApartment(
     apartmentId,
-    payload.userId,
+    userId,
     type === "CONTRIBUTION" ? "FUND_CONTRIBUTION" : "FUND_WITHDRAWAL",
     type === "CONTRIBUTION" ? "Apartment fund contribution" : "Apartment fund withdrawal",
     `${user?.name} ${type === "CONTRIBUTION" ? "added" : "withdrew"} $${amount.toFixed(2)} — ${description}. New balance: $${updatedFund.balance.toFixed(2)}`,

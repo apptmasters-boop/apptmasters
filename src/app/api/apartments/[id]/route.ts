@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 
 const patchSchema = z.object({
@@ -9,14 +9,13 @@ const patchSchema = z.object({
 });
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id } = await params;
+  const access = await requireApartmentMember(req, id);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
 
-  const membership = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId: id } },
-  });
+
+  const membership = access.membership;
   if (!membership || membership.status === "PENDING_APPROVAL") {
     return NextResponse.json({ error: "Not a member" }, { status: 403 });
   }
@@ -44,13 +43,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id } = await params;
-  const membership = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId: id } },
-  });
+  const access = await requireApartmentMember(req, id);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
+
+  const membership = access.membership;
   if (!membership || membership.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();

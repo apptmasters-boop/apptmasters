@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { notify } from "@/lib/notify";
 
@@ -11,10 +11,11 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; choreId: string }> }
 ) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId, choreId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId, email: access.email };
+
   const body = await req.json();
 
   // Respond to existing swap
@@ -58,9 +59,7 @@ export async function POST(
   const request = requestSchema.safeParse(body);
   if (!request.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
-  const membership = await prisma.apartmentMember.findUnique({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
-  });
+  const membership = access.membership;
   if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
 
   const chore = await prisma.chore.findUnique({ where: { id: choreId } });

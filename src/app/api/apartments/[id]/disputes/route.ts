@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { notifyApartment } from "@/lib/notify";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const disputes = await prisma.dispute.findMany({
     where: { apartmentId },
@@ -26,14 +27,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const { title, description, againstId } = await req.json().catch(() => ({}));
   if (!title || !description) return NextResponse.json({ error: "title and description required" }, { status: 400 });
 
   const dispute = await prisma.dispute.create({
-    data: { apartmentId, raisedById: payload.userId, title, description, againstId: againstId || null },
+    data: { apartmentId, raisedById: userId, title, description, againstId: againstId || null },
     include: {
       raisedBy: { select: { id: true, name: true } },
       against: { select: { id: true, name: true } },
@@ -44,15 +46,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     where: { apartmentId, status: { not: "MOVED_OUT" } },
     select: { userId: true },
   });
-  const notifyIds = members.map(m => m.userId).filter(id => id !== payload.userId);
+  const notifyIds = members.map(m => m.userId).filter(id => id !== userId);
   await notifyApartment(
-    apartmentId, payload.userId, "DISPUTE_FILED",
+    apartmentId, userId, "DISPUTE_FILED",
     "New dispute raised",
     `${dispute.raisedBy.name} raised a dispute: "${title}"`,
     `/apartment/${apartmentId}/disputes`,
   );
   // Also email the person the dispute is against, if any
-  if (dispute.against?.id && dispute.against.id !== payload.userId) {
+  if (dispute.against?.id && dispute.against.id !== userId) {
     const { notify } = await import("@/lib/notify");
     notify({
       apartmentId, userIds: [], type: "DISPUTE_FILED",

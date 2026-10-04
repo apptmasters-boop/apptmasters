@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-
-async function canManage(userId: string, apartmentId: string): Promise<boolean> {
-  const apt = await prisma.apartment.findUnique({ where: { id: apartmentId }, select: { managerId: true } });
-  if (!apt) return false;
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { systemRole: true } });
-  return apt.managerId === userId || user?.systemRole === "SUPER_ADMIN";
-}
+import { canManageApartment } from "@/lib/access";
 
 export async function GET(
   req: NextRequest,
@@ -17,7 +11,7 @@ export async function GET(
   if (!payload) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
-  if (!(await canManage(payload.userId, id))) {
+  if (!(await canManageApartment(payload.userId, id))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -43,7 +37,7 @@ export async function DELETE(
   if (!payload) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
-  if (!(await canManage(payload.userId, id))) {
+  if (!(await canManageApartment(payload.userId, id))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

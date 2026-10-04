@@ -36,11 +36,12 @@ export async function createApartment(memberId: string) {
   });
 }
 
-export function request(path: string, opts: { method?: string; token?: string; body?: unknown; ip?: string } = {}) {
+export function request(path: string, opts: { method?: string; token?: string; body?: unknown; ip?: string; headers?: Record<string, string> } = {}) {
   const headers: Record<string, string> = {
     // Unique per request so IP rate limits don't leak between tests
-    "x-forwarded-for": opts.ip ?? `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+    "x-real-ip": opts.ip ?? `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
   };
+  Object.assign(headers, opts.headers);
   if (opts.token) headers.authorization = `Bearer ${opts.token}`;
   if (opts.body !== undefined) headers["content-type"] = "application/json";
   return new NextRequest(`http://localhost${path}`, {

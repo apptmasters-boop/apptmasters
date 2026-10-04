@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const { visibility } = await req.json().catch(() => ({}));
   if (!["EXACT", "TIER", "PRIVATE"].includes(visibility)) {
@@ -13,8 +14,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const score = await prisma.roommateScore.upsert({
-    where: { userId_apartmentId: { userId: payload.userId, apartmentId } },
-    create: { userId: payload.userId, apartmentId, visibility },
+    where: { userId_apartmentId: { userId, apartmentId } },
+    create: { userId, apartmentId, visibility },
     update: { visibility },
   });
 

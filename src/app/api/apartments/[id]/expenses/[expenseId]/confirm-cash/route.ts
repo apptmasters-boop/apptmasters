@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; expenseId: string }> }
 ) {
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { id: apartmentId, expenseId } = await params;
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const payload = { userId: access.userId };
+
   const { userId, action } = await req.json() as { userId: string; action: "confirm" | "deny" };
 
   if (!userId || !["confirm", "deny"].includes(action)) {

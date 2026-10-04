@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { requireApartmentMember } from "@/lib/access";
 import { notifyApartment } from "@/lib/notify";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string; ruleId: string }> }) {
   const { id: apartmentId, ruleId } = await params;
-  const payload = getTokenFromRequest(req);
-  if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireApartmentMember(req, apartmentId);
+  if (!access.ok) return access.response;
+  const { userId } = access;
 
   const rule = await prisma.houseRule.findFirst({ where: { id: ruleId, apartmentId } });
   if (!rule) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -16,8 +17,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!["YES", "NO"].includes(vote)) return NextResponse.json({ error: "Invalid vote" }, { status: 400 });
 
   await prisma.ruleVote.upsert({
-    where: { houseRuleId_userId: { houseRuleId: ruleId, userId: payload.userId } },
-    create: { houseRuleId: ruleId, userId: payload.userId, vote },
+    where: { houseRuleId_userId: { houseRuleId: ruleId, userId } },
+    create: { houseRuleId: ruleId, userId, vote },
     update: { vote },
   });
 

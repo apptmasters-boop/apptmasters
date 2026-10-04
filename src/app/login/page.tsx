@@ -32,6 +32,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"credentials" | "2fa">("credentials");
   const [code, setCode] = useState("");
+  const [challenge, setChallenge] = useState("");
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
 
   async function afterLogin() {
@@ -58,13 +59,9 @@ function LoginForm() {
       return;
     }
 
-    // Check if 2FA is required
-    const twoFaRes = await apiFetch("/api/auth/2fa/send", {
-      method: "POST", body: JSON.stringify({ email: form.email }),
-    });
-    const twoFaData = await twoFaRes.json();
-
-    if (twoFaData.required) {
+    // 2FA accounts get a challenge instead of a token; the server has already emailed the code
+    if (data.twoFactorRequired) {
+      setChallenge(data.challenge);
       setStep("2fa");
       setLoading(false);
       return;
@@ -82,7 +79,7 @@ function LoginForm() {
 
     const res = await apiFetch("/api/auth/2fa/verify", {
       method: "POST",
-      body: JSON.stringify({ email: form.email, code }),
+      body: JSON.stringify({ challenge, code }),
     });
     const data = await res.json();
     setLoading(false);
