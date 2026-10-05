@@ -34,7 +34,7 @@ function MessagesThread() {
   }
 
   async function load() {
-    if (!getToken()) { router.replace(`/listings/signup?returnTo=${encodeURIComponent(`/listings/${listingId}/messages${query}`)}`); return; }
+    if (!getToken()) { router.replace(`/signup?returnTo=${encodeURIComponent(`/listings/${listingId}/messages${query}`)}`); return; }
     const [listingRes, meRes] = await Promise.all([
       apiFetch(`/api/listings/${listingId}`),
       apiFetch("/api/auth/me"),
@@ -53,7 +53,7 @@ function MessagesThread() {
 
   useEffect(() => {
     if (!currentUserId) return;
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getToken();
     const es = new EventSource(`/api/listings/${listingId}/messages/stream${query}${query ? "&" : "?"}token=${token}`);
     es.onmessage = e => {
       const incoming: Message[] = JSON.parse(e.data);

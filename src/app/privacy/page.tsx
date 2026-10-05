@@ -241,7 +241,7 @@ export default function PrivacyPage() {
 
         <div className="mt-12 pt-8 border-t border-gray-200 flex flex-wrap gap-4 text-sm text-gray-500">
           <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link>
-          <Link href="/register" className="text-blue-600 hover:underline">Create an account</Link>
+          <Link href="/signup" className="text-blue-600 hover:underline">Create an account</Link>
           <Link href="/login" className="text-blue-600 hover:underline">Sign in</Link>
         </div>
       </main>

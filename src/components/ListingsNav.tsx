@@ -53,7 +53,7 @@ export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void })
         ) : (
           <>
             <Link href="/login?returnTo=/listings" className="text-sm text-gray-500 hover:text-gray-800">Sign in</Link>
-            <Link href="/listings/signup" className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            <Link href="/signup" className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
               Sign up
             </Link>
           </>

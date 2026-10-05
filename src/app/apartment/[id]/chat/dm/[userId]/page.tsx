@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getToken } from "@/lib/api";
 import { formatMessageTime } from "@/lib/time";
 import CallOverlay from "@/components/CallOverlay";
 import AudioRecorder from "@/components/AudioRecorder";
@@ -51,7 +51,7 @@ export default function DMPage() {
 
   useEffect(() => {
     load();
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getToken();
     const es = new EventSource(`/api/apartments/${apartmentId}/dm/${otherUserId}/stream?token=${token}`);
     es.onmessage = e => {
       const incoming: DirectMessage[] = JSON.parse(e.data);

@@ -15,7 +15,7 @@ export default function EditListingPage() {
   const [forbidden, setForbidden] = useState(false);
 
   useEffect(() => {
-    if (!getToken()) { router.replace(`/listings/signup?returnTo=${encodeURIComponent(`/listings/${id}/edit`)}`); return; }
+    if (!getToken()) { router.replace(`/signup?returnTo=${encodeURIComponent(`/listings/${id}/edit`)}`); return; }
     (async () => {
       const [listingRes, meRes] = await Promise.all([apiFetch(`/api/listings/${id}`), apiFetch("/api/auth/me")]);
       if (!listingRes.ok || !meRes.ok) { setForbidden(true); setLoading(false); return; }

@@ -53,7 +53,7 @@ export function CommunityCards() {
       <SectionHeading
         title="More Than Just a Place"
         subtitle="You're not just finding a room. You're joining a community."
-        link={{ href: "/register", label: "Join the community" }}
+        link={{ href: "/signup", label: "Join the community" }}
       />
       <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:gap-4 lg:grid-cols-4">
         {COMMUNITY.map(({ title, body, icon: Icon, tile, card }) => (

@@ -79,7 +79,7 @@ export default function ListingDetailPage() {
 
   function messageOwner() {
     if (!getToken()) {
-      router.push(`/listings/signup?returnTo=${encodeURIComponent(`/listings/${id}/messages`)}`);
+      router.push(`/signup?returnTo=${encodeURIComponent(`/listings/${id}/messages`)}`);
       return;
     }
     router.push(`/listings/${id}/messages`);

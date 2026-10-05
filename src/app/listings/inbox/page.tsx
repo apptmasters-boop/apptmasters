@@ -17,7 +17,7 @@ export default function ListingsInboxPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!getToken()) { router.replace("/listings/signup?returnTo=/listings/inbox"); return; }
+    if (!getToken()) { router.replace("/signup?returnTo=/listings/inbox"); return; }
     (async () => {
       const res = await apiFetch("/api/listings/inbox");
       if (res.ok) setConversations(await res.json());

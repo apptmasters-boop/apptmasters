@@ -1,14 +1,23 @@
+/**
+ * The login token lives in localStorage when the user chose "Remember me"
+ * (survives closing the browser) and in sessionStorage otherwise (gone when
+ * the browser closes). Always go through these helpers; never read storage directly.
+ */
+const TOKEN_KEY = "token";
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("token");
+  return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
 }
 
-export function setToken(token: string) {
-  localStorage.setItem("token", token);
+export function setToken(token: string, remember = true) {
+  clearToken();
+  (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
 }
 
 export function clearToken() {
-  localStorage.removeItem("token");
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
 }
 
 export async function redirectToApartment(router: { replace: (path: string) => void }) {

@@ -30,7 +30,7 @@ export default function MyListingsPage() {
   }
 
   useEffect(() => {
-    if (!getToken()) { router.replace("/listings/signup?returnTo=/listings/mine"); return; }
+    if (!getToken()) { router.replace("/signup?returnTo=/listings/mine"); return; }
     load();
   }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
 

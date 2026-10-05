@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getToken } from "@/lib/api";
 import { formatMessageTime } from "@/lib/time";
 import NotificationBell from "@/components/NotificationBell";
 import CallOverlay from "@/components/CallOverlay";
@@ -63,7 +63,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     load();
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getToken();
     const es = new EventSource(`/api/apartments/${apartmentId}/chat/stream?token=${token}`);
     es.onmessage = e => {
       const incoming = JSON.parse(e.data);

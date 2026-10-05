@@ -12,7 +12,7 @@ export default function NewListingPage() {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    if (!getToken()) { router.replace("/listings/signup?returnTo=/listings/new"); return; }
+    if (!getToken()) { router.replace("/signup?returnTo=/listings/new"); return; }
     setChecked(true);
   }, [router]);
 
