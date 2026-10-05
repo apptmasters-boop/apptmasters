@@ -1,4 +1,4 @@
-﻿# ApptMasters engineering roadmap
+# ApptMasters engineering roadmap
 
 Goal: a codebase that is **secure**, **clean** (no copy-pasted logic), and
 **explains itself** to whoever reads it next, including us, months from now.
@@ -49,8 +49,8 @@ Fixed on branch `fix/phase1-apartment-access` (2026-10-03), each covered by test
       if `JWT_SECRET` is missing.
 - [x] 2FA codes now come from a cryptographic RNG (`crypto.randomInt`).
 - [x] Calendar events: only the creator or an admin may edit (matches delete).
-- [x] **Dependencies:** Next.js 16.2.6 â†’ 16.3.8 (critical advisory), Prisma
-      7.8 â†’ 7.10, `npm audit fix`. 1 critical / 11 high / 5 moderate â†’ 4 high.
+- [x] **Dependencies:** Next.js 16.2.6 → 16.3.8 (critical advisory), Prisma
+      7.8 → 7.10, `npm audit fix`. 1 critical / 11 high / 5 moderate → 4 high.
 - [ ] Remaining 4 high advisories are inside Prisma's CLI tooling
       (`deepmerge-ts`, `mysql2` via `@prisma/dev`); npm's only offer is a
       breaking downgrade to Prisma 6. Re-check on the next Prisma release.
@@ -73,6 +73,13 @@ Fixed 2026-10-04 (branch `feat/signup-email-verification`):
 - [x] **MEDIUM: open redirect via `returnTo`** on sign-in, sign-up and the
       confirmation link. `safeReturnTo()` (`src/lib/returnTo.ts`) only
       allows same-site paths.
+- [x] **Production DB: the `EmailVerificationToken` table was owned by
+      `postgres`,** not the app's `apptmasters` role (the only one of 57
+      tables), so every email-confirmation read/write failed with
+      "permission denied". Email confirmation had never worked live. Fixed
+      2026-10-04 with `ALTER TABLE "EmailVerificationToken" OWNER TO apptmasters`.
+      If tables are ever created as `postgres` again, check ownership:
+      `select tablename, tableowner from pg_tables where schemaname = 'public'`.
 
 Still to do in Phase 1:
 
