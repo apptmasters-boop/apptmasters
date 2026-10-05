@@ -3,6 +3,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, setToken, redirectToApartment } from "@/lib/api";
+import { safeReturnTo } from "@/lib/returnTo";
 import AuthShell from "@/components/auth/AuthShell";
 import { AuthField, PasswordField, FormError, PrimaryButton } from "@/components/auth/AuthFields";
 import { MailIcon, LockIcon, LogInIcon, ShieldCheckIcon } from "@/components/landing/icons";
@@ -29,7 +30,7 @@ function ResendVerification({ email }: { email: string }) {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get("returnTo");
+  const returnTo = safeReturnTo(searchParams.get("returnTo"), "") || null;
   const [form, setForm] = useState({ email: "", password: "" });
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");

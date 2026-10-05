@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
-import { sendEmail, appUrl } from "@/lib/email";
+import { z } from "zod";
+import { sendEmail, appUrl, esc } from "@/lib/email";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function POST(
   req: NextRequest,
@@ -19,10 +21,19 @@ export async function POST(
   const room = await prisma.room.findFirst({ where: { id: roomId, apartmentId } });
   if (!room) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { landlordEmail, emailBody } = await req.json();
-  if (!landlordEmail || !emailBody) {
-    return NextResponse.json({ error: "landlordEmail and emailBody are required" }, { status: 400 });
+  // This sends mail from our domain to an address the member types in, so the
+  // body is escaped and capped, the address validated, and sending rate-limited.
+  const parsed = z.object({
+    landlordEmail: z.string().email("Enter a valid landlord email"),
+    emailBody: z.string().trim().min(1, "Describe the issue").max(5000, "Message is too long"),
+  }).safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
   }
+  const { landlordEmail, emailBody } = parsed.data;
+
+  const { ok } = rateLimit(`escalate:user:${payload.userId}`, 5, 60 * 60_000);
+  if (!ok) return NextResponse.json({ error: "Too many emails sent. Please try again later." }, { status: 429 });
 
   const apt = await prisma.apartment.findUnique({ where: { id: apartmentId }, select: { name: true } });
   const reporter = await prisma.user.findUnique({ where: { id: payload.userId }, select: { name: true, email: true } });
@@ -33,13 +44,13 @@ export async function POST(
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px">
       <h2 style="color:#dc2626;margin-bottom:4px">Maintenance Issue Report</h2>
       <p style="color:#6b7280;font-size:13px;margin-top:0">
-        ${apt?.name ?? "Apartment"} — ${room.name} — ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+        ${esc(apt?.name ?? "Apartment")} — ${esc(room.name)} —${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
       </p>
       <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px 20px;margin:20px 0">
-        <p style="white-space:pre-wrap;color:#1f2937;font-size:15px;margin:0">${emailBody}</p>
+        <p style="white-space:pre-wrap;color:#1f2937;font-size:15px;margin:0">${esc(emailBody)}</p>
       </div>
       <p style="color:#374151;font-size:14px">
-        This issue was reported via <strong>ApptMasters</strong> by <strong>${reporter?.name ?? "a tenant"}</strong>${reporter?.email ? ` (${reporter.email})` : ""}.
+        This issue was reported via <strong>ApptMasters</strong> by <strong>${esc(reporter?.name ?? "a tenant")}</strong>${reporter?.email ? ` (${esc(reporter.email)})` : ""}.
         Please respond as soon as possible.
       </p>
       <a href="${appUrl}/apartment/${apartmentId}/maintenance"

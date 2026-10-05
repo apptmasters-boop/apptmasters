@@ -1,8 +1,9 @@
 "use client";
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, setToken } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { safeReturnTo } from "@/lib/returnTo";
 import AuthShell from "@/components/auth/AuthShell";
 import { AuthField, PasswordField, FormError, PrimaryButton } from "@/components/auth/AuthFields";
 import { MailIcon, LockIcon, UserIcon, UserPlusIcon, CheckIcon } from "@/components/landing/icons";
@@ -14,13 +15,51 @@ const PASSWORD_RULES = [
   { label: "A number", test: (p: string) => /[0-9]/.test(p) },
 ];
 
+const HERO = {
+  heroTitle: "Create your account",
+  heroText: <><p>Join Apartment Masters and find your next home.</p><p className="mt-4">Safe. Simple. Community-driven.</p></>,
+};
+
+/** Shown after sign-up: the account only works once the emailed link is clicked. */
+function CheckYourEmail({ email }: { email: string }) {
+  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+
+  async function resend() {
+    setState("sending");
+    await apiFetch("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) });
+    setState("sent");
+  }
+
+  return (
+    <AuthShell title="Check your email" subtitle="One last step to create your account" {...HERO}>
+      <div className="space-y-5">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-brand">
+          <MailIcon className="h-7 w-7" />
+        </div>
+        <p className="text-sm leading-relaxed text-gray-700">
+          We sent a confirmation link to <strong className="text-gray-900">{email}</strong>.
+          Click it to confirm your email and finish creating your account. The link expires in 24 hours.
+        </p>
+        <p className="text-sm text-gray-500">Can&apos;t find it? Check your spam folder.</p>
+        <button type="button" onClick={resend} disabled={state !== "idle"}
+          className="w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 disabled:opacity-60">
+          {state === "sending" ? "Sending…" : state === "sent" ? "New link sent" : "Resend the link"}
+        </button>
+      </div>
+      <p className="mt-8 text-center text-sm text-gray-600">
+        Already confirmed? <Link href="/login" className="font-semibold text-brand hover:underline">Sign in</Link>
+      </p>
+    </AuthShell>
+  );
+}
+
 function SignupForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get("returnTo") ?? "/listings";
+  const returnTo = safeReturnTo(searchParams.get("returnTo"), "/listings");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
   const passwordOk = PASSWORD_RULES.every(r => r.test(form.password));
 
@@ -29,21 +68,20 @@ function SignupForm() {
     if (!passwordOk) { setError("Please choose a password that meets all the requirements."); return; }
     setLoading(true);
     setError("");
-    const res = await apiFetch("/api/listings/signup", { method: "POST", body: JSON.stringify(form) });
+    const res = await apiFetch("/api/listings/signup", { method: "POST", body: JSON.stringify({ ...form, returnTo }) });
     const data = await res.json();
+    setLoading(false);
     if (!res.ok) {
       setError(data.error ?? "Something went wrong");
-      setLoading(false);
       return;
     }
-    setToken(data.token);
-    router.replace(returnTo);
+    setPendingEmail(data.email);
   }
 
+  if (pendingEmail) return <CheckYourEmail email={pendingEmail} />;
+
   return (
-    <AuthShell title="Create your account" subtitle="Start your journey with Apartment Masters"
-      heroTitle="Create your account"
-      heroText={<><p>Join Apartment Masters and find your next home.</p><p className="mt-4">Safe. Simple. Community-driven.</p></>}>
+    <AuthShell title="Create your account" subtitle="Start your journey with Apartment Masters" {...HERO}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <FormError>{error}</FormError>}
         <AuthField icon={<UserIcon className="h-5 w-5" />} label="Full name"
@@ -73,6 +111,7 @@ function SignupForm() {
         <PrimaryButton loading={loading} icon={<UserPlusIcon className="h-4 w-4" />}>
           {loading ? "Creating account…" : "Create account"}
         </PrimaryButton>
+        <p className="text-center text-xs text-gray-500">We&apos;ll email you a link to confirm your address.</p>
       </form>
 
       <p className="mt-8 text-center text-sm text-gray-600">

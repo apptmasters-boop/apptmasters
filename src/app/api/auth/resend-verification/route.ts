@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import crypto from "crypto";
 import { prisma } from "@/lib/db";
-import { sendEmail, verificationEmail, appUrl } from "@/lib/email";
+import { sendVerificationLink } from "@/lib/emailVerification";
 import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 const schema = z.object({ email: z.string().email() });
@@ -22,11 +21,7 @@ export async function POST(req: NextRequest) {
   // Always respond success to avoid leaking whether an email exists
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
   if (user && !user.emailVerified) {
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await prisma.emailVerificationToken.create({ data: { token, expiresAt, userId: user.id } });
-    const verifyUrl = `${appUrl}/verify-email?token=${token}`;
-    await sendEmail(user.email, "Verify your ApptMasters email", verificationEmail(user.name, verifyUrl));
+    await sendVerificationLink(user);
   }
 
   return NextResponse.json({ success: true });

@@ -57,7 +57,27 @@ Fixed on branch `fix/phase1-apartment-access` (2026-10-03), each covered by test
 - [x] `next build` no longer crashes when email is not configured (Resend
       client is created lazily), so CI can build.
 
+Fixed 2026-10-04 (branch `feat/signup-email-verification`):
+
+- [x] **Public sign-up created usable accounts without confirming the email.**
+      Accounts now stay unusable until the emailed link is clicked
+      (`src/lib/emailVerification.ts`). An unconfirmed sign-up made with
+      someone else's address can be taken over by the real owner.
+- [x] **HIGH: HTML injection in emails.** Names, apartment names and
+      notification text went into email HTML raw, so a sign-up with a
+      victim's address and a crafted "name" became phishing from our domain.
+      All templates now use `esc()` (`src/lib/email.ts`).
+- [x] **HIGH: maintenance "escalate" was an open mail relay.** Any member
+      could email any address with arbitrary HTML from our domain. Body is
+      now escaped and capped, address validated, 5 emails/hour per user.
+- [x] **MEDIUM: open redirect via `returnTo`** on sign-in, sign-up and the
+      confirmation link. `safeReturnTo()` (`src/lib/returnTo.ts`) only
+      allows same-site paths.
+
 Still to do in Phase 1:
+
+- [ ] Unconfirmed sign-ups are never cleaned up; delete ones older than a
+      few days (cron).
 
 - [ ] Real-time streams (`chat/stream`, `dm/[userId]/stream`) take the login
       token in the URL, so it lands in nginx access logs. Use a short-lived

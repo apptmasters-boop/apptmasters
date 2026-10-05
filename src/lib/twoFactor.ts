@@ -10,7 +10,7 @@
  */
 import { randomInt } from "node:crypto";
 import { prisma } from "@/lib/db";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, esc } from "@/lib/email";
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 
@@ -32,7 +32,7 @@ export async function sendLoginCode(user: { id: string; name: string; email: str
     "Your ApptMasters login code",
     `<div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:32px 24px">
       <h2 style="color:#4f46e5">Your login code</h2>
-      <p style="color:#374151">Hi ${user.name},</p>
+      <p style="color:#374151">Hi ${esc(user.name)},</p>
       <p style="color:#374151">Use this code to sign in. It expires in <strong>10 minutes</strong>.</p>
       <div style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#111827;background:#f3f4f6;padding:20px 24px;border-radius:8px;text-align:center;margin:24px 0">${code}</div>
       <p style="color:#6b7280;font-size:13px">If you didn't try to sign in, ignore this email.</p>
