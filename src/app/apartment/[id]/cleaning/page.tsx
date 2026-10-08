@@ -186,10 +186,12 @@ export default function CleaningPage() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell apartmentId={apartmentId} />
-          <button onClick={() => setShowForm(s => !s)}
-            className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-            + New rotation
-          </button>
+          {isAdmin && (
+            <button onClick={() => setShowForm(s => !s)}
+              className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+              + New rotation
+            </button>
+          )}
         </div>
       </header>
 
@@ -267,11 +269,17 @@ export default function CleaningPage() {
           <div className="text-center py-16 text-gray-400">
             <p className="text-4xl mb-3">🧹</p>
             <p className="font-medium text-gray-600 mb-1">No cleaning rotation yet</p>
-            <p className="text-sm mb-4">Set up a rotation so everyone takes turns cleaning the apartment.</p>
-            <button onClick={() => setShowForm(true)}
-              className="text-sm bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-              Create one
-            </button>
+            {isAdmin ? (
+              <>
+                <p className="text-sm mb-4">Set up a rotation so everyone takes turns cleaning the apartment.</p>
+                <button onClick={() => setShowForm(true)}
+                  className="text-sm bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                  Create one
+                </button>
+              </>
+            ) : (
+              <p className="text-sm">Only household admins can set up the cleaning rotation.</p>
+            )}
           </div>
         )}
 
@@ -396,10 +404,12 @@ export default function CleaningPage() {
                     ? `Already logged · next turn ${new Date(rot.nextDue).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
                     : isMyTurn ? "Mark done & pass to next" : "Request advance (needs admin approval)"}
                 </button>
-                <button onClick={() => del(rot.id)} disabled={deleting === rot.id}
-                  className="text-sm text-red-400 hover:text-red-600 px-3 transition-colors">
-                  {deleting === rot.id ? "…" : "Delete"}
-                </button>
+                {isAdmin && (
+                  <button onClick={() => del(rot.id)} disabled={deleting === rot.id}
+                    className="text-sm text-red-400 hover:text-red-600 px-3 transition-colors">
+                    {deleting === rot.id ? "…" : "Delete"}
+                  </button>
+                )}
               </div>
             </div>
           );

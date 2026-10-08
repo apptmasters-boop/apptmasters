@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireApartmentMember } from "@/lib/access";
+import { requireApartmentMember, requireApartmentAdmin } from "@/lib/access";
 import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
 import { notify } from "@/lib/notify";
 import { nextDueDate, nextWeekdayDate } from "@/lib/rotation";
@@ -155,7 +155,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; rotationId: string }> }
 ) {
   const { id: apartmentId, rotationId } = await params;
-  const access = await requireApartmentMember(req, apartmentId);
+  // Creating, changing or deleting a rotation is for household admins (PRODUCT_LOGIC §8.2).
+  const access = await requireApartmentAdmin(req, apartmentId);
   if (!access.ok) return access.response;
   const payload = { userId: access.userId, email: access.email };
 
@@ -177,7 +178,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; rotationId: string }> }
 ) {
   const { id: apartmentId, rotationId } = await params;
-  const access = await requireApartmentMember(req, apartmentId);
+  // Creating, changing or deleting a rotation is for household admins (PRODUCT_LOGIC §8.2).
+  const access = await requireApartmentAdmin(req, apartmentId);
   if (!access.ok) return access.response;
   const payload = { userId: access.userId, email: access.email };
 

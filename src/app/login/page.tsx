@@ -2,7 +2,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, setToken, redirectToApartment } from "@/lib/api";
+import { apiFetch, setToken, goToLandingPage } from "@/lib/api";
 import { safeReturnTo } from "@/lib/returnTo";
 import AuthShell from "@/components/auth/AuthShell";
 import { AuthField, PasswordField, FormError, PrimaryButton } from "@/components/auth/AuthFields";
@@ -56,7 +56,7 @@ function LoginForm() {
   async function afterLogin(token: string) {
     setToken(token, remember);
     if (returnTo) { router.replace(returnTo); return; }
-    await redirectToApartment(router);
+    await goToLandingPage(router);
   }
 
   async function handleSubmit(e: React.FormEvent) {

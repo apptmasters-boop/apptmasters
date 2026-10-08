@@ -5,7 +5,7 @@ import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
 import IconBadge from "@/components/IconBadge";
 import {
-  UsersIcon, HouseIcon, ChatIcon, FinanceIcon, AnnouncementIcon,
+  HouseIcon,
   RoomsIcon, AdminIcon, ChevronRightIcon,
 } from "@/components/icons";
 
@@ -18,7 +18,6 @@ interface AptStats {
   overdueChores: number;
   myChoresCount: number;
 }
-interface AdminStats { totalUsers: number; totalApartments: number; totalMessages: number; totalExpenses: number }
 interface Building { id: string; name: string; address: string; _count: { units: number } }
 
 function greeting() {
@@ -33,8 +32,6 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Record<string, AptStats>>({});
-  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
-  const [pendingListings, setPendingListings] = useState(0);
   const [buildings, setBuildings] = useState<Building[] | null>(null);
 
   useEffect(() => {
@@ -44,20 +41,11 @@ export default function DashboardPage() {
       setUser(data);
       setLoading(false);
 
-      if (data.systemRole === "SUPER_ADMIN") {
-        const [statsRes, pendingRes] = await Promise.all([
-          apiFetch("/api/admin/stats"),
-          apiFetch("/api/admin/listings"),
-        ]);
-        if (statsRes.ok) setAdminStats(await statsRes.json());
-        if (pendingRes.ok) setPendingListings((await pendingRes.json()).length);
-        return;
-      }
-
+      // Platform numbers live only inside /admin (PRODUCT_LOGIC §2.2, §23): an
+      // account that is also an admin still sees this page as a home member.
       if (data.systemRole === "MANAGER") {
         const res2 = await apiFetch("/api/manager/buildings");
         if (res2.ok) setBuildings(await res2.json());
-        return;
       }
 
       // Tenant — load quick stats for each apartment in parallel
@@ -132,13 +120,6 @@ export default function DashboardPage() {
 
         {user?.systemRole === "SUPER_ADMIN" && (
           <div className="space-y-4 mb-8">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <StatTile icon={<UsersIcon />} color="indigo" label="Total Users" value={adminStats?.totalUsers ?? "—"} />
-              <StatTile icon={<HouseIcon />} color="rose" label="Apartments" value={adminStats?.totalApartments ?? "—"} />
-              <StatTile icon={<ChatIcon />} color="emerald" label="Messages" value={adminStats?.totalMessages ?? "—"} />
-              <StatTile icon={<FinanceIcon />} color="blue" label="Expenses Logged" value={adminStats?.totalExpenses ?? "—"} />
-              <StatTile icon={<AnnouncementIcon />} color="amber" label="Pending Approvals" value={pendingListings} />
-            </div>
             <Link href="/admin"
               className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 hover:border-blue-300 hover:shadow-sm transition-all">
               <div className="flex items-center gap-3">
@@ -183,7 +164,7 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {user?.systemRole === "USER" && (
+        {(user?.systemRole === "USER" || apartments.length > 0) && (
           <>
             <h2 className="text-sm font-semibold text-gray-700 mb-3">Your apartments</h2>
             {apartments.length === 0 ? (

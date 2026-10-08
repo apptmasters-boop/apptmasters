@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getToken, redirectToApartment } from "@/lib/api";
+import { getToken, goToLandingPage } from "@/lib/api";
 import { SiteHeader, MobileBottomNav } from "@/components/landing/SiteChrome";
 import SearchPanel from "@/components/landing/SearchPanel";
 import ListingCard, { type CardListing } from "@/components/landing/ListingCard";
@@ -23,7 +23,7 @@ export default function Home() {
       // Storage blocked (privacy mode, embedded frame): treat as signed out.
     }
     if (token) {
-      redirectToApartment(router).catch(() => router.replace("/dashboard"));
+      goToLandingPage(router).catch(() => router.replace("/dashboard"));
     } else {
       setRedirecting(false);
     }

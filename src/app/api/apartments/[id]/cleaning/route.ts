@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireApartmentMember } from "@/lib/access";
+import { requireApartmentMember, requireApartmentAdmin } from "@/lib/access";
 import { nextDueDate, nextWeekdayDate } from "@/lib/rotation";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -68,7 +68,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
-  const access = await requireApartmentMember(req, apartmentId);
+  // Creating, changing or deleting a rotation is for household admins (PRODUCT_LOGIC §8.2).
+  const access = await requireApartmentAdmin(req, apartmentId);
   if (!access.ok) return access.response;
   const payload = { userId: access.userId, email: access.email };
 

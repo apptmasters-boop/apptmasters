@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { housingState } from "@/lib/housing";
 
 export async function GET(req: NextRequest) {
   const payload = getTokenFromRequest(req);
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
     where: { id: payload.userId },
     select: {
       id: true, name: true, email: true, photo: true, systemRole: true, createdAt: true,
-      roomAssignment: true, moveInDate: true, dietaryFlags: true, twoFactorEnabled: true, emailVerified: true,
+      roomAssignment: true, moveInDate: true, dietaryFlags: true, twoFactorEnabled: true, emailVerified: true, foundHomeAt: true,
       memberships: {
         include: { apartment: true },
         where: { status: { not: "MOVED_OUT" } },
@@ -19,5 +20,5 @@ export async function GET(req: NextRequest) {
   });
 
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(user);
+  return NextResponse.json({ ...user, housingState: housingState(user) });
 }

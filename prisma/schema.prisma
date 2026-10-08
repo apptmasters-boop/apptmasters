@@ -20,6 +20,7 @@ model User {
   notifPrefs     String    @default("{}") // JSON: { pushEnabled, emailEnabled, types: { [type]: bool } }
   twoFactorEnabled Boolean @default(false)
   emailVerified  Boolean  @default(true)
+  foundHomeAt    DateTime? // self-reported "I found a place" (PRODUCT_LOGIC §2.1, §3.3); see src/lib/housing.ts
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

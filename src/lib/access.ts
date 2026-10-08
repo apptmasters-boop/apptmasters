@@ -67,6 +67,6 @@ export async function canManageApartment(userId: string, apartmentId: string): P
 /** Same as requireApartmentMember, but the caller must also have the ADMIN role in that apartment. */
 export async function requireApartmentAdmin(req: NextRequest, apartmentId: string): Promise<ApartmentAccess> {
   const access = await requireApartmentMember(req, apartmentId);
-  if (access.ok && access.membership.role !== "ADMIN") return deny(403, "Forbidden");
+  if (access.ok && access.membership.role !== "ADMIN") return deny(403, "Only household admins can do this");
   return access;
 }

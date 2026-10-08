@@ -122,13 +122,13 @@ the order comes from the roadmap in the [README](../README.md).
 
 ## Sprint 1 — Foundation
 
-**Status:** 1a ready for your test · 1b not started · Spec: `PRODUCT_LOGIC.md` §2, §5, §17, §23
+**Status:** 1a approved · 1b building · Spec: `PRODUCT_LOGIC.md` §2, §5, §17, §23
 
 Split into two slices, each with its own sign-off.
 
 ### 1a — Navigation and design system
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What was built**
 - **Five main destinations,** in a bottom bar on phones and a side menu on
@@ -186,21 +186,42 @@ Split into two slices, each with its own sign-off.
 8. Open **More → Search listings**. → The listings show with the same bottom
    bar (phone) or left menu (computer), so you can go back to your home.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-08
 
 ### 1b — User states and roles in context
 
-**What I'm building**
-- **Where you land after signing in depends on your state:**
-  - A **Home Seeker** (no household yet) lands on Find a Home.
-  - A **Home Member** lands on Home.
-- **The platform admin dashboard** opens only from an "Admin" link (in More →
-  Account), only for super-admin accounts. A regular member never sees admin
-  statistics, even if the same person is also an admin.
-- **Household roles** (Member, Household Admin, Rent Payer) control what each
-  person can change, using the shared permission checks.
-- **A saved "housing state" for each account** (Visitor → Home Seeker → Found
-  a Home → Home Member). Sprint 11 uses it.
+**Status:** Building
+
+**What was built**
+- **Where you land after signing in**, one rule for everyone (`src/lib/housing.ts`):
+  - **In a home** → Home, whatever your role (a platform admin or property
+    manager who lives in a home lands on Home too).
+  - **Waiting for a join request to be approved** → "Your homes", where it
+    shows as pending.
+  - **Property manager without a home** → the manager portal.
+  - **Platform admin without a home** → Admin.
+  - **Everyone else (home seekers)** → Find a Home (the listings).
+- **No platform numbers outside Admin.** The "Your homes" page used to show
+  total users, apartments, messages and expenses to platform admins; now it
+  only offers a link to Admin. It also lists your homes for every role (before,
+  an admin or manager who lived in a home didn't see it there).
+- **The Admin link** appears only for platform admins: in More → Account, and
+  on "Your homes".
+- **Household roles:** creating or deleting the cleaning rotation is now for
+  household admins only, on the server and on the page. Regular members don't
+  see those buttons and get "Only household admins can do this" if they try.
+  Marking your own turn done stays open to everyone. (Rent payer: only the
+  designated rent payer can confirm rent payments, as before.)
+- **Saved housing state:** each account reports Home Seeker, Found a Home or
+  Home Member. "Found a Home" is set by the Sprint 11 follow-up question.
+  Database change: one new, empty `foundHomeAt` date on users.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 120 (+12 new: states, landing rule, admin-in-a-home lands on Home, rotation admin-only)
+- [x] Lint: no new errors (70)
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com (with the database update)
 
 **Your test on apptmasters.com**
 1. Sign in with an account that has **no** apartment. → You land on Find a
