@@ -144,8 +144,18 @@ Still to do in Phase 1:
 - [ ] Owner stores the server's `.env.local` values in a password manager.
 - [ ] All Phase 1 items closed.
 
+## Decisions
+
+- **2026-10-07 (owner):**
+  1. All product work is built in this repository (the live app), not the
+     `develop` monorepo, and pushed to GitHub at the end of each day.
+  2. The Money ledger is built alongside the current finance code and compared
+     before switching over.
+  3. Features outside the blueprint move under More; calls move into Chat.
+  4. The remaining Phase 1 items here are delivered as **Phase S** in
+     `docs/BUILD_CHECKLIST.md`, with owner testing on apptmasters.com.
+
 ## Open decisions
 
-- Long-term relationship between this app and the `develop` monorepo.
 - Server size: the 1 GB instance swaps heavily during builds (~15 min);
   2 GB would cut deploys to a few minutes.
