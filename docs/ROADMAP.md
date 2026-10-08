@@ -103,8 +103,13 @@ Phase S, done 2026-10-08 (see `docs/BUILD_CHECKLIST.md` for the owner test):
       and key files never committed; `.env.example` holds placeholders only.
 - [x] **S7:** the 5 rules-of-hooks errors were one real bug: an expiring voice
       message crashed the open chat page (`VoiceMessage.tsx`). Lint 75 → 70.
-- [ ] **S8:** server hardening (nginx security headers, unattended upgrades,
-      security group, MySQL/coturn, SSH keys), asking the owner per change.
+- [x] **S8 (2026-10-08):** server review and owner-approved changes.
+      Firewall OK (only 22/80/443 reachable from the internet). SSH
+      passwords off. MySQL local-only. coturn kept (needed for calls).
+      Installed 11 pending security updates and rebooted (46 s downtime).
+      Nightly `cleanup-unverified` scheduled at 03:00. Declined for now:
+      nginx security headers, hiding the `X-Powered-By` header. Undecided:
+      SSH key `claude-code-apptmasters` (not the key used for deploys).
 
 Open (recorded in `docs/SECURITY.md`):
 

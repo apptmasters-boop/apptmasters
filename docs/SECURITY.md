@@ -72,6 +72,20 @@ Every handler calls `requireSuperAdmin`.
 ### Scheduled jobs (`/api/cron/**`)
 `x-cron-secret` must equal `CRON_SECRET`; refused if `CRON_SECRET` is not set.
 
+## Server (reviewed 2026-10-08)
+
+- Reachable from the internet: 22 (SSH), 80 and 443 (nginx) only. Port 3000
+  (the app), Postgres, MySQL and TCP 3478 are closed to the outside.
+- SSH: keys only (password login off); root login key-only. Deploys use the key
+  `appmasters`. A second key, `claude-code-apptmasters`, is also allowed; its
+  origin is unconfirmed (owner deciding).
+- Automatic security updates on; latest pending updates installed and rebooted
+  2026-10-08.
+- coturn (TURN server for calls) runs; MySQL runs local-only (may be used by
+  other projects on this host). Apache is installed but disabled.
+- Not set: nginx security headers (HSTS, nosniff, frame-ancestors). Owner
+  declined for now.
+
 ## Known open items
 
 - **Changing or resetting a password doesn't sign out other devices.** Login

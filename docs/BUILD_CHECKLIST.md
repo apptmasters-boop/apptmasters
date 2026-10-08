@@ -47,7 +47,7 @@ the order comes from the roadmap in the [README](../README.md).
 
 ## Phase S — Security (remaining items)
 
-**Status:** Ready for your test (S1–S7, live since 2026-10-08) · S8 not started
+**Status:** Approved (S1–S7, 2026-10-08) · S8 awaiting per-change approval
 
 **What I'm building**
 - **S1. Live chat without the login token in the web address.** Today the live
@@ -109,8 +109,14 @@ the order comes from the roadmap in the [README](../README.md).
 7. **Everything else is unchanged.** Sign in, open your apartment, look at the
    chores, grocery and finance pages. → Everything works as before.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
-**S8 server changes:** each listed separately here with [ ] approve / [ ] decline before it's applied.
+**Sign-off:** [x] Approved on 2026-10-08 (S1–S7)
+**S8 server changes** (decided 2026-10-08):
+- [x] Approved: schedule the nightly cleanup of unconfirmed sign-ups (03:00). Done; first run OK.
+- [x] Approved: install 11 pending security updates and reboot. Done; site down 46 s, all services came back by themselves.
+- [ ] Declined for now: security headers in nginx.
+- [ ] Declined for now: hide the "Next.js" header.
+- [ ] Open question: SSH key "claude-code-apptmasters". Not the key used for deploys, so removing it would not lock anyone out. Waiting for the owner's decision.
+- No change needed: firewall (only SSH/web reachable), SSH passwords already off, MySQL local-only, TURN server needed for calls.
 
 ---
 
