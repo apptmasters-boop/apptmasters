@@ -15,23 +15,21 @@ export async function DELETE(
     return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
   }
 
-  // Verify the target user has no active memberships in any of the manager's apartments
-  const managedApartmentIds = (
-    await prisma.apartment.findMany({
-      where: { managerId: payload.userId },
-      select: { id: true },
-    })
-  ).map(a => a.id);
-
-  const activeMemberships = await prisma.apartmentMember.findMany({
-    where: {
-      userId: targetId,
-      apartmentId: { in: managedApartmentIds },
-      status: { not: "MOVED_OUT" },
-    },
+  // A manager may only delete the account of a plain user who was a tenant in
+  // one of the manager's own apartments. (Previously any user with no active
+  // membership in the manager's apartments qualified, i.e. almost anyone on the
+  // platform, including admins.)
+  const target = await prisma.user.findUnique({
+    where: { id: targetId },
+    select: { systemRole: true, memberships: { select: { status: true, apartment: { select: { managerId: true } } } } },
   });
+  const wasMyTenant = target?.memberships.some(m => m.apartment.managerId === payload.userId);
+  if (!target || target.systemRole !== "USER" || !wasMyTenant) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
-  if (activeMemberships.length > 0) {
+  // Their whole account goes, so they must not still live anywhere on the platform.
+  if (target.memberships.some(m => m.status !== "MOVED_OUT")) {
     return NextResponse.json(
       { error: "Remove the tenant from all apartments before deleting their account." },
       { status: 409 }

@@ -66,7 +66,22 @@ export async function POST(
   const { otherUserId, listingTitle, senderIsOwner } = resolved;
 
   const { content } = await req.json();
-  if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
+  if (typeof content !== "string" || !content.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
+  if (content.length > 4000) return NextResponse.json({ error: "Message is too long" }, { status: 400 });
+
+  if (senderIsOwner) {
+    // Owners reply to people who contacted them; they can't open threads with
+    // arbitrary user ids (that would let anyone with a listing message anyone).
+    const contacted = await prisma.listingMessage.findFirst({
+      where: { listingId, senderId: otherUserId, receiverId: payload.userId },
+      select: { id: true },
+    });
+    if (!contacted) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  } else {
+    // New conversations only about listings that are publicly visible.
+    const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { status: true } });
+    if (listing?.status !== "APPROVED") return NextResponse.json({ error: "This listing is no longer available" }, { status: 400 });
+  }
 
   const message = await prisma.listingMessage.create({
     data: { listingId, senderId: payload.userId, receiverId: otherUserId, content: content.trim() },
