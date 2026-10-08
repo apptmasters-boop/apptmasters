@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
 import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
 import { notify } from "@/lib/notify";
-import { nextDueDate } from "@/lib/rotation";
+import { nextDueDate, nextMemberIndex } from "@/lib/rotation";
 
 // POST = admin approves a pending out-of-turn advance request
 export async function POST(
@@ -41,11 +41,7 @@ export async function POST(
   const travelingIds = new Set(travelers.map(t => t.userId));
 
   const order: string[] = JSON.parse(rotation.memberOrder);
-  let nextIndex = rotation.currentIndex;
-  for (let i = 1; i <= order.length; i++) {
-    const candidate = (rotation.currentIndex + i) % order.length;
-    if (!travelingIds.has(order[candidate])) { nextIndex = candidate; break; }
-  }
+  const nextIndex = nextMemberIndex(order, rotation.currentIndex, uid => travelingIds.has(uid));
 
   await prisma.cleaningLog.create({
     data: {

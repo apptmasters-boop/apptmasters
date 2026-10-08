@@ -1,479 +1,388 @@
 "use client";
+/**
+ * Household → Cleaning (docs/PRODUCT_LOGIC.md §8): one whole-home rotation with
+ * three views — Rotation (whose turn, mark as cleaned), Schedule (next turns,
+ * skipping people who'll be away) and History. Creating or deleting a rotation
+ * is in a settings area for household admins only.
+ */
 import { BackLink } from "@/components/home/HomeNav";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
 
 const FREQS = ["DAILY", "WEEKLY", "MONTHLY"] as const;
 const FREQ_LABELS: Record<string, string> = { DAILY: "Daily", WEEKLY: "Weekly", MONTHLY: "Monthly" };
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const TABS = ["rotation", "schedule", "history"] as const;
+type Tab = (typeof TABS)[number];
 
 interface RotationMember { id: string; name: string; traveling: boolean }
-interface CleaningLog {
-  id: string; photoUrl: string | null; notes: string | null; cleanedAt: string;
-  cleanedBy: { id: string; name: string };
-}
+interface CleaningLog { id: string; photoUrl: string | null; notes: string | null; cleanedAt: string; cleanedBy: { id: string; name: string } }
 interface Rotation {
-  id: string; frequency: string; currentIndex: number;
-  nextDue: string | null;
-  dueWeekday: number | null;
-  currentUserId: string; currentUserName: string;
-  nextUserId: string; nextUserName: string;
-  memberOrder: RotationMember[];
-  logs: CleaningLog[];
-  pendingAdvanceById: string | null;
-  pendingAdvanceByName: string | null;
+  id: string; frequency: string; currentIndex: number; nextDue: string | null; dueWeekday: number | null;
+  currentUserId: string; currentUserName: string; nextUserId: string; nextUserName: string;
+  memberOrder: RotationMember[]; logs: CleaningLog[];
+  schedule: { userId: string; name: string; due: string | null }[];
+  pendingAdvanceById: string | null; pendingAdvanceByName: string | null;
 }
 interface Member { id: string; name: string }
+
+const day = (iso: string, withWeekday = true) =>
+  new Date(iso).toLocaleDateString("en-US", { ...(withWeekday ? { weekday: "short" } : {}), month: "short", day: "numeric" });
+const primaryBtn = "rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60";
 
 export default function CleaningPage() {
   const { id: apartmentId } = useParams<{ id: string }>();
   const router = useRouter();
   const [rotations, setRotations] = useState<Rotation[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("rotation");
+  const [history, setHistory] = useState<CleaningLog[] | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [currentUserId, setCurrentUserId] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [form, setForm] = useState({ frequency: "WEEKLY" as string, memberIds: [] as string[], dueWeekday: null as number | null });
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [resolving, setResolving] = useState<string | null>(null);
+  const [resolving, setResolving] = useState(false);
 
-  // Photo modal state
-  const [doneModal, setDoneModal] = useState<string | null>(null); // rotationId
+  // "Mark as cleaned" dialog
+  const [doneFor, setDoneFor] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [doneNotes, setDoneNotes] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [advancing, setAdvancing] = useState(false);
+  const [submitting, setSubmitting] = useState<"" | "uploading" | "saving">("");
   const [doneError, setDoneError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  async function load() {
-    const [rotRes, aptRes, meRes] = await Promise.all([
+  const load = useCallback((isCurrent: () => boolean = () => true) =>
+    Promise.all([
       apiFetch(`/api/apartments/${apartmentId}/cleaning`),
       apiFetch(`/api/apartments/${apartmentId}`),
       apiFetch("/api/auth/me"),
-    ]);
-    if (rotRes.status === 401) { router.replace("/login"); return; }
-    setRotations(await rotRes.json());
-    if (aptRes.ok) {
-      const apt = await aptRes.json();
-      setMembers(apt.members.map((m: { user: Member }) => m.user));
-      setIsAdmin(apt.currentUserRole === "ADMIN");
-    }
-    if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); }
-    setLoading(false);
-  }
+    ]).then(async ([rotRes, aptRes, meRes]) => {
+      if (!isCurrent()) return;
+      if (rotRes.status === 401) { router.replace("/login"); return; }
+      const rots: Rotation[] = rotRes.ok ? await rotRes.json() : [];
+      const apt = aptRes.ok ? await aptRes.json() : null;
+      const me = meRes.ok ? await meRes.json() : null;
+      if (!isCurrent()) return;
+      setRotations(rots);
+      setSelectedId(prev => (prev && rots.some(r => r.id === prev) ? prev : rots[0]?.id ?? null));
+      if (apt) {
+        setMembers(apt.members.map((m: { user: Member }) => m.user));
+        setIsAdmin(apt.currentUserRole === "ADMIN");
+      }
+      if (me) setCurrentUserId(me.id);
+      setLoading(false);
+    }).catch(() => { if (isCurrent()) setLoading(false); }), [apartmentId, router]);
 
-  useEffect(() => { load(); }, [apartmentId]);
+  useEffect(() => {
+    let current = true;
+    load(() => current);
+    return () => { current = false; };
+  }, [load]);
+
+  // History loads when its tab is opened (and again after a new cleaning)
+  useEffect(() => {
+    if (tab !== "history" || !selectedId) return;
+    let current = true;
+    apiFetch(`/api/apartments/${apartmentId}/cleaning/${selectedId}/history`)
+      .then(res => (res.ok ? res.json() : []))
+      .then(logs => { if (current) setHistory(logs); })
+      .catch(() => {});
+    return () => { current = false; };
+  }, [tab, selectedId, apartmentId, rotations]);
+
+  if (loading) return <div className="flex min-h-[60vh] items-center justify-center text-sm text-gray-400">Loading…</div>;
+
+  const rot = rotations.find(r => r.id === selectedId) ?? null;
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
     if (form.memberIds.length < 2) return;
     setSaving(true);
-    await apiFetch(`/api/apartments/${apartmentId}/cleaning`, {
-      method: "POST",
-      body: JSON.stringify(form),
-    });
-    setForm({ frequency: "WEEKLY", memberIds: [], dueWeekday: null });
-    setShowForm(false);
+    const res = await apiFetch(`/api/apartments/${apartmentId}/cleaning`, { method: "POST", body: JSON.stringify(form) });
     setSaving(false);
+    if (!res.ok) { alert((await res.json().catch(() => ({}))).error ?? "Could not create the rotation."); return; }
+    setForm({ frequency: "WEEKLY", memberIds: [], dueWeekday: null });
+    setShowSettings(false);
+    load();
+  }
+  async function del(rotationId: string) {
+    if (!confirm("Delete this cleaning rotation? Its history is deleted too.")) return;
+    await apiFetch(`/api/apartments/${apartmentId}/cleaning/${rotationId}`, { method: "DELETE" });
+    load();
+  }
+  async function resolveAdvance(rotationId: string, action: "approve" | "reject") {
+    setResolving(true);
+    await apiFetch(`/api/apartments/${apartmentId}/cleaning/${rotationId}/${action}-advance`, { method: "POST" });
+    setResolving(false);
     load();
   }
 
-  function openDoneModal(rotationId: string) {
-    setDoneModal(rotationId);
-    setPhotoFile(null);
-    setPhotoPreview(null);
-    setDoneNotes("");
-    setDoneError(null);
+  function openDone(rotationId: string) {
+    setDoneFor(rotationId); setPhotoFile(null); setPhotoPreview(null); setDoneNotes(""); setDoneError(null);
   }
-
-  function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setPhotoFile(f);
-    setPhotoPreview(URL.createObjectURL(f));
-  }
-
   async function submitDone() {
-    if (!doneModal) return;
-    setAdvancing(true);
+    if (!doneFor) return;
     setDoneError(null);
     let photoUrl: string | undefined;
-
     if (photoFile) {
-      setUploading(true);
+      setSubmitting("uploading");
       const fd = new FormData();
       fd.append("photo", photoFile);
-      const res = await apiFetch("/api/upload/cleaning-photo", { method: "POST", body: fd });
-      if (res.ok) { photoUrl = (await res.json()).url; }
-      setUploading(false);
+      const up = await apiFetch("/api/upload/cleaning-photo", { method: "POST", body: fd });
+      if (!up.ok) { setSubmitting(""); setDoneError((await up.json().catch(() => ({}))).error ?? "Photo upload failed"); return; }
+      photoUrl = (await up.json()).url;
     }
-
-    const res = await apiFetch(`/api/apartments/${apartmentId}/cleaning/${doneModal}`, {
-      method: "POST",
-      body: JSON.stringify({ photoUrl, notes: doneNotes || undefined }),
+    setSubmitting("saving");
+    const res = await apiFetch(`/api/apartments/${apartmentId}/cleaning/${doneFor}`, {
+      method: "POST", body: JSON.stringify({ photoUrl, notes: doneNotes || undefined }),
     });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      setDoneError(data?.error ?? "Something went wrong");
-      setAdvancing(false);
-      return;
-    }
-
-    if (res.status === 202) {
-      setDoneModal(null);
-      setAdvancing(false);
-      alert("Request sent to the apartment admin for approval.");
-      load();
-      return;
-    }
-
-    setDoneModal(null);
-    setAdvancing(false);
+    setSubmitting("");
+    if (!res.ok) { setDoneError((await res.json().catch(() => null))?.error ?? "Something went wrong"); return; }
+    setDoneFor(null);
+    if (res.status === 202) alert("Sent to the household admins for approval.");
     load();
   }
 
-  async function resolveAdvance(rotationId: string, action: "approve" | "reject") {
-    setResolving(rotationId);
-    await apiFetch(`/api/apartments/${apartmentId}/cleaning/${rotationId}/${action}-advance`, { method: "POST" });
-    setResolving(null);
-    load();
-  }
+  const toggleMember = (mid: string) => setForm(f => ({ ...f, memberIds: f.memberIds.includes(mid) ? f.memberIds.filter(m => m !== mid) : [...f.memberIds, mid] }));
+  const moveMember = (mid: string, dir: -1 | 1) => setForm(f => {
+    const arr = [...f.memberIds]; const i = arr.indexOf(mid); const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return f;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    return { ...f, memberIds: arr };
+  });
 
-  async function del(rotationId: string) {
-    if (!confirm("Delete this cleaning rotation?")) return;
-    setDeleting(rotationId);
-    await apiFetch(`/api/apartments/${apartmentId}/cleaning/${rotationId}`, { method: "DELETE" });
-    setDeleting(null);
-    load();
-  }
-
-  function toggleMember(id: string) {
-    setForm(f => ({
-      ...f,
-      memberIds: f.memberIds.includes(id) ? f.memberIds.filter(m => m !== id) : [...f.memberIds, id],
-    }));
-  }
-
-  function moveMember(id: string, dir: -1 | 1) {
-    setForm(f => {
-      const arr = [...f.memberIds];
-      const i = arr.indexOf(id);
-      if (i < 0) return f;
-      const j = i + dir;
-      if (j < 0 || j >= arr.length) return f;
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-      return { ...f, memberIds: arr };
-    });
-  }
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
+  const isMyTurn = !!rot && rot.currentUserId === currentUserId;
+  const hasPending = !!rot?.pendingAdvanceById;
+  const canMark = !!rot && (!rot.nextDue || new Date(rot.nextDue) <= new Date()) && !hasPending;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <BackLink />
-          <span className="text-gray-300">|</span>
-          <span className="font-bold text-gray-900">Cleaning Rotation</span>
+    <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6 md:py-10">
+      <div className="flex items-center justify-between">
+        <BackLink />
+        <NotificationBell apartmentId={apartmentId} />
+      </div>
+      <h1 className="mt-3 text-2xl font-bold text-gray-900">Cleaning</h1>
+      <p className="mt-1 text-sm text-gray-500">Everyone takes turns cleaning the whole home.</p>
+
+      {rotations.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-gray-200 px-4 py-10 text-center">
+          <p className="font-medium text-gray-800">No cleaning rotation yet</p>
+          <p className="mt-1 text-sm text-gray-500">{isAdmin ? "Set one up below so everyone takes turns." : "Only household admins can set up the cleaning rotation."}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <NotificationBell apartmentId={apartmentId} />
-          {isAdmin && (
-            <button onClick={() => setShowForm(s => !s)}
-              className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-              + New rotation
-            </button>
+      ) : rot && (
+        <>
+          {rotations.length > 1 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {rotations.map((r, i) => (
+                <button key={r.id} onClick={() => { setSelectedId(r.id); setHistory(null); }} aria-pressed={r.id === rot.id}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium ${r.id === rot.id ? "border-brand bg-brand text-white" : "border-gray-300 text-gray-700"}`}>
+                  {FREQ_LABELS[r.frequency]} rotation {i + 1}
+                </button>
+              ))}
+            </div>
           )}
-        </div>
-      </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-4">
-
-        {/* Create form */}
-        {showForm && (
-          <form onSubmit={create} className="bg-white border border-blue-200 rounded-xl p-5 space-y-4">
-            <h3 className="font-semibold text-gray-900">New cleaning rotation</h3>
-            <div>
-              <label className="text-xs text-gray-500 mb-2 block font-medium">Frequency</label>
-              <div className="flex gap-2">
-                {FREQS.map(f => (
-                  <button key={f} type="button" onClick={() => setForm(prev => ({ ...prev, frequency: f }))}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                      form.frequency === f ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
-                    }`}>
-                    {FREQ_LABELS[f]}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {form.frequency === "WEEKLY" && (
-              <div>
-                <label className="text-xs text-gray-500 mb-2 block font-medium">Due day (fixed every week)</label>
-                <select value={form.dueWeekday ?? ""} onChange={e => setForm(prev => ({ ...prev, dueWeekday: e.target.value === "" ? null : Number(e.target.value) }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">No fixed day — 7 days from creation</option>
-                  {WEEKDAYS.map((day, i) => (
-                    <option key={day} value={i}>{day}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-400 mt-1">Cleaning early or late never shifts this — it stays due every {form.dueWeekday !== null ? WEEKDAYS[form.dueWeekday] : "chosen day"}.</p>
-              </div>
-            )}
-            <div>
-              <label className="text-xs text-gray-500 mb-2 block font-medium">Select members & set order</label>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {members.filter(m => !form.memberIds.includes(m.id)).map(m => (
-                  <button key={m.id} type="button" onClick={() => toggleMember(m.id)}
-                    className="text-xs border border-gray-300 rounded-full px-3 py-1 hover:border-blue-400 hover:text-blue-600 transition-colors">
-                    + {m.name}
-                  </button>
-                ))}
-              </div>
-              {form.memberIds.length > 0 && (
-                <div className="space-y-1.5">
-                  {form.memberIds.map((id, i) => {
-                    const name = members.find(m => m.id === id)?.name ?? id;
-                    return (
-                      <div key={id} className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                        <span className="w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center font-bold flex-shrink-0">{i + 1}</span>
-                        <span className="text-sm text-gray-800 flex-1">{name}</span>
-                        <button type="button" onClick={() => moveMember(id, -1)} disabled={i === 0} className="text-gray-400 hover:text-gray-600 disabled:opacity-20 text-lg leading-none">↑</button>
-                        <button type="button" onClick={() => moveMember(id, 1)} disabled={i === form.memberIds.length - 1} className="text-gray-400 hover:text-gray-600 disabled:opacity-20 text-lg leading-none">↓</button>
-                        <button type="button" onClick={() => toggleMember(id)} className="text-red-400 hover:text-red-600 text-lg leading-none">×</button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {form.memberIds.length < 2 && <p className="text-xs text-gray-400 mt-2">Add at least 2 members</p>}
-            </div>
-            <div className="flex gap-2">
-              <button type="submit" disabled={saving || form.memberIds.length < 2}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                {saving ? "Creating…" : "Create rotation"}
+          <div className="mt-5 grid grid-cols-3 gap-1 rounded-xl bg-gray-100 p-1" role="tablist">
+            {TABS.map(t => (
+              <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
+                className={`rounded-lg py-2 text-sm font-medium capitalize ${tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>
+                {t}
               </button>
-              <button type="button" onClick={() => setShowForm(false)} className="text-sm text-gray-500 px-4 py-2">Cancel</button>
-            </div>
-          </form>
-        )}
-
-        {rotations.length === 0 && !showForm && (
-          <div className="text-center py-16 text-gray-400">
-            <p className="text-4xl mb-3">🧹</p>
-            <p className="font-medium text-gray-600 mb-1">No cleaning rotation yet</p>
-            {isAdmin ? (
-              <>
-                <p className="text-sm mb-4">Set up a rotation so everyone takes turns cleaning the apartment.</p>
-                <button onClick={() => setShowForm(true)}
-                  className="text-sm bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                  Create one
-                </button>
-              </>
-            ) : (
-              <p className="text-sm">Only household admins can set up the cleaning rotation.</p>
-            )}
+            ))}
           </div>
-        )}
 
-        {rotations.map(rot => {
-          const isMyTurn = rot.currentUserId === currentUserId;
-          const lastLog = rot.logs[0];
-          const hasPending = !!rot.pendingAdvanceById;
-          const canAdvance = (!rot.nextDue || new Date(rot.nextDue) <= new Date()) && !hasPending;
-          return (
-            <div key={rot.id} className={`bg-white border rounded-2xl overflow-hidden ${isMyTurn ? "border-blue-300 shadow-sm" : "border-gray-200"}`}>
-              {/* Header */}
-              <div className={`px-5 py-4 ${isMyTurn ? "bg-blue-600" : "bg-gray-50 border-b border-gray-100"}`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className={`text-xs font-semibold uppercase tracking-wide mb-0.5 ${isMyTurn ? "text-blue-200" : "text-gray-400"}`}>
-                      {FREQ_LABELS[rot.frequency]} cleaning
-                    </p>
-                    <p className={`font-bold text-lg ${isMyTurn ? "text-white" : "text-gray-900"}`}>
-                      {isMyTurn ? "Your turn to clean!" : `${rot.currentUserName}'s turn`}
-                    </p>
-                    {rot.nextDue && (
-                      <p className={`text-xs mt-0.5 ${isMyTurn ? "text-blue-200" : "text-gray-400"}`}>
-                        Due {new Date(rot.nextDue).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-                      </p>
-                    )}
-                  </div>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold flex-shrink-0 ${isMyTurn ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"}`}>
-                    {rot.currentUserName[0]?.toUpperCase()}
-                  </div>
-                </div>
+          {tab === "rotation" && (
+            <section className="mt-5 space-y-4">
+              <div className={`rounded-2xl border px-5 py-5 ${isMyTurn ? "border-brand bg-brand text-white" : "border-gray-200 bg-white"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-wide ${isMyTurn ? "text-white/80" : "text-gray-500"}`}>{FREQ_LABELS[rot.frequency]} cleaning</p>
+                <p className={`mt-1 text-xl font-bold ${isMyTurn ? "" : "text-gray-900"}`}>{isMyTurn ? "It's your turn to clean" : `${rot.currentUserName}'s turn`}</p>
+                {rot.nextDue && <p className={`mt-0.5 text-sm ${isMyTurn ? "text-white/85" : "text-gray-500"}`}>Due {day(rot.nextDue)}</p>}
+                <button onClick={() => openDone(rot.id)} disabled={!canMark}
+                  className={`mt-4 w-full rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60 ${isMyTurn ? "bg-white text-brand" : "bg-brand text-white hover:bg-brand-dark"}`}>
+                  {hasPending ? "Waiting for admin approval"
+                    : !canMark && rot.nextDue ? `Done for now · next turn ${day(rot.nextDue, false)}`
+                    : isMyTurn ? "Mark as cleaned" : "I cleaned instead (needs admin approval)"}
+                </button>
               </div>
 
-              {/* Last cleaned */}
-              {lastLog && (
-                <div className="px-5 pt-3 pb-0 flex items-center gap-3">
-                  {lastLog.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={lastLog.photoUrl} alt="Last clean" className="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
+              {hasPending && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30">
+                  {isAdmin ? (
+                    <>
+                      <p><span className="font-medium">{rot.pendingAdvanceByName}</span> says they cleaned out of turn.</p>
+                      <div className="mt-2 flex gap-2">
+                        <button onClick={() => resolveAdvance(rot.id, "approve")} disabled={resolving} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Approve</button>
+                        <button onClick={() => resolveAdvance(rot.id, "reject")} disabled={resolving} className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium">Decline</button>
+                      </div>
+                    </>
                   ) : (
-                    <div className="w-12 h-12 rounded-lg bg-green-50 border border-green-100 flex items-center justify-center text-xl flex-shrink-0">✓</div>
+                    <p>{rot.pendingAdvanceById === currentUserId ? "Your" : `${rot.pendingAdvanceByName}'s`} out-of-turn cleaning is waiting for admin approval.</p>
                   )}
-                  <div>
-                    <p className="text-xs text-gray-500">
-                      Last cleaned by <span className="font-medium text-gray-700">{lastLog.cleanedBy.name}</span>
-                      {" · "}{new Date(lastLog.cleanedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </p>
-                    {lastLog.notes && <p className="text-xs text-gray-400 italic">{lastLog.notes}</p>}
-                  </div>
                 </div>
               )}
 
-              {/* Recent history thumbnails */}
-              {rot.logs.length > 1 && (
-                <div className="px-5 pt-2 flex gap-1.5">
-                  {rot.logs.slice(1).map(log => log.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img key={log.id} src={log.photoUrl} alt="" className="w-8 h-8 rounded-md object-cover border border-gray-200 opacity-60" />
-                  ) : null)}
-                </div>
-              )}
-
-              {/* Member order */}
-              <div className="px-5 py-3">
-                <p className="text-xs text-gray-400 font-medium mb-2">Rotation order</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Order</p>
+                <ol className="mt-2 space-y-1.5">
                   {rot.memberOrder.map((m, i) => (
-                    <div key={m.id} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${
-                      m.id === rot.currentUserId
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : m.traveling ? "bg-amber-50 text-amber-600 border-amber-200"
-                        : "bg-gray-50 text-gray-600 border-gray-200"
-                    }`}>
-                      <span className="font-bold">{i + 1}</span>
-                      <span>{m.name}</span>
-                      {m.traveling && <span>✈</span>}
-                    </div>
+                    <li key={m.id} className="flex items-center gap-2.5 text-sm">
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${m.id === rot.currentUserId ? "bg-brand text-white" : "bg-gray-100 text-gray-600"}`}>{i + 1}</span>
+                      <span className="flex-1 text-gray-800">{m.name}{m.id === currentUserId && " (you)"}</span>
+                      {m.id === rot.currentUserId && <span className="text-xs font-medium text-brand">Now</span>}
+                      {m.id === rot.nextUserId && m.id !== rot.currentUserId && <span className="text-xs text-gray-500">Next</span>}
+                      {m.traveling && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">✈ Away · skipped</span>}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </section>
+          )}
+
+          {tab === "schedule" && (
+            <section className="mt-5">
+              <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                {rot.schedule.map((t, i) => (
+                  <li key={i} className={`flex items-center gap-3 px-4 py-3 ${t.userId === currentUserId ? "bg-brand-soft/60 dark:bg-brand/20" : ""}`}>
+                    <span className="w-24 shrink-0 text-sm text-gray-500">{t.due ? day(t.due) : "Now"}</span>
+                    <span className="flex-1 text-sm font-medium text-gray-900">{t.name}{t.userId === currentUserId && " (you)"}</span>
+                    {i === 0 && <span className="text-xs font-medium text-brand">Current turn</span>}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-gray-500">People marked as traveling on a date are skipped for that turn.</p>
+            </section>
+          )}
+
+          {tab === "history" && (
+            <section className="mt-5">
+              {history === null ? <p className="py-6 text-center text-sm text-gray-400">Loading…</p>
+                : history.length === 0 ? <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-500">No cleanings recorded yet.</p>
+                : (
+                  <ul className="space-y-2">
+                    {history.map(log => (
+                      <li key={log.id} className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3">
+                        {log.photoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={log.photoUrl} alt="Cleaning photo" className="h-12 w-12 shrink-0 rounded-lg border border-gray-200 object-cover" />
+                        ) : (
+                          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand dark:bg-brand/30">✓</span>
+                        )}
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-gray-900">{log.cleanedBy.name}</span>
+                          <span className="block text-xs text-gray-500">{day(log.cleanedAt)}{log.notes ? ` · ${log.notes}` : ""}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+            </section>
+          )}
+        </>
+      )}
+
+      {isAdmin && (
+        <section className="mt-8">
+          <button onClick={() => setShowSettings(s => !s)} aria-expanded={showSettings} className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            {showSettings ? "▾" : "▸"} Rotation settings (admins)
+          </button>
+          {showSettings && (
+            <div className="mt-3 space-y-4 rounded-2xl border border-gray-200 bg-white p-4">
+              {rot && (
+                <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-4">
+                  <p className="text-sm text-gray-700">Delete the {FREQ_LABELS[rot.frequency].toLowerCase()} rotation and its history.</p>
+                  <button onClick={() => del(rot.id)} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">Delete</button>
+                </div>
+              )}
+              <form onSubmit={create} className="space-y-3">
+                <p className="text-sm font-semibold text-gray-900">New rotation</p>
+                <div className="flex gap-2">
+                  {FREQS.map(f => (
+                    <button key={f} type="button" onClick={() => setForm(p => ({ ...p, frequency: f }))} aria-pressed={form.frequency === f}
+                      className={`flex-1 rounded-lg border py-2 text-sm font-medium ${form.frequency === f ? "border-brand bg-brand text-white" : "border-gray-300 text-gray-700"}`}>
+                      {FREQ_LABELS[f]}
+                    </button>
                   ))}
                 </div>
-                {rot.memberOrder.some(m => m.traveling) && (
-                  <p className="text-xs text-amber-600 mt-2">✈ Traveling members are skipped in the rotation.</p>
+                {form.frequency === "WEEKLY" && (
+                  <label className="block text-xs text-gray-600">
+                    Cleaning day
+                    <select value={form.dueWeekday ?? ""} onChange={e => setForm(p => ({ ...p, dueWeekday: e.target.value === "" ? null : Number(e.target.value) }))}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                      <option value="">No fixed day (7 days from today)</option>
+                      {WEEKDAYS.map((d, i) => <option key={d} value={i}>{d}</option>)}
+                    </select>
+                  </label>
                 )}
-              </div>
-
-              {rot.nextUserId !== rot.currentUserId && (
-                <div className="px-5 pb-1">
-                  <p className="text-xs text-gray-400">Next up: <span className="font-medium text-gray-700">{rot.nextUserName}</span></p>
-                </div>
-              )}
-
-              {/* Pending out-of-turn advance request */}
-              {hasPending && isAdmin && (
-                <div className="mx-5 mb-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                  <p className="text-sm text-amber-800">
-                    <span className="font-medium">{rot.pendingAdvanceByName}</span> wants to advance the rotation out of turn.
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={() => resolveAdvance(rot.id, "approve")} disabled={resolving === rot.id}
-                      className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors">
-                      {resolving === rot.id ? "…" : "Approve"}
-                    </button>
-                    <button onClick={() => resolveAdvance(rot.id, "reject")} disabled={resolving === rot.id}
-                      className="text-xs border border-amber-300 text-amber-700 px-3 py-1.5 rounded-lg font-medium hover:bg-amber-100 transition-colors">
-                      Reject
-                    </button>
+                <div>
+                  <p className="text-xs text-gray-600">Members, in order</p>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {members.filter(m => !form.memberIds.includes(m.id)).map(m => (
+                      <button key={m.id} type="button" onClick={() => toggleMember(m.id)} className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-700 hover:border-brand">+ {m.name}</button>
+                    ))}
                   </div>
+                  <ol className="mt-2 space-y-1.5">
+                    {form.memberIds.map((mid, i) => (
+                      <li key={mid} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-sm">
+                        <span className="w-5 text-xs font-bold text-gray-500">{i + 1}</span>
+                        <span className="flex-1">{members.find(m => m.id === mid)?.name ?? mid}</span>
+                        <button type="button" aria-label="Move up" onClick={() => moveMember(mid, -1)} disabled={i === 0} className="px-1 disabled:opacity-20">↑</button>
+                        <button type="button" aria-label="Move down" onClick={() => moveMember(mid, 1)} disabled={i === form.memberIds.length - 1} className="px-1 disabled:opacity-20">↓</button>
+                        <button type="button" aria-label="Remove" onClick={() => toggleMember(mid)} className="px-1 text-red-500">×</button>
+                      </li>
+                    ))}
+                  </ol>
+                  {form.memberIds.length < 2 && <p className="mt-1 text-xs text-gray-500">Add at least 2 people.</p>}
                 </div>
-              )}
-              {hasPending && !isAdmin && (
-                <div className="mx-5 mb-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
-                  <p className="text-xs text-amber-700">
-                    {rot.pendingAdvanceById === currentUserId ? "Your" : `${rot.pendingAdvanceByName}'s`} request to advance this rotation is awaiting admin approval.
-                  </p>
-                </div>
-              )}
-
-              <div className="px-5 pb-4 flex gap-2 border-t border-gray-100 pt-3">
-                <button onClick={() => openDoneModal(rot.id)} disabled={!canAdvance}
-                  className="flex-1 text-sm bg-blue-600 text-white py-2 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors">
-                  {hasPending
-                    ? "Pending admin approval"
-                    : !canAdvance && rot.nextDue
-                    ? `Already logged · next turn ${new Date(rot.nextDue).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-                    : isMyTurn ? "Mark done & pass to next" : "Request advance (needs admin approval)"}
-                </button>
-                {isAdmin && (
-                  <button onClick={() => del(rot.id)} disabled={deleting === rot.id}
-                    className="text-sm text-red-400 hover:text-red-600 px-3 transition-colors">
-                    {deleting === rot.id ? "…" : "Delete"}
-                  </button>
-                )}
-              </div>
+                <button type="submit" disabled={saving || form.memberIds.length < 2} className={primaryBtn}>{saving ? "Creating…" : "Create rotation"}</button>
+              </form>
             </div>
-          );
-        })}
-      </main>
+          )}
+        </section>
+      )}
 
-      {/* Done modal — photo upload */}
-      {doneModal && (() => {
-        const modalRotation = rotations.find(r => r.id === doneModal);
-        const modalIsMyTurn = modalRotation?.currentUserId === currentUserId;
+      {doneFor && (() => {
+        const mine = rotations.find(r => r.id === doneFor)?.currentUserId === currentUserId;
         return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
-            <h3 className="font-bold text-gray-900">{modalIsMyTurn ? "Mark cleaning done" : "Request rotation advance"}</h3>
-            <p className="text-sm text-gray-500">
-              {modalIsMyTurn
-                ? "Optionally add a photo as proof and a short note before passing to the next person."
-                : "It's not your turn — this will be sent to the apartment admin for approval before the rotation advances."}
-            </p>
-
-            {/* Photo upload */}
-            <div>
-              <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={pickPhoto} />
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="done-title">
+            <div className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6">
+              <h2 id="done-title" className="font-bold text-gray-900">{mine ? "Mark as cleaned" : "I cleaned instead"}</h2>
+              <p className="text-sm text-gray-600">
+                {mine ? "Add a photo or note if you like. Then the next person's turn starts and it's saved in History."
+                  : "It's not your turn, so a household admin approves this before the rotation moves on."}
+              </p>
+              <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) { setPhotoFile(f); setPhotoPreview(URL.createObjectURL(f)); } }} />
               {photoPreview ? (
                 <div className="relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoPreview} alt="Preview" className="w-full h-40 object-cover rounded-xl border border-gray-200" />
-                  <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
-                    className="absolute top-2 right-2 w-6 h-6 bg-black/50 text-white rounded-full text-xs flex items-center justify-center">
-                    ×
-                  </button>
+                  <img src={photoPreview} alt="Preview" className="h-40 w-full rounded-xl border border-gray-200 object-cover" />
+                  <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }} aria-label="Remove photo"
+                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-xs text-white">×</button>
                 </div>
               ) : (
-                <button onClick={() => fileRef.current?.click()}
-                  className="w-full border-2 border-dashed border-gray-300 rounded-xl py-8 flex flex-col items-center gap-2 text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="text-sm font-medium">Add photo (optional)</span>
+                <button onClick={() => fileRef.current?.click()} className="w-full rounded-xl border-2 border-dashed border-gray-300 py-6 text-sm font-medium text-gray-500 hover:border-brand hover:text-brand">
+                  Add photo (optional)
                 </button>
               )}
-            </div>
-
-            <input type="text" placeholder="Notes (optional)" value={doneNotes}
-              onChange={e => setDoneNotes(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-
-            {doneError && <p className="text-sm text-red-600">{doneError}</p>}
-
-            <div className="flex gap-2">
-              <button onClick={submitDone} disabled={advancing || uploading}
-                className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                {uploading ? "Uploading…" : advancing ? "Saving…" : modalIsMyTurn ? "Done — pass to next" : "Send request"}
-              </button>
-              <button onClick={() => setDoneModal(null)}
-                className="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl font-medium hover:bg-gray-50 transition-colors">
-                Cancel
-              </button>
+              <input type="text" placeholder="Note (optional)" value={doneNotes} onChange={e => setDoneNotes(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+              {doneError && <p className="text-sm text-red-600">{doneError}</p>}
+              <div className="flex gap-2">
+                <button onClick={submitDone} disabled={!!submitting} className={`flex-1 ${primaryBtn}`}>
+                  {submitting === "uploading" ? "Uploading…" : submitting === "saving" ? "Saving…" : mine ? "Done, next person's turn" : "Send for approval"}
+                </button>
+                <button onClick={() => setDoneFor(null)} className="flex-1 rounded-xl border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
+              </div>
             </div>
           </div>
-        </div>
         );
       })()}
-    </div>
+    </main>
   );
 }

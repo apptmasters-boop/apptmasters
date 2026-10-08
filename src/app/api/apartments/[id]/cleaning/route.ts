@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApartmentMember, requireApartmentAdmin } from "@/lib/access";
-import { nextDueDate, nextWeekdayDate } from "@/lib/rotation";
+import { nextDueDate, nextWeekdayDate, nextMemberIndex, upcomingTurns, isAwayOn } from "@/lib/rotation";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
@@ -25,16 +25,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
 
   const now = new Date();
-  const travelers = await prisma.travelPeriod.findMany({
-    where: {
-      apartmentId,
-      startDate: { lte: now },
-      returnedAt: null,
-      OR: [{ endDate: null }, { endDate: { gte: now } }],
-    },
-    select: { userId: true },
+  // Current and future trips: today's travelers are skipped now, later ones in the Schedule
+  const travels = await prisma.travelPeriod.findMany({
+    where: { apartmentId, returnedAt: null, OR: [{ endDate: null }, { endDate: { gte: now } }] },
+    select: { userId: true, startDate: true, endDate: true, returnedAt: true },
   });
-  const travelingIds = new Set(travelers.map(t => t.userId));
+  const travelingIds = new Set(travels.filter(t => isAwayOn([t], t.userId, now)).map(t => t.userId));
 
   const members = await prisma.apartmentMember.findMany({
     where: { apartmentId, status: "ACTIVE" },
@@ -45,13 +41,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const enriched = rotations.map(r => {
     const order: string[] = JSON.parse(r.memberOrder);
     const current = order[r.currentIndex % order.length];
-    const nextIndex = (() => {
-      for (let i = 1; i <= order.length; i++) {
-        const idx = (r.currentIndex + i) % order.length;
-        if (!travelingIds.has(order[idx])) return idx;
-      }
-      return (r.currentIndex + 1) % order.length;
-    })();
+    const nextIndex = nextMemberIndex(order, r.currentIndex, uid => travelingIds.has(uid));
+    const schedule = upcomingTurns({ memberOrder: order, currentIndex: r.currentIndex, nextDue: r.nextDue, frequency: r.frequency }, travels, 6)
+      .map(t => ({ userId: t.userId, name: memberMap[t.userId]?.name ?? "Unknown", due: t.due }));
     return {
       ...r,
       currentUserId: current,
@@ -59,6 +51,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       nextUserId: order[nextIndex],
       nextUserName: memberMap[order[nextIndex]]?.name ?? "Unknown",
       memberOrder: order.map(id => ({ id, name: memberMap[id]?.name ?? "Unknown", traveling: travelingIds.has(id) })),
+      schedule,
       pendingAdvanceByName: r.pendingAdvanceById ? (memberMap[r.pendingAdvanceById]?.name ?? "Unknown") : null,
     };
   });

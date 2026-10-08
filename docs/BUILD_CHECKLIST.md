@@ -368,6 +368,16 @@ saved → next person's turn scheduled*, all automatically.
 - **Settings tucked away:** creating and deleting a rotation sit in a small
   settings area that only household admins see, instead of large buttons.
 - The green design, like the rest of My Home.
+- **The Schedule can't disagree with what actually happens.** "Who's next"
+  was copied in three places; it's now one shared rule (`src/lib/rotation.ts`),
+  and the Schedule uses it too.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 141 (+7: schedule order and dates, skipping someone away, a finished trip isn't skipped, mark as cleaned saves history and passes the turn, history is per home)
+- [x] Lint: errors 69 → 68
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
 
 **Your test on apptmasters.com**
 1. Open **Household → Cleaning**. You see three tabs: **Rotation**,

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireApartmentMember, requireApartmentAdmin } from "@/lib/access";
 import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
 import { notify } from "@/lib/notify";
-import { nextDueDate, nextWeekdayDate } from "@/lib/rotation";
+import { nextDueDate, nextWeekdayDate, nextMemberIndex } from "@/lib/rotation";
 
 // POST = mark done & advance to next person
 export async function POST(
@@ -99,11 +99,7 @@ export async function POST(
   const travelingIds = new Set(travelers.map(t => t.userId));
 
   // Find next non-traveling member
-  let nextIndex = rotation.currentIndex;
-  for (let i = 1; i <= order.length; i++) {
-    const candidate = (rotation.currentIndex + i) % order.length;
-    if (!travelingIds.has(order[candidate])) { nextIndex = candidate; break; }
-  }
+  const nextIndex = nextMemberIndex(order, rotation.currentIndex, uid => travelingIds.has(uid));
 
   // Create cleaning log for the person who just cleaned
   await prisma.cleaningLog.create({
