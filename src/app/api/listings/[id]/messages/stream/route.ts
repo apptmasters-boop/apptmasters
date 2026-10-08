@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getTokenFromRequest } from "@/lib/auth";
+import { getStreamUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -8,11 +8,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const token = req.nextUrl.searchParams.get("token");
-  const fakeReq = token
-    ? new Request(req.url, { headers: { authorization: `Bearer ${token}` } })
-    : req;
-  const payload = getTokenFromRequest(fakeReq as NextRequest);
+  // EventSource can't send headers, so the caller passes a short-lived stream ticket
+  const payload = getStreamUser(req);
   if (!payload) return new Response("Unauthorized", { status: 401 });
 
   const { id: listingId } = await params;

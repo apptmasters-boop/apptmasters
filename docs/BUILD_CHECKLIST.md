@@ -27,7 +27,7 @@ the order comes from the roadmap in the [README](../README.md).
 
 ## Gate 0 — Plan and documents
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What was built**
 - `README.md`: project overview, how to run, test and deploy, the product
@@ -41,13 +41,13 @@ the order comes from the roadmap in the [README](../README.md).
 2. Open `docs/PRODUCT_LOGIC.md`. It matches the blueprint you sent.
 3. Read Phase S and Sprint 1 below. Is anything missing or wrong?
 
-**Sign-off:** [ ] Approved on ____  · Notes: ____
+**Sign-off:** [x] Approved on 2026-10-08
 
 ---
 
 ## Phase S — Security (remaining items)
 
-**Status:** Not started
+**Status:** Building
 
 **What I'm building**
 - **S1. Live chat without the login token in the web address.** Today the live

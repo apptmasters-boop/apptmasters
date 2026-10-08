@@ -46,6 +46,32 @@ export function verifyTwoFactorChallenge(challenge: string): string | null {
   }
 }
 
+/**
+ * Stream tickets let the browser open a live (EventSource) connection without
+ * putting the login token in the URL. EventSource can't send headers, so the
+ * ticket has to travel in the query string, where it lands in server logs.
+ * A ticket is therefore short-lived (60 s, checked only when the stream opens)
+ * and signed with its own key, so it can never be used as a login token.
+ * Clients get one from POST /api/stream-ticket; see src/lib/liveStream.ts.
+ */
+const streamSecret = () => `${jwtSecret()}:stream-ticket`;
+
+export function signStreamTicket(payload: JwtPayload): string {
+  return jwt.sign({ userId: payload.userId, email: payload.email }, streamSecret(), { expiresIn: "60s" });
+}
+
+/** The user behind the `?ticket=` of a stream request, or null if missing/invalid/expired. */
+export function getStreamUser(req: NextRequest): JwtPayload | null {
+  const ticket = req.nextUrl.searchParams.get("ticket");
+  if (!ticket) return null;
+  try {
+    const { userId, email } = jwt.verify(ticket, streamSecret()) as Partial<JwtPayload>;
+    return userId && email ? { userId, email } : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getTokenFromRequest(req: NextRequest): JwtPayload | null {
   const auth = req.headers.get("authorization");
   if (!auth?.startsWith("Bearer ")) return null;

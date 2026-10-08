@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { openLiveStream } from "@/lib/liveStream";
 import { apiFetch, getToken } from "@/lib/api";
 import { formatMessageTime } from "@/lib/time";
 
@@ -53,18 +54,15 @@ function MessagesThread() {
 
   useEffect(() => {
     if (!currentUserId) return;
-    const token = getToken();
-    const es = new EventSource(`/api/listings/${listingId}/messages/stream${query}${query ? "&" : "?"}token=${token}`);
-    es.onmessage = e => {
-      const incoming: Message[] = JSON.parse(e.data);
+    return openLiveStream(`/api/listings/${listingId}/messages/stream${query}`, data => {
+      const incoming = data as Message[];
       setMessages(prev => {
         const existingIds = new Set(prev.map(m => m.id));
         const next = incoming.filter(m => !existingIds.has(m.id));
         if (next.length && !otherName) setOtherName(next.find(m => m.sender.id !== currentUserId)?.sender.name ?? otherName);
         return next.length ? [...prev, ...next] : prev;
       });
-    };
-    return () => es.close();
+    });
   }, [listingId, withUserId, currentUserId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);

@@ -19,7 +19,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTokenFromRequest } from "@/lib/auth";
+import { getTokenFromRequest, type JwtPayload } from "@/lib/auth";
 
 type Membership = NonNullable<Awaited<ReturnType<typeof prisma.apartmentMember.findUnique>>>;
 
@@ -33,7 +33,14 @@ const deny = (status: 401 | 403, error: string): ApartmentAccess => ({
 });
 
 export async function requireApartmentMember(req: NextRequest, apartmentId: string): Promise<ApartmentAccess> {
-  const payload = getTokenFromRequest(req);
+  return checkApartmentMember(getTokenFromRequest(req), apartmentId);
+}
+
+/**
+ * The same membership rule for a caller identified some other way, e.g. by a
+ * stream ticket (getStreamUser in src/lib/auth.ts). `null` means not signed in.
+ */
+export async function checkApartmentMember(payload: JwtPayload | null, apartmentId: string): Promise<ApartmentAccess> {
   if (!payload) return deny(401, "Unauthorized");
 
   const membership = await prisma.apartmentMember.findUnique({

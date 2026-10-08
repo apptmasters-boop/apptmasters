@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, getToken } from "@/lib/api";
+import { openLiveStream } from "@/lib/liveStream";
+import { apiFetch } from "@/lib/api";
 import { formatMessageTime } from "@/lib/time";
 import CallOverlay from "@/components/CallOverlay";
 import AudioRecorder from "@/components/AudioRecorder";
@@ -51,17 +52,14 @@ export default function DMPage() {
 
   useEffect(() => {
     load();
-    const token = getToken();
-    const es = new EventSource(`/api/apartments/${apartmentId}/dm/${otherUserId}/stream?token=${token}`);
-    es.onmessage = e => {
-      const incoming: DirectMessage[] = JSON.parse(e.data);
+    return openLiveStream(`/api/apartments/${apartmentId}/dm/${otherUserId}/stream`, data => {
+      const incoming = data as DirectMessage[];
       setMessages(prev => {
         const existingIds = new Set(prev.map(m => m.id));
         const next = incoming.filter(m => !existingIds.has(m.id));
         return next.length ? [...prev, ...next] : prev;
       });
-    };
-    return () => es.close();
+    });
   }, [apartmentId, otherUserId]);
 
   useEffect(() => {

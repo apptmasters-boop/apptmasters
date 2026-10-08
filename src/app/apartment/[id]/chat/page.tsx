@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, getToken } from "@/lib/api";
+import { openLiveStream } from "@/lib/liveStream";
+import { apiFetch } from "@/lib/api";
 import { formatMessageTime } from "@/lib/time";
 import NotificationBell from "@/components/NotificationBell";
 import CallOverlay from "@/components/CallOverlay";
@@ -63,17 +64,14 @@ export default function ChatPage() {
 
   useEffect(() => {
     load();
-    const token = getToken();
-    const es = new EventSource(`/api/apartments/${apartmentId}/chat/stream?token=${token}`);
-    es.onmessage = e => {
-      const incoming = JSON.parse(e.data);
+    return openLiveStream(`/api/apartments/${apartmentId}/chat/stream`, data => {
+      const incoming = data as { id: string }[];
       setMessages(prev => {
         const existingIds = new Set(prev.map(m => m.id));
-        const next = incoming.filter((m: { id: string }) => !existingIds.has(m.id));
+        const next = incoming.filter(m => !existingIds.has(m.id)) as typeof prev;
         return next.length ? [...prev, ...next] : prev;
       });
-    };
-    return () => es.close();
+    });
   }, [apartmentId]);
 
   useEffect(() => {
