@@ -122,7 +122,7 @@ the order comes from the roadmap in the [README](../README.md).
 
 ## Sprint 1 — Foundation
 
-**Status:** 1a approved · 1b building · Spec: `PRODUCT_LOGIC.md` §2, §5, §17, §23
+**Status:** 1a approved · 1b ready for your test · Spec: `PRODUCT_LOGIC.md` §2, §5, §17, §23
 
 Split into two slices, each with its own sign-off.
 
@@ -190,7 +190,7 @@ Split into two slices, each with its own sign-off.
 
 ### 1b — User states and roles in context
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What was built**
 - **Where you land after signing in**, one rule for everyone (`src/lib/housing.ts`):
@@ -220,8 +220,11 @@ Split into two slices, each with its own sign-off.
 - [x] Type check passes
 - [x] Tests pass: 120 (+12 new: states, landing rule, admin-in-a-home lands on Home, rotation admin-only)
 - [x] Lint: no new errors (70)
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com (with the database update)
+- [x] CI green on GitHub (e61b1cd)
+- [x] Deployed to apptmasters.com 2026-10-08. The new column was added
+  directly: the usual `prisma db push` stopped because the live users table has
+  an extra old column (`platform_role`) that it wanted to delete. That column was
+  left untouched. A signed-in "who am I" request was checked on the live server.
 
 **Your test on apptmasters.com**
 1. Sign in with an account that has **no** apartment. → You land on Find a

@@ -169,5 +169,13 @@ Open (recorded in `docs/SECURITY.md`):
 
 ## Open decisions
 
+- **Schema drift (found 2026-10-08):** the live `User` table has an old
+  column `platform_role` (enum `super_admin | landlord | tenant`, default
+  `tenant`, filled for every user) that `prisma/schema.prisma` doesn't know.
+  `prisma db push` therefore wants to delete it and refuses (never use
+  `--accept-data-loss` here). Before the next schema change, either add it to
+  the schema to keep it, or decide to drop it. Until then, add new columns with
+  a plain `ALTER TABLE … ADD COLUMN`.
+
 - Server size: the 1 GB instance swaps heavily during builds (~15 min);
   2 GB would cut deploys to a few minutes.
