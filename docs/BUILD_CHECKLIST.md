@@ -47,7 +47,7 @@ the order comes from the roadmap in the [README](../README.md).
 
 ## Phase S — Security (remaining items)
 
-**Status:** Building
+**Status:** Ready for your test (S1–S7, live since 2026-10-08) · S8 not started
 
 **What I'm building**
 - **S1. Live chat without the login token in the web address.** Today the live
@@ -73,11 +73,20 @@ the order comes from the roadmap in the [README](../README.md).
   MySQL and the TURN server need to run.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (existing + new: stream ticket, backup-code sign-in, cleanup job, upload content check, route permissions)
-- [ ] Lint ratchet passes and the error count drops by at least 5
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com; live pages load; no new server errors
+- [x] Type check passes
+- [x] Tests pass: 93 (was 70). New: stream ticket, backup-code sign-in, cleanup job, upload content check, manager/listing-message permissions
+- [x] Lint ratchet passes; errors 75 → 70
+- [x] CI green on GitHub (commit 2901e4b)
+- [x] Deployed to apptmasters.com 2026-10-08; live pages load; no new server errors
+
+**What was found along the way**
+- **High:** a property manager could delete almost any account on the platform,
+  including admins. Fixed: only their own former tenants who have moved out.
+- **Bug:** the 5 code errors (S7) were one real crash. If a voice message
+  expired while the chat was open, the chat page broke. Fixed.
+- **Clean:** no passwords or keys anywhere in the code history (S6).
+- **Waiting for your OK:** the nightly cleanup job (S3) is built and tested,
+  but not switched on in the server's schedule yet.
 
 **Your test on apptmasters.com**
 1. **Group chat is still live.** Open your apartment's chat on your phone and on
