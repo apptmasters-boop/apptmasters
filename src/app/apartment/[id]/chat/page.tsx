@@ -152,13 +152,12 @@ export default function ChatPage() {
 
   return (
     // Keeps header + footer pinned — only the message list scrolls. Height accounts for
-    // the layout's mobile menu bar (h-12) above it; at md+ that bar is hidden, so h-screen applies.
-    <div className="h-[calc(100vh-3rem)] md:h-screen bg-gray-50 flex flex-col overflow-hidden">
+    // the layout's bottom bar (h-16) on phones; at md+ there is no bottom bar.
+    <div className="h-[calc(100dvh-4rem)] md:h-dvh bg-gray-50 flex flex-col overflow-hidden">
 
       {/* Sticky header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <Link href={`/apartment/${apartmentId}`} className="text-sm text-gray-400 hover:text-gray-600">←</Link>
           <span className="font-bold text-gray-900">Group Chat</span>
         </div>
         <div className="flex items-center gap-1">

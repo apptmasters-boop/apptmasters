@@ -1,4 +1,5 @@
 "use client";
+import { BackLink } from "@/components/home/HomeNav";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -179,7 +180,7 @@ export default function CleaningPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href={`/apartment/${apartmentId}`} className="text-sm text-gray-400 hover:text-gray-600">← Apartment</Link>
+          <BackLink />
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Cleaning Rotation</span>
         </div>

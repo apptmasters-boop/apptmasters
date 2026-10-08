@@ -122,43 +122,69 @@ the order comes from the roadmap in the [README](../README.md).
 
 ## Sprint 1 — Foundation
 
-**Status:** Not started · Spec: `PRODUCT_LOGIC.md` §2, §5, §23
+**Status:** 1a ready for your test · 1b not started · Spec: `PRODUCT_LOGIC.md` §2, §5, §17, §23
 
 Split into two slices, each with its own sign-off.
 
 ### 1a — Navigation and design system
 
-**What I'm building**
-- A bottom navigation bar for home members on phones, and the same five
-  destinations in a side menu on computers:
-  **Home · Household · Money · Chat · More**.
-- **Chat badge:** the unread-message count shows on the Chat tab.
-- **No back arrow on the five main pages.** Pages opened from them (an expense,
-  a rotation, a maintenance request…) have a back arrow to where you came from.
-- **More menu** grouped as in the blueprint:
-  - **Home Management:** Maintenance, Household Issues, Calendar.
-  - **Insights:** Activity, Stats.
-  - **Marketplace:** Search Listings, My Listings.
-  - **Account:** Profile, Notifications, Settings, Help.
-  - **The features you asked to keep:** roommate scores, rules & votes, shared
-    agreements, audit log.
-  - **Calls** move into Chat.
-- **The green Apartment Masters design** (as on the landing and sign-in pages)
-  applied to the home-member pages' navigation, headers and cards. The pages'
-  content stays the same in this slice.
+**Status:** Ready for your test
+
+**What was built**
+- **Five main destinations,** in a bottom bar on phones and a side menu on
+  computers, in the green design: **Home · Household · Money · Chat · More**.
+- **Chat badge:** unread group messages plus unread direct messages, shown on
+  the Chat tab. It updates when you move between pages and every 30 seconds.
+- **No back arrow on the five main pages.** The other pages have a back link
+  to the main page they belong to: Cleaning → "← Household", Rent → "← Money",
+  Calendar → "← More". This replaces the old "← Apartment" links on 20 pages.
+- **Household page:** Cleaning, Shopping list, Shopping rotation, Inventory,
+  Chores, Rooms.
+- **Money page:** Shared expenses & balances, Rent, Shared fund.
+- **More page:**
+  - **Home management:** Maintenance, Household issues, Calendar.
+  - **Insights:** Activity, Stats, Analytics.
+  - **Household records:** Roommate scores, Shared agreements, Audit log, Search.
+  - **Marketplace:** Search listings, My listings.
+  - **Account:** Profile & settings, Notifications, and Admin (platform admins only).
+  - **Sign out.**
+- **Calls:** were already started from inside Chat, so nothing moved.
+- **Not changed in this slice:**
+  - **Home** keeps today's dashboard. Sprint 2 rebuilds it as the priority feed.
+  - **House rules and votes** are still part of that dashboard; they move into
+    More when Home is rebuilt.
+  - **The pages' own content** keeps its current look; this slice changes the
+    navigation and the new menu pages.
+- The listings pages show the same navigation when you're a member of a home.
+- Removed: the old 16-link sidebar and an unused bottom-bar component.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 108 (+15 new: navigation rules for every page, unread count, members-only)
+- [x] Lint: no new errors (70)
+- [x] Local production build passes
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
 
 **Your test on apptmasters.com**
-1. On your phone, sign in as a home member. → A bar at the bottom shows Home,
-   Household, Money, Chat and More, in the green design.
-2. Tap each of the five. → Each opens without a back arrow at the top.
-3. From Money, open any expense or rent page. → It has a back arrow, and
-   tapping it returns to Money.
-4. Have a roommate send you a chat message while you're on Home. → The Chat
-   tab shows a number. After you open Chat, the number disappears.
-5. Open More. → You see the groups listed above, including Scores, Rules,
-   Agreements and Audit.
-6. Start a call. → It starts from inside Chat (there's no separate Calls page).
-7. On a computer, the same five destinations appear in the side menu.
+1. On your **phone**, sign in and open your home. → A bar at the bottom shows
+   Home, Household, Money, Chat and More. The page you're on is green.
+2. Tap **Household**, **Money**, **Chat** and **More**. → Each page has no back
+   arrow.
+3. In **Household**, tap **Cleaning**. → At the top it says **"← Household"**,
+   and tapping that takes you back to Household. Try **Money → Rent**
+   ("← Money") and **More → Calendar** ("← More") too.
+4. Have a roommate send a message in the group chat (or a direct message to
+   you) while you're on **Home**. → Within about 30 seconds, or as soon as you
+   change page, the **Chat** tab shows a red number. Open Chat, then go back to
+   Home. → The number is gone.
+5. Open **More**. → You see the groups above. **Sign out** at the bottom signs
+   you out.
+6. In **Chat**, the call buttons are in the top-right corner, as before.
+7. On a **computer**, the same five appear as a menu on the left, with your
+   home's name at the top.
+8. Open **More → Search listings**. → The listings show with the same bottom
+   bar (phone) or left menu (computer), so you can go back to your home.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
