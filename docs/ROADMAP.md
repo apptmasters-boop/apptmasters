@@ -81,29 +81,36 @@ Fixed 2026-10-04 (branch `feat/signup-email-verification`):
       If tables are ever created as `postgres` again, check ownership:
       `select tablename, tableowner from pg_tables where schemaname = 'public'`.
 
-Still to do in Phase 1:
+Phase S, done 2026-10-08 (see `docs/BUILD_CHECKLIST.md` for the owner test):
 
-- [ ] Unconfirmed sign-ups are never cleaned up; delete ones older than a
-      few days (cron).
+- [x] **S1:** live streams (chat, DMs, listing messages) took the login token in
+      the URL. They now take a 60-second stream ticket (`POST /api/stream-ticket`,
+      `openLiveStream` in `src/lib/liveStream.ts`).
+- [x] **S2:** the 2FA screen accepts backup codes (`XXXX-XXXX`).
+- [x] **S3:** `POST /api/cron/cleanup-unverified` deletes never-confirmed,
+      empty sign-ups after 7 days. Scheduling it in the server crontab
+      awaits owner approval.
+- [x] **S4:** all routes reviewed; table in `docs/SECURITY.md`. **HIGH:**
+      `DELETE /api/manager/users/[id]` let any manager delete almost any
+      account, including admins; now scoped to their own former tenants.
+      Listing messages: owners can no longer open threads with arbitrary users;
+      length cap; approved listings only. Admin routes all `requireSuperAdmin`;
+      manager routes all scoped to the manager's own property.
+- [x] **S5:** uploads checked by real content (file signature) via `saveUpload`
+      (`src/lib/uploads.ts`). Cleaning photos and voice messages previously
+      accepted any file.
+- [x] **S6:** git history scanned (118 commits): no real secrets; `.env`
+      and key files never committed; `.env.example` holds placeholders only.
+- [x] **S7:** the 5 rules-of-hooks errors were one real bug: an expiring voice
+      message crashed the open chat page (`VoiceMessage.tsx`). Lint 75 → 70.
+- [ ] **S8:** server hardening (nginx security headers, unattended upgrades,
+      security group, MySQL/coturn, SSH keys), asking the owner per change.
 
-- [ ] Real-time streams (`chat/stream`, `dm/[userId]/stream`) take the login
-      token in the URL, so it lands in nginx access logs. Use a short-lived
-      stream ticket instead.
-- [ ] 2FA page only accepts 6 digits, so backup codes (`XXXX-XXXX`) cannot
-      be entered.
-- [ ] Routes outside `/api/apartments` (listings, manager, admin, users,
-      upload, push, cron, invites) still to review.
-- [ ] Review every one of the 136 API routes: who may call it, what it checks.
-      Produce a table in `docs/SECURITY.md`.
-- [ ] File uploads: type, size and naming checks; where files are stored.
-- [ ] Auth: token lifetime and storage (currently `localStorage`, 7 days),
-      password reset, 2FA, email verification flows.
-- [ ] Admin and manager routes: role checks on every one.
-- [ ] Server: security group rules, whether MySQL and coturn need to run,
-      unattended security upgrades, nginx security headers, SSH keys.
-- [ ] Secrets: none in code or git history.
-- [ ] 5 `react-hooks/rules-of-hooks` lint errors: hooks called conditionally
-      can cause real runtime bugs. Review and fix.
+Open (recorded in `docs/SECURITY.md`):
+
+- [ ] Changing/resetting a password doesn't sign out other devices (needs a
+      per-user token version).
+- [ ] Login tokens in browser storage; consider HttpOnly cookies later.
 
 ## Phase 2: Shared foundations (remove repeated logic)
 

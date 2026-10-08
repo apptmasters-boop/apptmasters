@@ -12,9 +12,15 @@ function fmt(s: number) {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 }
 
+// Two components rather than an early return before the hooks: when a voice
+// message expires its `src` becomes empty while the chat is open, and React
+// requires the same hooks on every render of one component.
 export default function VoiceMessage({ src, isMe }: Props) {
-  if (!src) {
-    return (
+  return src ? <VoicePlayer src={src} isMe={isMe} /> : <ExpiredVoiceMessage isMe={isMe} />;
+}
+
+function ExpiredVoiceMessage({ isMe }: { isMe?: boolean }) {
+  return (
       <div className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl ${
         isMe ? "bg-blue-600" : "bg-white border border-gray-200"
       }`}>
@@ -29,8 +35,10 @@ export default function VoiceMessage({ src, isMe }: Props) {
           Voice message expired
         </span>
       </div>
-    );
-  }
+  );
+}
+
+function VoicePlayer({ src, isMe }: Props) {
   const [playing, setPlaying]       = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration]     = useState(0);
