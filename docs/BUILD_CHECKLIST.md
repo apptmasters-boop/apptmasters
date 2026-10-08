@@ -244,7 +244,7 @@ Split into two slices, each with its own sign-off.
 
 ## Sprint 2 — Home priority feed
 
-**Status:** 2a building · 2b not started · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
+**Status:** 2a ready for your test · 2b not started · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
 
 Home answers one question: *"What needs my attention now?"* It's a short,
 ordered list, not a grid of features.
@@ -276,8 +276,8 @@ ordered list, not a grid of features.
 - [x] Tests pass: 130 (+10 new: priority order, rent due-date rule, urgent repair first and gone once resolved, overdue rent, what I owe, cleaning turn only for its owner, 7-day window, chat never on Home, join requests only for admins, members-only endpoint)
 - [x] Lint: no new errors (70)
 - [x] "You owe" uses the same calculation as the balance page (moved into `src/lib/balances.ts`, used by both)
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (35da6a7)
+- [x] Deployed to apptmasters.com 2026-10-09; checked with a real household (feed built correctly, no new errors)
 
 **Your test on apptmasters.com**
 1. Open **Home**. You see a short list, not a grid. If nothing needs you, it
