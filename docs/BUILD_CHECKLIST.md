@@ -244,7 +244,7 @@ Split into two slices, each with its own sign-off.
 
 ## Sprint 2 — Home priority feed
 
-**Status:** 2a approved · 2b building · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
+**Status:** 2a approved · 2b ready for your test · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
 
 Home answers one question: *"What needs my attention now?"* It's a short,
 ordered list, not a grid of features.
@@ -301,7 +301,7 @@ ordered list, not a grid of features.
 
 ### 2b — A proper place for the rest of the old Home page
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What was built** (the temporary "Household overview" is removed; every part
 now has a home):
@@ -324,8 +324,8 @@ now has a home):
 - [x] Type check passes
 - [x] Tests pass: 134 (navigation for the new pages; join requests link to settings)
 - [x] Lint: errors 70 → 69
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (0128f4e)
+- [x] Deployed to apptmasters.com 2026-10-09; new pages respond, old overview gone, a real household loads correctly
 
 **Your test on apptmasters.com**
 1. **Household** now also lists **Members** and **House rules**.
