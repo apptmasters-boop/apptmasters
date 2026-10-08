@@ -349,7 +349,7 @@ now has a home):
 
 ## Sprint 3 — Cleaning
 
-**Status:** 3a building · 3b not started · Spec: `PRODUCT_LOGIC.md` §8, §21
+**Status:** 3a ready for your test · 3b not started · Spec: `PRODUCT_LOGIC.md` §8, §21
 
 Cleaning is one whole-home rotation: *your turn → mark as cleaned → history
 saved → next person's turn scheduled*, all automatically.
@@ -376,8 +376,8 @@ saved → next person's turn scheduled*, all automatically.
 - [x] Type check passes
 - [x] Tests pass: 141 (+7: schedule order and dates, skipping someone away, a finished trip isn't skipped, mark as cleaned saves history and passes the turn, history is per home)
 - [x] Lint: errors 69 → 68
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (fe6b2c8)
+- [x] Deployed to apptmasters.com 2026-10-09; checked with a real household rotation (6-turn schedule, history loads, no new errors)
 
 **Your test on apptmasters.com**
 1. Open **Household → Cleaning**. You see three tabs: **Rotation**,
