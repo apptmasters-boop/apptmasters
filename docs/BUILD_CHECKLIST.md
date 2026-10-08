@@ -244,7 +244,7 @@ Split into two slices, each with its own sign-off.
 
 ## Sprint 2 — Home priority feed
 
-**Status:** 2a approved · 2b ready for your test · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
+**Status:** Approved (2a and 2b, 2026-10-09) · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
 
 Home answers one question: *"What needs my attention now?"* It's a short,
 ordered list, not a grid of features.
@@ -301,7 +301,7 @@ ordered list, not a grid of features.
 
 ### 2b — A proper place for the rest of the old Home page
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What was built** (the temporary "Household overview" is removed; every part
 now has a home):
@@ -343,6 +343,70 @@ now has a home):
 6. As a **regular member**, More has **no** "Home settings".
 7. **More** no longer shows "Household overview".
 
+**Sign-off:** [x] Approved on 2026-10-09
+
+---
+
+## Sprint 3 — Cleaning
+
+**Status:** 3a building · 3b not started · Spec: `PRODUCT_LOGIC.md` §8, §21
+
+Cleaning is one whole-home rotation: *your turn → mark as cleaned → history
+saved → next person's turn scheduled*, all automatically.
+
+### 3a — Rotation, Schedule and History
+
+**What I'm building**
+- **Three views on the Cleaning page.**
+  - **Rotation:** whose turn it is and when it's due, the order of everyone in
+    the rotation, and who's next. "Mark as cleaned" works as today, with an
+    optional photo and note.
+  - **Schedule:** the next turns with their dates, skipping people who'll be
+    traveling on that date.
+  - **History:** every past cleaning (who, when, photo, note), newest first.
+    Today only the last 3 show.
+- **Settings tucked away:** creating and deleting a rotation sit in a small
+  settings area that only household admins see, instead of large buttons.
+- The green design, like the rest of My Home.
+
+**Your test on apptmasters.com**
+1. Open **Household → Cleaning**. You see three tabs: **Rotation**,
+   **Schedule** and **History**.
+2. **Rotation** shows whose turn it is, the due date, the order and who's next.
+3. **Schedule** lists the next turns with dates. Mark a roommate as traveling
+   for next week (Household → Members). Their turn that week is skipped in the
+   Schedule.
+4. When it's your turn, tap **Mark as cleaned** (add a photo if you like). The
+   turn moves to the next person, Home no longer shows your cleaning item, and
+   your cleaning is at the top of **History**.
+5. As a **regular member**, there's no create or delete option. As a
+   **household admin**, they're in the settings area.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### 3b — "Can't clean this week?"
+
+**What I'm building** (owner's choice, 2026-10-09: the next person must accept)
+- **The request:** the person whose turn it is taps **"Can't clean this
+  week?"** and can add a reason. This asks the **next person** to swap.
+- **Where the next person sees it:** on their **Home** (under "Your turn") and
+  on the Cleaning page, with **Accept** and **Decline**.
+- **Accept:** they clean this time, and the requester takes their next turn.
+  Nobody gains or loses a turn.
+- **Decline:** nothing changes; the turn stays with the requester, who is told.
+- **The requester can cancel** while it's still waiting.
+- **History** shows swaps ("Sam cleaned for Alex").
+- One new database table for swap requests.
+
+**Your test on apptmasters.com** (needs two accounts in the same home)
+1. On the account **whose turn it is**, tap **Can't clean this week?**, add a
+   reason, and send.
+2. On the **next person's** account, Home shows "Alex asked you to swap
+   cleaning turns". Open it and tap **Accept**. It's now their turn, and the
+   first account's next turn comes after.
+3. Try again and tap **Decline**. The turn stays with the first person.
+4. Send a request and **cancel** it before it's answered. It disappears.
+
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ---
@@ -351,7 +415,6 @@ now has a home):
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 3 — Cleaning | 3a Rotation / Schedule / History · 3b travel skip and "Can't clean this week?" | Not started |
 | 4 — Shopping | 4a shared list and live shopper alerts · 4b trip states (preparing → at the store → left the store) · 4c optional Home Check from Inventory | Not started |
 | 5 — Money engine | 5a ledger built in parallel + comparison report · 5b switch-over once numbers match | Not started |
 | 6 — Shopping → Money | 6a finish trip: total, receipt, review split, confirm → expense created | Not started |
