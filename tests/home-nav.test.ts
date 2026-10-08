@@ -26,7 +26,11 @@ describe("homeNavState", () => {
     ["/finance", "money", "/money", "Money"],
     ["/calendar", "more", "/more", "More"],
     ["/maintenance", "more", "/more", "More"],
-    ["/members/u1", "home", "", "Home"],
+    ["/members", "household", "/household", "Household"],
+    ["/rules", "household", "/household", "Household"],
+    ["/settings", "more", "/more", "More"],
+    ["/members/u1", "household", "/members", "Members"],
+    ["/rooms/r1", "household", "/rooms", "Rooms"],
   ])("%s belongs to %s and goes back to it", (path, tab, backPath, label) => {
     expect(nav(path)).toEqual({ tab, isPrimary: false, back: { href: `/apartment/${A}${backPath}`, label } });
   });

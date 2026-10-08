@@ -105,7 +105,8 @@ describe("buildHomeFeed", () => {
     const { me, roommate, apt } = await household();
     const { user: newcomer } = await createUser();
     await prisma.apartmentMember.create({ data: { apartmentId: apt.id, userId: newcomer.id, status: "PENDING_APPROVAL" } });
-    expect(titles(await feedFor(apt.id, me.user.id, "ADMIN"))).toContain("1 person wants to join");
+    const adminFeed = await feedFor(apt.id, me.user.id, "ADMIN");
+    expect(adminFeed.find(i => i.id === "join-requests")).toMatchObject({ title: "1 person wants to join", href: `/apartment/${apt.id}/settings` });
     expect(titles(await feedFor(apt.id, roommate.user.id, "MEMBER"))).not.toContain("1 person wants to join");
   });
 });

@@ -244,7 +244,7 @@ Split into two slices, each with its own sign-off.
 
 ## Sprint 2 — Home priority feed
 
-**Status:** 2a ready for your test · 2b not started · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
+**Status:** 2a approved · 2b building · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
 
 Home answers one question: *"What needs my attention now?"* It's a short,
 ordered list, not a grid of features.
@@ -297,15 +297,53 @@ ordered list, not a grid of features.
 7. Open **More → Household overview**. Everything from the old Home page is
    still there (members, invite code, house rules and votes, join requests).
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-09
 
 ### 2b — A proper place for the rest of the old Home page
 
-**Planned:** members, invites and house rules (with votes) under Household;
-admin settings (join requests, roles, guest expiry) under More → Home
-settings, for household admins only; "Mark as traveling" next to cleaning.
-Then the temporary "Household overview" is removed. Detailed test steps are
-written when 2b starts.
+**Status:** Building
+
+**What was built** (the temporary "Household overview" is removed; every part
+now has a home):
+
+| Old overview part | New place |
+|---|---|
+| Invite code, invite link, email invite (admins) | **Household → Members** |
+| Member list, "Mark as traveling / back home", "Leave this home" | **Household → Members** |
+| House rules: list, propose (48-hour vote), vote, add directly / archive (admins) | **Household → House rules** |
+| Announcement; join requests; member roles, status, guest access; remove member; move-out report; audit log link | **More → Home settings** (household admins only) |
+| Profile link, roommate scores | already in **More** |
+| Statistics tiles | replaced by the Home feed (Sprint 2a) and More → Stats |
+
+- **Home's join-request item** now opens Home settings.
+- **One member's page** goes back to "← Members".
+- **Three loaders become one:** Members, House rules and Home settings share one
+  data loader (`src/components/home/useApartment.ts`).
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 134 (navigation for the new pages; join requests link to settings)
+- [x] Lint: errors 70 → 69
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com**
+1. **Household** now also lists **Members** and **House rules**.
+2. **Members:** you see everyone, with the invite code. "Copy code" and "Copy
+   invite link" work. Tap a person, then "← Members" brings you back.
+3. **Traveling:** on your own card tap **Mark as traveling**, then confirm. A
+   "Traveling" badge appears. Tap **Mark as back home**, and it goes away.
+4. **House rules:** as a regular member, propose a rule. It appears under
+   "Being voted on" with Yes/No buttons. As a household admin, add a rule
+   directly. It appears under "Our rules".
+5. **Home settings** (household admin): **More** shows "Home settings". Set an
+   announcement, and it appears at the top of everyone's Home. Change a
+   member's role or status. If someone asks to join, approve them here, or from
+   the item on Home.
+6. As a **regular member**, More has **no** "Home settings".
+7. **More** no longer shows "Household overview".
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ---
 

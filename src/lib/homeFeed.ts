@@ -143,7 +143,7 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
     items.push({ id: "expense-edits", priority: 3, href: `${base}/finance`, title: `${editRequests} expense ${editRequests === 1 ? "change" : "changes"} waiting for your vote` });
   }
   if (joinRequests > 0) {
-    items.push({ id: "join-requests", priority: 3, href: `${base}/overview`, title: `${joinRequests} ${joinRequests === 1 ? "person wants" : "people want"} to join`, detail: "Approve or decline" });
+    items.push({ id: "join-requests", priority: 3, href: `${base}/settings`, title: `${joinRequests} ${joinRequests === 1 ? "person wants" : "people want"} to join`, detail: "Approve or decline" });
   }
 
   // P4 — coming up

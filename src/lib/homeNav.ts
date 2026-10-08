@@ -19,11 +19,14 @@ export const HOME_TABS: { tab: HomeTab; label: string; path: string }[] = [
 /** Which primary destination each apartment section belongs to. Anything not listed lives under More. */
 const SECTION_TAB: Record<string, HomeTab> = {
   household: "household", cleaning: "household", grocery: "household", rotation: "household",
-  inventory: "household", chores: "household", rooms: "household",
+  inventory: "household", chores: "household", rooms: "household", members: "household", rules: "household",
   money: "money", finance: "money", rent: "money", fund: "money",
   chat: "chat",
-  members: "home", moveout: "home",
+  moveout: "more",
 };
+
+/** Section pages that have their own list page, so deeper pages go back to it (a member → Members). */
+const SECTION_LABEL: Record<string, string> = { members: "Members", rooms: "Rooms", chat: "Chat" };
 
 const tabInfo = (tab: HomeTab) => HOME_TABS.find(t => t.tab === tab)!;
 export const tabHref = (apartmentId: string, tab: HomeTab) =>
@@ -45,7 +48,9 @@ export function homeNavState(pathname: string, apartmentId: string): HomeNavStat
   const isPrimary = rest.length === 1 && tabInfo(tab).path === rest[0];
   if (isPrimary) return { tab, isPrimary, back: null };
 
-  // Section pages go back to their tab. Deeper pages (a room, a DM) have their
-  // own back link to their section, so this is only used one level down.
+  // Deeper pages (one member, one room) go back to their section's list page when it has one.
+  const sectionLabel = SECTION_LABEL[rest[0]];
+  if (rest.length > 1 && sectionLabel) return { tab, isPrimary: false, back: { href: `${base}/${rest[0]}`, label: sectionLabel } };
+  // Section pages go back to their tab.
   return { tab, isPrimary: false, back: { href: tabHref(apartmentId, tab), label: tabInfo(tab).label } };
 }

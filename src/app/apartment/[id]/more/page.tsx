@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch, clearToken } from "@/lib/api";
 import { HubPage, HubSection, type HubItem } from "@/components/home/HubPage";
+import { useApartment } from "@/components/home/useApartment";
 import {
   WrenchIcon, ScaleIcon, CalendarIcon, ChartIcon, StarIcon, ClipboardCheckIcon, SearchDocIcon,
   BellIcon, SearchIcon, HomeIcon, UserIcon, SettingsIcon, LogOutIcon, MessageIcon, ShieldCheckIcon,
@@ -15,6 +16,7 @@ export default function MorePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const { isAdmin: isHouseholdAdmin } = useApartment(id);
   const at = (path: string) => `/apartment/${id}/${path}`;
 
   useEffect(() => {
@@ -33,9 +35,12 @@ export default function MorePage() {
 
   return (
     <HubPage title="More">
+      {isHouseholdAdmin && (
+        <HubSection title="For household admins" items={[
+          { href: at("settings"), label: "Home settings", description: "Join requests, members, roles, announcement", icon: SettingsIcon },
+        ]} />
+      )}
       <HubSection title="Home management" items={[
-        // Temporary: the previous Home page (members, invites, house rules, join requests) until Sprint 2b moves its parts
-        { href: at("overview"), label: "Household overview", description: "Members, invite code, house rules, join requests", icon: HomeIcon },
         { href: at("maintenance"), label: "Maintenance", description: "Report and follow repairs", icon: WrenchIcon },
         { href: at("disputes"), label: "Household issues", description: "Raise and resolve concerns together", icon: ScaleIcon },
         { href: at("calendar"), label: "Calendar", description: "Household events and dates", icon: CalendarIcon },
