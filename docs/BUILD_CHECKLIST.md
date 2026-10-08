@@ -122,7 +122,7 @@ the order comes from the roadmap in the [README](../README.md).
 
 ## Sprint 1 — Foundation
 
-**Status:** 1a approved · 1b ready for your test · Spec: `PRODUCT_LOGIC.md` §2, §5, §17, §23
+**Status:** Approved (1a and 1b, 2026-10-08) · Spec: `PRODUCT_LOGIC.md` §2, §5, §17, §23
 
 Split into two slices, each with its own sign-off.
 
@@ -190,7 +190,7 @@ Split into two slices, each with its own sign-off.
 
 ### 1b — User states and roles in context
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What was built**
 - **Where you land after signing in**, one rule for everyone (`src/lib/housing.ts`):
@@ -238,7 +238,66 @@ Split into two slices, each with its own sign-off.
    admins may change, such as editing the cleaning rotation. → The option is
    hidden, or you get a clear "only household admins can do this" message.
 
+**Sign-off:** [x] Approved on 2026-10-08
+
+---
+
+## Sprint 2 — Home priority feed
+
+**Status:** 2a building · 2b not started · Spec: `PRODUCT_LOGIC.md` §6, §16, §23
+
+Home answers one question: *"What needs my attention now?"* It's a short,
+ordered list, not a grid of features.
+
+### 2a — The priority feed
+
+**What I'm building**
+- **Home shows only what matters now, in priority order**, built on the
+  server from data the app already has:
+
+  | Priority | Shown as | Examples |
+  |---|---|---|
+  | **P1 Critical** | red, at the very top | urgent repairs not yet fixed |
+  | **P2 Money** | amber | your rent share due or overdue; money you owe in shared expenses; a roommate's cash payment waiting for your confirmation |
+  | **P3 Your turn** | green action cards | your cleaning turn (due soon or late); your turn to buy something; your chores due today or late; expense edits waiting for your vote; (household admins) people asking to join |
+  | **P4 Coming up** | a short list | calendar events in the next 7 days |
+  | **P5 Recently** | small, low emphasis | the last few household updates |
+
+- **Things that belong to someone else** (their cleaning turn, their chores)
+  are not shown to you.
+- **Ordinary chat messages are not on Home.** They're on the Chat badge.
+- **The household announcement**, if there is one, stays at the top.
+- **When nothing needs you:** "You're all caught up".
+- **Nothing is lost:** today's Home page moves unchanged to **More → Household
+  overview**. Slice 2b gives its parts proper places, then removes it.
+
+**Your test on apptmasters.com**
+1. Open **Home**. You see a short list, not a grid. If nothing needs you, it
+   says "You're all caught up".
+2. **Urgent repair:** report a maintenance issue with priority **Urgent**
+   (More → Maintenance). Go back to Home. It's at the very top, in red. Mark
+   it resolved, and it disappears from Home.
+3. **Money:** if your rent share for this month isn't marked paid, Home shows
+   it with the amount (amber). Add a shared expense that someone else paid and
+   that includes you. Home shows "You owe …".
+4. **Your turn:** if it's your cleaning turn, Home says so. A roommate whose
+   turn it isn't doesn't see it.
+5. **Coming up:** add a calendar event for 3 days from now. It shows under
+   "Coming up". An event 3 weeks away doesn't.
+6. **Chat isn't on Home:** have someone send a chat message. Only the Chat tab
+   badge changes; no card appears on Home.
+7. Open **More → Household overview**. Everything from the old Home page is
+   still there (members, invite code, house rules and votes, join requests).
+
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### 2b — A proper place for the rest of the old Home page
+
+**Planned:** members, invites and house rules (with votes) under Household;
+admin settings (join requests, roles, guest expiry) under More → Home
+settings, for household admins only; "Mark as traveling" next to cleaning.
+Then the temporary "Household overview" is removed. Detailed test steps are
+written when 2b starts.
 
 ---
 
@@ -246,7 +305,6 @@ Split into two slices, each with its own sign-off.
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 2 — Home priority feed | 2a feed with P1–P5 items · 2b "what's next" after actions | Not started |
 | 3 — Cleaning | 3a Rotation / Schedule / History · 3b travel skip and "Can't clean this week?" | Not started |
 | 4 — Shopping | 4a shared list and live shopper alerts · 4b trip states (preparing → at the store → left the store) · 4c optional Home Check from Inventory | Not started |
 | 5 — Money engine | 5a ledger built in parallel + comparison report · 5b switch-over once numbers match | Not started |

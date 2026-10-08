@@ -104,7 +104,7 @@ in [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md).
 | | Phase | Goal | Builds on |
 |---|---|---|---|
 | [x] | **S — Security** | Close the remaining items in `docs/ROADMAP.md` Phase 1 | `src/lib/access.ts`, `src/lib/auth.ts` |
-| [ ] | **1 — Foundation** | User states (Visitor → Home Seeker → Found a Home → Home Member), roles in context, one design system, bottom navigation **Home \| Household \| Money \| Chat \| More** | `src/lib/access.ts`, `components/landing`, `components/auth` |
+| [x] | **1 — Foundation** | User states (Visitor → Home Seeker → Found a Home → Home Member), roles in context, one design system, bottom navigation **Home \| Household \| Money \| Chat \| More** | `src/lib/access.ts`, `components/landing`, `components/auth` |
 | [ ] | **2 — Home** | Priority feed (P1 critical → P5 info): "what needs my attention now?" instead of a feature grid | notifications, rent, rotations, maintenance |
 | [ ] | **3 — Cleaning** | Whole-home rotation with Rotation \| Schedule \| History, travel skip, "Can't clean this week?" | `CleaningRotation`, `CleaningLog`, `TravelPeriod` |
 | [ ] | **4 — Shopping** | One flow: rotation, optional Home Check, live shared list, shopper alerts, PREPARING → SHOPPING → LEFT_STORE → COMPLETED | `PurchaseRotation`, `GroceryItem`, `InventoryItem` |
