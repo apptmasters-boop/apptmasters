@@ -1,985 +1,142 @@
 "use client";
+/**
+ * Home: "What needs my attention now?" (docs/PRODUCT_LOGIC.md §6). A short
+ * list ordered by priority, built by GET /api/apartments/[id]/home
+ * (src/lib/homeFeed.ts). Not a grid of features: everything else is one tap
+ * away in Household, Money, Chat and More.
+ */
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, clearToken } from "@/lib/api";
+import { useParams, useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
+import type { FeedItem } from "@/lib/homeFeed";
 import NotificationBell from "@/components/NotificationBell";
-import IconBadge from "@/components/IconBadge";
-import {
-  ChoresIcon, CleaningIcon, FinanceIcon, FundIcon,
-  ChatIcon, MaintenanceIcon, HouseIcon, DollarBadgeIcon, CashIcon, EditIcon, AnnouncementIcon,
-  ChevronRightIcon, ProfileIcon,
-} from "@/components/icons";
+import { ChevronRightIcon, CheckIcon, CalendarIcon, MessageIcon } from "@/components/landing/icons";
 
-interface Member {
-  id: string; role: string; status: string; joinedAt: string; expiresAt: string | null;
-  user: { id: string; name: string; email: string; photo: string | null; roomAssignment: string | null; dietaryFlags: string };
-}
-interface JoinRequest {
-  id: string; user: { id: string; name: string; email: string; photo: string | null };
-}
-interface RuleVote { id: string; vote: string; user: { id: string; name: string } }
-interface HouseRule {
-  id: string; content: string; version: number; status: string;
-  votingEndsAt: string | null;
-  votes: RuleVote[];
-}
-interface Apartment {
-  id: string; name: string; inviteCode: string;
-  announcement: string | null; announcementAt: string | null;
-  members: Member[]; houseRules: HouseRule[]; currentUserRole: string;
+interface HomeData {
+  apartmentName: string;
+  firstName: string;
+  announcement: { text: string; at: string | null } | null;
+  items: FeedItem[];
 }
 
-export default function ApartmentPage() {
+const STYLE: Record<1 | 2 | 3, { label: string; card: string; dot: string }> = {
+  1: { label: "Urgent", card: "border-red-200 bg-red-50/70 dark:bg-red-950/30", dot: "bg-red-500" },
+  2: { label: "Money", card: "border-amber-200 bg-amber-50/60 dark:bg-amber-950/30", dot: "bg-amber-500" },
+  3: { label: "Your turn", card: "border-gray-200 bg-white", dot: "bg-brand" },
+};
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
+
+function ActionCard({ item }: { item: FeedItem }) {
+  const s = STYLE[item.priority as 1 | 2 | 3];
+  return (
+    <Link href={item.href} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 transition-shadow hover:shadow-sm ${s.card}`}>
+      <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${s.dot}`} aria-hidden />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold text-gray-900">{item.title}</span>
+        <span className="mt-0.5 block text-xs text-gray-600">
+          <span className="sr-only">{s.label}: </span>
+          {item.overdue && <span className="font-semibold text-red-600">Late · </span>}
+          {item.detail}
+        </span>
+      </span>
+      <ChevronRightIcon className="h-4 w-4 shrink-0 text-gray-400" />
+    </Link>
+  );
+}
+
+export default function HomePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [apt, setApt] = useState<Apartment | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"members" | "rules" | "admin">("members");
+  const [data, setData] = useState<HomeData | null>(null);
+  const [failed, setFailed] = useState(false);
 
-  const [newRule, setNewRule] = useState("");
-  const [addingRule, setAddingRule] = useState(false);
-  const [proposeMode, setProposeMode] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState("");
-  const [today, setToday] = useState<{ overdueChores: { id: string; title: string }[]; upcomingEvents: { id: string; title: string; startDate: string }[] } | null>(null);
-  const [actions, setActions] = useState<{
-    totalOwed: number;
-    cashToConfirm: { expenseId: string; expenseTitle: string; userName: string; amount: number }[];
-    editApprovalCount: number;
-    cleaningDue: boolean;
-  } | null>(null);
-  const [announcementEdit, setAnnouncementEdit] = useState(false);
-  const [announcementText, setAnnouncementText] = useState("");
-  const [linkCopied, setLinkCopied] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteSending, setInviteSending] = useState(false);
-  const [inviteSent, setInviteSent] = useState(false);
-  const [travelers, setTravelers] = useState<{ id: string; userId: string; endDate: string | null; user: { id: string; name: string } }[]>([]);
-  const [travelModal, setTravelModal] = useState<string | null>(null); // userId
-  const [travelForm, setTravelForm] = useState({ startDate: "", endDate: "", notes: "" });
-  const [markingTravel, setMarkingTravel] = useState(false);
-  const [markingReturn, setMarkingReturn] = useState<string | null>(null);
-  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
-  const [desktopData, setDesktopData] = useState<{
-    choresPendingCount: number;
-    rentDue: { amount: number; dueDay: number; paidThisMonth: boolean } | null;
-    fundBalance: number;
-    maintenanceOpenCount: number;
-    recentActivity: { id: string; title: string; body: string; createdAt: string; user: { name: string } }[];
-    upcomingEvents: { id: string; title: string; startDate: string }[];
-    expensesByCategory: { category: string; amount: number }[];
-  } | null>(null);
+  useEffect(() => {
+    apiFetch(`/api/apartments/${id}/home`).then(async res => {
+      if (res.status === 401) { router.replace("/login"); return; }
+      if (res.status === 403) { router.replace("/dashboard"); return; }
+      if (!res.ok) { setFailed(true); return; }
+      setData(await res.json());
+    }).catch(() => setFailed(true));
+  }, [id, router]);
 
-  async function load() {
-    const [aptRes, meRes, travRes] = await Promise.all([
-      apiFetch(`/api/apartments/${id}`),
-      apiFetch("/api/auth/me"),
-      apiFetch(`/api/apartments/${id}/travel`),
-    ]);
-    if (aptRes.status === 401) { router.replace("/login"); return; }
-    if (!aptRes.ok) { router.replace("/dashboard"); return; }
-    setApt(await aptRes.json());
-    let myUserId = "";
-    if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); myUserId = me.id; }
-    if (travRes.ok) setTravelers(await travRes.json());
-    setLoading(false);
+  if (failed) return <p className="p-8 text-center text-sm text-gray-500">Couldn&apos;t load your home. Please refresh.</p>;
+  if (!data) return <div className="flex min-h-[60vh] items-center justify-center text-sm text-gray-400">Loading…</div>;
 
-    // Load all background data in parallel
-    const now = new Date();
-    const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const [choresRes, eventsRes, balRes, expRes, erRes, cleanRes] = await Promise.all([
-      apiFetch(`/api/apartments/${id}/chores`),
-      apiFetch(`/api/apartments/${id}/calendar`),
-      apiFetch(`/api/apartments/${id}/balance`),
-      apiFetch(`/api/apartments/${id}/expenses`),
-      apiFetch(`/api/apartments/${id}/edit-requests`),
-      apiFetch(`/api/apartments/${id}/cleaning`),
-    ]);
-
-    const chores = choresRes.ok ? await choresRes.json() : [];
-    const events = eventsRes.ok ? await eventsRes.json() : [];
-    setToday({
-      overdueChores: chores.filter((c: { status: string; dueDate: string | null }) =>
-        c.status === "PENDING" && c.dueDate && new Date(c.dueDate) < now
-      ).slice(0, 3),
-      upcomingEvents: events.filter((e: { startDate: string }) => {
-        const d = new Date(e.startDate);
-        return d >= now && d <= in7Days;
-      }).slice(0, 3),
-    });
-
-    // Compute personal action items
-    const balData = balRes.ok ? await balRes.json() : null;
-    const totalOwed: number = balData?.myBalance
-      ?.filter((b: { direction: string }) => b.direction === "you_owe")
-      .reduce((s: number, b: { amount: number }) => s + b.amount, 0) ?? 0;
-
-    const expenses = expRes.ok ? await expRes.json() : [];
-    const cashToConfirm: { expenseId: string; expenseTitle: string; userName: string; amount: number }[] = [];
-    for (const exp of expenses) {
-      if (exp.paidBy?.id !== myUserId) continue;
-      for (const split of exp.splits ?? []) {
-        if (split.status === "PENDING_CASH" && split.userId !== myUserId) {
-          cashToConfirm.push({ expenseId: exp.id, expenseTitle: exp.title, userName: split.user?.name ?? "Someone", amount: split.amount });
-        }
-      }
-    }
-
-    const editRequests = erRes.ok ? await erRes.json() : [];
-    const editApprovalCount: number = editRequests.filter((req: { requesterId: string; approvals: { approver: { id: string } }[] }) =>
-      req.requesterId !== myUserId && !req.approvals.some(a => a.approver.id === myUserId)
-    ).length;
-
-    const cleaningRotations = cleanRes.ok ? await cleanRes.json() : [];
-    const cleaningDue: boolean = cleaningRotations.some((r: { currentUserId: string }) => r.currentUserId === myUserId);
-
-    setActions({ totalOwed, cashToConfirm, editApprovalCount, cleaningDue });
-
-    // Load join requests (only visible to admins; returns 403 for others — handle gracefully)
-    const jrRes = await apiFetch(`/api/apartments/${id}/join-requests`);
-    if (jrRes.ok) setJoinRequests(await jrRes.json());
-    else setJoinRequests([]);
-
-    // Desktop dashboard widgets — reuses chores/events already fetched above, plus a few more reads
-    const [fundRes, maintRes, feedRes, statsRes, rentConfigRes, rentCyclesRes] = await Promise.all([
-      apiFetch(`/api/apartments/${id}/fund`),
-      apiFetch(`/api/apartments/${id}/maintenance`),
-      apiFetch(`/api/apartments/${id}/feed`),
-      apiFetch(`/api/apartments/${id}/stats`),
-      apiFetch(`/api/apartments/${id}/rent/config`),
-      apiFetch(`/api/apartments/${id}/rent/cycles`),
-    ]);
-
-    const fund = fundRes.ok ? await fundRes.json() : { balance: 0 };
-    const maintenance = maintRes.ok ? await maintRes.json() : [];
-    const feed = feedRes.ok ? await feedRes.json() : [];
-    const stats = statsRes.ok ? await statsRes.json() : { byCategory: {} };
-    const rentConfig = rentConfigRes.ok ? await rentConfigRes.json() : null;
-    const rentCycles = rentCyclesRes.ok ? await rentCyclesRes.json() : [];
-
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const currentCycle = rentCycles.find((c: { month: string }) => c.month === currentMonth);
-
-    setDesktopData({
-      choresPendingCount: chores.filter((c: { status: string }) => c.status === "PENDING").length,
-      rentDue: rentConfig ? { amount: rentConfig.totalAmount, dueDay: rentConfig.dueDay, paidThisMonth: !!currentCycle } : null,
-      fundBalance: fund.balance ?? 0,
-      maintenanceOpenCount: maintenance.filter((m: { status: string }) => m.status !== "RESOLVED").length,
-      recentActivity: feed.slice(0, 5),
-      upcomingEvents: events.filter((e: { startDate: string }) => new Date(e.startDate) >= now).slice(0, 5),
-      expensesByCategory: Object.entries(stats.byCategory ?? {}).map(([category, amount]) => ({ category, amount: amount as number })),
-    });
-  }
-
-  useEffect(() => { load(); }, [id]);
-
-  async function addRule(e: React.FormEvent) {
-    e.preventDefault();
-    setAddingRule(true);
-    await apiFetch(`/api/apartments/${id}/rules`, {
-      method: "POST",
-      body: JSON.stringify({ content: newRule, propose: proposeMode }),
-    });
-    setNewRule("");
-    setAddingRule(false);
-    load();
-  }
-
-  async function voteRule(ruleId: string, vote: "YES" | "NO") {
-    await apiFetch(`/api/apartments/${id}/rules/${ruleId}/vote`, { method: "POST", body: JSON.stringify({ vote }) });
-    load();
-  }
-
-  async function archiveRule(ruleId: string) {
-    if (!confirm("Archive this rule?")) return;
-    await apiFetch(`/api/apartments/${id}/rules/${ruleId}/archive`, { method: "POST" });
-    load();
-  }
-
-  async function updateMember(memberId: string, update: { role?: string; status?: string; expiresAt?: string | null }) {
-    await apiFetch(`/api/apartments/${id}/members/${memberId}`, { method: "PATCH", body: JSON.stringify(update) });
-    load();
-  }
-
-  async function setGuestExpiry(memberId: string, dateStr: string | null) {
-    await apiFetch(`/api/apartments/${id}/members/${memberId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ expiresAt: dateStr ? new Date(dateStr + "T23:59:59").toISOString() : null }),
-    });
-    load();
-  }
-
-  async function approveJoin(memberId: string) {
-    await apiFetch(`/api/apartments/${id}/join-requests/${memberId}/approve`, { method: "POST" });
-    load();
-  }
-
-  async function rejectJoin(memberId: string) {
-    if (!confirm("Reject this join request?")) return;
-    await apiFetch(`/api/apartments/${id}/join-requests/${memberId}/reject`, { method: "POST" });
-    load();
-  }
-
-  async function removeMember(memberId: string, isCurrentUser = false) {
-    const msg = isCurrentUser
-      ? "Are you sure you want to leave this apartment? This action cannot be undone."
-      : "Remove this member?";
-    if (!confirm(msg)) return;
-    const res = await apiFetch(`/api/apartments/${id}/members/${memberId}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error ?? "Could not remove member.");
-      return;
-    }
-    if (isCurrentUser) { router.replace("/dashboard"); return; }
-    load();
-  }
-
-  function copyCode() {
-    navigator.clipboard.writeText(apt!.inviteCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  function logout() { clearToken(); router.replace("/login"); }
-
-  async function saveAnnouncement() {
-    await apiFetch(`/api/apartments/${id}`, { method: "PATCH", body: JSON.stringify({ announcement: announcementText || null }) });
-    setAnnouncementEdit(false);
-    load();
-  }
-
-  function copyInviteLink() {
-    const url = `${window.location.origin}/apartment/join?code=${apt!.inviteCode}`;
-    navigator.clipboard.writeText(url);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
-  }
-
-  async function sendInviteEmail(e: React.FormEvent) {
-    e.preventDefault();
-    setInviteSending(true);
-    await apiFetch(`/api/apartments/${id}/invite-email`, {
-      method: "POST",
-      body: JSON.stringify({ email: inviteEmail }),
-    });
-    setInviteEmail("");
-    setInviteSent(true);
-    setTimeout(() => setInviteSent(false), 3000);
-    setInviteSending(false);
-  }
-
-  async function clearAnnouncement() {
-    await apiFetch(`/api/apartments/${id}`, { method: "PATCH", body: JSON.stringify({ announcement: null }) });
-    load();
-  }
-
-  async function markTraveling(userId: string) {
-    setMarkingTravel(true);
-    await apiFetch(`/api/apartments/${id}/travel`, {
-      method: "POST",
-      body: JSON.stringify({
-        userId,
-        startDate: travelForm.startDate || new Date().toISOString(),
-        endDate: travelForm.endDate || null,
-        notes: travelForm.notes || null,
-      }),
-    });
-    setTravelModal(null);
-    setTravelForm({ startDate: "", endDate: "", notes: "" });
-    setMarkingTravel(false);
-    load();
-  }
-
-  async function markReturned(travelId: string) {
-    setMarkingReturn(travelId);
-    await apiFetch(`/api/apartments/${id}/travel/${travelId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ returned: true }),
-    });
-    setMarkingReturn(null);
-    load();
-  }
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
-  if (!apt) return null;
-
-  const isAdmin = apt.currentUserRole === "ADMIN";
-  const isGuest = apt.currentUserRole === "GUEST";
+  const now = data.items.filter(i => i.priority <= 3);
+  const upcoming = data.items.filter(i => i.priority === 4);
+  const recent = data.items.filter(i => i.priority === 5);
 
   return (
-    <>
-    <div className="md:hidden min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="font-bold text-gray-900 truncate">{apt.name}</span>
-          {isGuest && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Guest</span>}
-          {isAdmin && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Admin</span>}
+    <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6 md:py-10">
+      <header className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm text-gray-500">{data.apartmentName}</p>
+          <h1 className="mt-0.5 text-2xl font-bold text-gray-900">{greeting()}{data.firstName ? `, ${data.firstName}` : ""}</h1>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Link href={`/apartment/${apt.id}/search`}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
-            aria-label="Search">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </Link>
-          <NotificationBell apartmentId={apt.id} />
-          <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
-        </div>
+        <NotificationBell apartmentId={id} />
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        {/* Announcement banner */}
-        {apt.announcement && (
-          <div className="bg-amber-50 border border-amber-300 rounded-xl px-5 py-4 mb-4 flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1 flex items-center gap-1.5">
-                <AnnouncementIcon className="w-3.5 h-3.5" /> Announcement
-              </p>
-              <p className="text-sm text-amber-900">{apt.announcement}</p>
-              {apt.announcementAt && (
-                <p className="text-xs text-amber-500 mt-1">{new Date(apt.announcementAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</p>
-              )}
-            </div>
-            {isAdmin && (
-              <button onClick={() => { setAnnouncementEdit(true); setAnnouncementText(apt.announcement ?? ""); setTab("admin"); }}
-                className="text-xs text-amber-600 hover:text-amber-800 font-medium shrink-0">Edit</button>
-            )}
+      {data.announcement && (
+        <div className="mt-5 rounded-2xl border border-brand/20 bg-brand-soft px-4 py-3 dark:bg-brand/20">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-brand dark:text-emerald-300">Announcement</p>
+          <p className="mt-1 text-sm text-gray-800">{data.announcement.text}</p>
+        </div>
+      )}
+
+      <section className="mt-6" aria-labelledby="now-heading">
+        <h2 id="now-heading" className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Needs your attention</h2>
+        {now.length > 0 ? (
+          <div className="space-y-2.5">{now.map(item => <ActionCard key={item.id} item={item} />)}</div>
+        ) : (
+          <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-soft text-brand dark:bg-brand/30 dark:text-emerald-200">
+              <CheckIcon className="h-5 w-5" />
+            </span>
+            <span>
+              <span className="block text-sm font-semibold text-gray-900">You&apos;re all caught up</span>
+              <span className="block text-xs text-gray-500">Nothing needs you right now.</span>
+            </span>
           </div>
         )}
+      </section>
 
-        {/* Action items */}
-        {actions && (actions.totalOwed > 0.01 || actions.cashToConfirm.length > 0 || actions.editApprovalCount > 0 || actions.cleaningDue) && (() => {
-          const count = (actions.totalOwed > 0.01 ? 1 : 0) + actions.cashToConfirm.length + (actions.editApprovalCount > 0 ? 1 : 0) + (actions.cleaningDue ? 1 : 0);
-          return (
-            <div className="mb-4 bg-white border border-red-200 rounded-xl overflow-hidden">
-              <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-red-50">
-                <p className="text-xs font-semibold text-red-700 uppercase tracking-wide">Action needed</p>
-                <span className="text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded-full">{count}</span>
-              </div>
-              <div className="divide-y divide-gray-50">
-                {actions.totalOwed > 0.01 && (
-                  <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <IconBadge icon={<DollarBadgeIcon />} color="red" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">You owe <span className="text-red-600">${actions.totalOwed.toFixed(2)}</span></p>
-                      <p className="text-xs text-gray-400">Tap to settle in Finance</p>
-                    </div>
-                    <ChevronRightIcon className="w-4 h-4 text-gray-300" />
-                  </Link>
-                )}
-                {actions.cashToConfirm.map((c, i) => (
-                  <Link key={i} href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <IconBadge icon={<CashIcon />} color="amber" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{c.userName} paid <span className="text-amber-600">${c.amount.toFixed(2)}</span> in cash</p>
-                      <p className="text-xs text-gray-400 truncate">For: {c.expenseTitle} · Confirm or deny</p>
-                    </div>
-                    <ChevronRightIcon className="w-4 h-4 text-gray-300" />
-                  </Link>
-                ))}
-                {actions.editApprovalCount > 0 && (
-                  <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <IconBadge icon={<EditIcon />} color="indigo" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{actions.editApprovalCount} expense edit {actions.editApprovalCount === 1 ? "request" : "requests"} to review</p>
-                      <p className="text-xs text-gray-400">Tap to approve in Finance → Approvals</p>
-                    </div>
-                    <ChevronRightIcon className="w-4 h-4 text-gray-300" />
-                  </Link>
-                )}
-                {actions.cleaningDue && (
-                  <Link href={`/apartment/${apt.id}/cleaning`} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                    <IconBadge icon={<CleaningIcon />} color="cyan" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">It&apos;s your turn to clean</p>
-                      <p className="text-xs text-gray-400">Check the cleaning rotation</p>
-                    </div>
-                    <ChevronRightIcon className="w-4 h-4 text-gray-300" />
-                  </Link>
-                )}
-              </div>
-            </div>
-          );
-        })()}
+      {upcoming.length > 0 && (
+        <section className="mt-8" aria-labelledby="upcoming-heading">
+          <h2 id="upcoming-heading" className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Coming up</h2>
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            {upcoming.map(item => (
+              <li key={item.id}>
+                <Link href={item.href} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                  <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
+                  <span className="min-w-0 flex-1 truncate text-sm text-gray-900">{item.title}</span>
+                  <span className="shrink-0 text-xs text-gray-500">{item.detail}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-        {/* Today at a glance — always visible */}
-        {today && (today.overdueChores.length > 0 || today.upcomingEvents.length > 0) && (
-          <div className="bg-white border border-amber-200 rounded-xl px-5 py-4 mb-4 space-y-3">
-            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Today at a glance</p>
-            {today.overdueChores.length > 0 && (
-              <div>
-                <p className="text-xs text-gray-500 mb-1.5">Overdue chores</p>
-                <div className="space-y-1">
-                  {today.overdueChores.map(c => (
-                    <Link key={c.id} href={`/apartment/${apt.id}/chores?status=OVERDUE`}
-                      className="flex items-center gap-2 text-sm text-red-600 hover:underline">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
-                      {c.title}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-            {today.upcomingEvents.length > 0 && (
-              <div>
-                <p className="text-xs text-gray-500 mb-1.5">Coming up (next 7 days)</p>
-                <div className="space-y-1">
-                  {today.upcomingEvents.map(e => (
-                    <Link key={e.id} href={`/apartment/${apt.id}/calendar`}
-                      className="flex items-center gap-2 text-sm text-gray-700 hover:underline">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 flex-shrink-0" />
-                      {e.title} · {new Date(e.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Household — members, rules & admin. Feature navigation now lives in the sidebar drawer (☰). */}
-        <div className="space-y-4">
-              {/* Profile link */}
-              <Link href="/profile"
-                className="flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 hover:border-blue-300 hover:shadow-sm transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">My Profile</p>
-                    <p className="text-xs text-gray-400">Settings, password, preferences</p>
-                  </div>
-                </div>
-                <span className="text-gray-300">→</span>
-              </Link>
-
-              {/* Invite code */}
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-blue-400 mb-0.5">Invite code</p>
-                  <p className="text-2xl font-mono font-bold text-blue-700 tracking-widest">{apt.inviteCode}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1.5">
-                  <button onClick={copyCode} className="text-sm text-blue-600 font-medium hover:underline">
-                    {copied ? "Copied!" : "Copy code"}
-                  </button>
-                  <button onClick={copyInviteLink} className="text-xs text-blue-400 hover:text-blue-600">
-                    {linkCopied ? "Link copied!" : "Copy invite link"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Email invite */}
-              {isAdmin && (
-                <form onSubmit={sendInviteEmail} className="flex gap-2">
-                  <input
-                    type="email" placeholder="Invite by email…" value={inviteEmail}
-                    onChange={e => setInviteEmail(e.target.value)} required
-                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button type="submit" disabled={inviteSending}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                    {inviteSent ? "Sent!" : inviteSending ? "…" : "Invite"}
-                  </button>
-                </form>
-              )}
-
-              {/* Members / Rules / Admin tabs */}
-              <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-                {(["members", "rules", ...(isAdmin ? ["admin"] : [])] as const).map(t => (
-                  <button key={t} onClick={() => setTab(t as typeof tab)}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-                    {t}
-                  </button>
-                ))}
-              </div>
-
-              {/* Members */}
-              {tab === "members" && (
-                <div className="space-y-3">
-                  {apt.members.map(m => {
-                    const flags: string[] = JSON.parse(m.user.dietaryFlags || "[]");
-                    const activeTravelPeriod = travelers.find(t => t.userId === m.user.id);
-                    const canManageTravel = isAdmin || m.user.id === currentUserId;
-                    return (
-                      <div key={m.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                        <Link href={`/apartment/${apt.id}/members/${m.user.id}`}
-                          className="px-5 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors block">
-                          <div className="flex items-center gap-3">
-                            {m.user.photo ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={m.user.photo} alt={m.user.name} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
-                            ) : (
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${activeTravelPeriod ? "bg-amber-100 text-amber-600" : "bg-blue-100 text-blue-600"}`}>
-                                {activeTravelPeriod ? "✈" : m.user.name[0].toUpperCase()}
-                              </div>
-                            )}
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-medium text-gray-900">{m.user.name}</p>
-                                {activeTravelPeriod && (
-                                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-                                    ✈ Traveling{activeTravelPeriod.endDate ? ` until ${new Date(activeTravelPeriod.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-400">
-                                {m.user.roomAssignment ?? "No room"} · {m.role} · {m.status}
-                                {flags.length > 0 && ` · ${flags.join(", ")}`}
-                              </p>
-                            </div>
-                          </div>
-                          <span className="text-gray-300 text-sm">→</span>
-                        </Link>
-                        {canManageTravel && (
-                          <div className="px-5 pb-3 border-t border-gray-50 flex gap-2 pt-2">
-                            {activeTravelPeriod ? (
-                              <button onClick={() => markReturned(activeTravelPeriod.id)} disabled={markingReturn === activeTravelPeriod.id}
-                                className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-lg font-medium hover:bg-green-100 disabled:opacity-50 transition-colors">
-                                {markingReturn === activeTravelPeriod.id ? "…" : "Mark returned"}
-                              </button>
-                            ) : (
-                              <button onClick={() => { setTravelModal(m.user.id); setTravelForm({ startDate: "", endDate: "", notes: "" }); }}
-                                className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-lg font-medium hover:bg-amber-100 transition-colors">
-                                ✈ Mark as traveling
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  <Link href={`/apartment/${apt.id}/scores`}
-                    className="flex items-center justify-between bg-gray-100 border border-gray-200 text-gray-700 rounded-xl px-4 py-3 hover:bg-gray-200 transition-colors">
-                    <p className="text-sm font-medium">Roommate Scores</p>
-                    <span className="text-gray-400">→</span>
-                  </Link>
-                </div>
-              )}
-
-              {/* Rules */}
-              {tab === "rules" && (
-                <div className="space-y-3">
-                  {apt.houseRules.length === 0 && (
-                    <p className="text-sm text-gray-400 text-center py-6">No house rules yet.</p>
-                  )}
-                  {apt.houseRules.map((rule, i) => {
-                    const isProposed = rule.status === "PROPOSED";
-                    const myVote = rule.votes.find(v => v.user.id === currentUserId);
-                    const yesCount = rule.votes.filter(v => v.vote === "YES").length;
-                    const noCount = rule.votes.filter(v => v.vote === "NO").length;
-                    return (
-                      <div key={rule.id} className={`bg-white border rounded-xl px-5 py-4 ${isProposed ? "border-amber-300" : "border-gray-200"}`}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                              {!isProposed && <span className="text-sm font-medium text-gray-400">{i + 1}.</span>}
-                              <p className="text-sm text-gray-700">{rule.content}</p>
-                              {isProposed && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Proposed</span>}
-                            </div>
-                            {isProposed && rule.votingEndsAt && (
-                              <p className="text-xs text-gray-400">Voting ends {new Date(rule.votingEndsAt).toLocaleDateString()}</p>
-                            )}
-                          </div>
-                          {isAdmin && !isProposed && (
-                            <button onClick={() => archiveRule(rule.id)} className="text-xs text-gray-300 hover:text-red-400 transition-colors">Archive</button>
-                          )}
-                        </div>
-                        {isProposed && !isGuest && (
-                          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
-                            <button onClick={() => voteRule(rule.id, "YES")}
-                              className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${myVote?.vote === "YES" ? "bg-emerald-600 text-white border-emerald-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
-                              ✓ Yes ({yesCount})
-                            </button>
-                            <button onClick={() => voteRule(rule.id, "NO")}
-                              className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${myVote?.vote === "NO" ? "bg-red-500 text-white border-red-500" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
-                              ✗ No ({noCount})
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {!isGuest && (
-                    <form onSubmit={addRule} className="space-y-2 mt-2">
-                      <div className="flex gap-2">
-                        <input type="text" required placeholder={isAdmin ? "Add a house rule…" : "Propose a rule…"}
-                          value={newRule} onChange={e => setNewRule(e.target.value)}
-                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button type="submit" disabled={addingRule}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                          {addingRule ? "…" : isAdmin ? "Add" : "Propose"}
-                        </button>
-                      </div>
-                      {isAdmin && (
-                        <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-                          <input type="checkbox" checked={proposeMode} onChange={e => setProposeMode(e.target.checked)} />
-                          Put to a vote (48h) instead of adding directly
-                        </label>
-                      )}
-                    </form>
-                  )}
-                </div>
-              )}
-
-              {/* Admin */}
-              {tab === "admin" && isAdmin && (
-                <div className="space-y-3">
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 space-y-3">
-                    <p className="text-sm font-semibold text-amber-800">Announcement</p>
-                    {announcementEdit ? (
-                      <div className="space-y-2">
-                        <textarea value={announcementText} onChange={e => setAnnouncementText(e.target.value)} rows={3}
-                          placeholder="Type an announcement for all members…"
-                          className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
-                        <div className="flex gap-2">
-                          <button onClick={saveAnnouncement} className="flex-1 bg-amber-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors">Save</button>
-                          <button onClick={() => setAnnouncementEdit(false)} className="flex-1 border border-gray-300 text-gray-600 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm text-amber-700 flex-1">
-                          {apt.announcement ?? <span className="text-amber-400 italic">No announcement set</span>}
-                        </p>
-                        <div className="flex gap-2">
-                          <button onClick={() => { setAnnouncementText(apt.announcement ?? ""); setAnnouncementEdit(true); }}
-                            className="text-xs text-amber-600 hover:text-amber-800 font-medium">{apt.announcement ? "Edit" : "Add"}</button>
-                          {apt.announcement && (
-                            <button onClick={clearAnnouncement} className="text-xs text-red-400 hover:text-red-600 font-medium">Clear</button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-500">Manage members, roles, and statuses.</p>
-                    <Link href={`/apartment/${id}/audit`} className="text-xs text-gray-400 hover:text-blue-600 transition-colors">View audit log →</Link>
-                  </div>
-                  {apt.members.map(m => (
-                    <div key={m.id} className="bg-white border border-gray-200 rounded-xl px-5 py-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="font-medium text-gray-900">{m.user.name}</p>
-                        <div className="flex items-center gap-3">
-                          <Link href={`/apartment/${id}/moveout/${m.user.id}`} className="text-xs text-blue-500 hover:underline">Report</Link>
-                          <button onClick={() => removeMember(m.id, m.user.id === currentUserId)} className="text-xs text-red-400 hover:text-red-600">
-                            {m.user.id === currentUserId ? "Leave" : "Remove"}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        {(["ADMIN", "MEMBER", "GUEST"] as const).map(r => (
-                          <button key={r} onClick={() => updateMember(m.id, { role: r })}
-                            className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${m.role === r ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>{r}</button>
-                        ))}
-                        <div className="w-px bg-gray-200 mx-1" />
-                        {(["ACTIVE", "VACATION", "MOVED_OUT"] as const).map(s => (
-                          <button key={s} onClick={() => updateMember(m.id, { status: s })}
-                            className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${m.status === s ? "bg-amber-500 text-white border-amber-500" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
-                            {s.replace("_", " ")}
-                          </button>
-                        ))}
-                      </div>
-                      {/* Guest expiry — only for GUEST members */}
-                      {m.role === "GUEST" && (
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-                          <span className="text-xs text-gray-400">Access until:</span>
-                          <input
-                            type="date"
-                            defaultValue={m.expiresAt ? m.expiresAt.split("T")[0] : ""}
-                            onChange={e => setGuestExpiry(m.id, e.target.value || null)}
-                            className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                          />
-                          {m.expiresAt && (
-                            <span className="text-xs text-amber-600 font-medium">
-                              {new Date(m.expiresAt) < new Date() ? "Expired" : "Active"}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Pending join requests — visible to ADMIN role members only */}
-                  {joinRequests.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-sm font-semibold text-gray-700 mb-2">
-                        Pending Requests ({joinRequests.length})
-                      </p>
-                      <div className="space-y-2">
-                        {joinRequests.map(jr => (
-                          <div key={jr.id} className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-amber-200 flex items-center justify-center text-sm font-semibold text-amber-800 flex-shrink-0">
-                              {jr.user.name[0]?.toUpperCase()}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900">{jr.user.name}</p>
-                              <p className="text-xs text-gray-400 truncate">{jr.user.email}</p>
-                            </div>
-                            <div className="flex gap-2 flex-shrink-0">
-                              <button
-                                onClick={() => approveJoin(jr.id)}
-                                className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => rejectJoin(jr.id)}
-                                className="text-xs text-red-400 hover:text-red-600 px-2 py-1.5 transition-colors">
-                                Reject
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-        {/* Travel modal */}
-        {travelModal && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
-              <h3 className="font-bold text-gray-900">Mark as traveling</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Start date</label>
-                  <input type="date" value={travelForm.startDate} onChange={e => setTravelForm(f => ({ ...f, startDate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Return date (optional)</label>
-                  <input type="date" value={travelForm.endDate} onChange={e => setTravelForm(f => ({ ...f, endDate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Notes (optional)</label>
-                  <input type="text" placeholder="Visiting family, work trip…" value={travelForm.notes}
-                    onChange={e => setTravelForm(f => ({ ...f, notes: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-400">While traveling: cleaning rotation skips this person, and new expenses with equal split exclude them.</p>
-              <div className="flex gap-2">
-                <button onClick={() => markTraveling(travelModal!)} disabled={markingTravel}
-                  className="flex-1 bg-amber-500 text-white py-2.5 rounded-xl font-medium hover:bg-amber-600 disabled:opacity-50 transition-colors">
-                  {markingTravel ? "Saving…" : "Confirm travel"}
-                </button>
-                <button onClick={() => setTravelModal(null)}
-                  className="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl font-medium hover:bg-gray-50 transition-colors">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
-
-    {/* Desktop experience */}
-    <div className="hidden md:block min-h-screen bg-gray-50">
-      <div className="flex-1 min-w-0">
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="font-bold text-gray-900">{apt.name}</span>
-            {isAdmin && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Admin</span>}
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href={`/apartment/${apt.id}/search`} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors" aria-label="Search">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </Link>
-            <NotificationBell apartmentId={apt.id} />
-            <Link href="/profile" className="text-sm text-gray-500 hover:text-gray-700">{apt.members.find(m => m.user.id === currentUserId)?.user.name ?? "Profile"}</Link>
-            <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
-          </div>
-        </header>
-
-        <main className="px-8 py-8 max-w-6xl">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Welcome back{apt.members.find(m => m.user.id === currentUserId)?.user.name ? `, ${apt.members.find(m => m.user.id === currentUserId)!.user.name.split(" ")[0]}` : ""}!
-              </h1>
-              <p className="text-sm text-gray-500 mt-0.5">Here&apos;s what&apos;s happening in your household.</p>
-            </div>
-          </div>
-
-          {/* Stat tiles */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
-              <IconBadge icon={<ChoresIcon />} color="orange" size="lg" />
-              <div className="min-w-0">
-                <p className="text-xs text-gray-400 mb-0.5">Chores Pending</p>
-                <p className="text-2xl font-bold text-gray-900">{desktopData?.choresPendingCount ?? "—"}</p>
-              </div>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
-              <IconBadge icon={<HouseIcon />} color="rose" size="lg" />
-              <div className="min-w-0">
-                <p className="text-xs text-gray-400 mb-0.5">Rent</p>
-                {desktopData?.rentDue ? (
-                  <p className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    ${desktopData.rentDue.amount.toFixed(0)}
-                    {desktopData.rentDue.paidThisMonth
-                      ? <span className="text-xs font-medium text-green-600">Paid</span>
-                      : <span className="text-xs font-medium text-red-500">Due day {desktopData.rentDue.dueDay}</span>}
-                  </p>
-                ) : <p className="text-sm text-gray-400">Not configured</p>}
-              </div>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
-              <IconBadge icon={<FundIcon />} color="teal" size="lg" />
-              <div className="min-w-0">
-                <p className="text-xs text-gray-400 mb-0.5">Shared Fund</p>
-                <p className="text-2xl font-bold text-gray-900">${(desktopData?.fundBalance ?? 0).toFixed(2)}</p>
-              </div>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
-              <IconBadge icon={<MaintenanceIcon />} color="amber" size="lg" />
-              <div className="min-w-0">
-                <p className="text-xs text-gray-400 mb-0.5">Maintenance</p>
-                <p className="text-2xl font-bold text-gray-900">{desktopData?.maintenanceOpenCount ?? "—"}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Schedule / Activity / Upcoming */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-sm font-semibold text-gray-900 mb-3">Today&apos;s Schedule</p>
-              {today && today.overdueChores.length === 0 && today.upcomingEvents.length === 0 ? (
-                <p className="text-xs text-gray-400">Nothing due today.</p>
-              ) : (
-                <div className="space-y-2">
-                  {today?.overdueChores.map(c => (
-                    <Link key={c.id} href={`/apartment/${apt.id}/chores`} className="flex items-center gap-2 text-xs text-red-600 hover:underline">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />{c.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-sm font-semibold text-gray-900 mb-3">Recent Activity</p>
-              {desktopData?.recentActivity.length ? (
-                <div className="space-y-2.5">
-                  {desktopData.recentActivity.map(a => (
-                    <div key={a.id} className="text-xs">
-                      <p className="text-gray-700"><span className="font-medium">{a.user?.name ?? "Someone"}</span> {a.title}</p>
-                      <p className="text-gray-400">{new Date(a.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : <p className="text-xs text-gray-400">No recent activity.</p>}
-              <Link href={`/apartment/${apt.id}/feed`} className="text-xs text-blue-600 hover:underline mt-3 inline-block">View All Activity</Link>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-sm font-semibold text-gray-900 mb-3">Upcoming</p>
-              {desktopData?.upcomingEvents.length ? (
-                <div className="space-y-2">
-                  {desktopData.upcomingEvents.map(e => (
-                    <Link key={e.id} href={`/apartment/${apt.id}/calendar`} className="flex items-center gap-2 text-xs text-gray-700 hover:underline">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 flex-shrink-0" />
-                      {e.title} · {new Date(e.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                    </Link>
-                  ))}
-                </div>
-              ) : <p className="text-xs text-gray-400">Nothing on the calendar.</p>}
-              <Link href={`/apartment/${apt.id}/calendar`} className="text-xs text-blue-600 hover:underline mt-3 inline-block">View Calendar</Link>
-            </div>
-          </div>
-
-          {/* Expenses / Members / Marketplace promo */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <p className="text-sm font-semibold text-gray-900 mb-3">Expenses Overview</p>
-              {desktopData?.expensesByCategory.length ? (
-                <div className="space-y-2.5">
-                  {desktopData.expensesByCategory.map(c => {
-                    const total = desktopData.expensesByCategory.reduce((s, x) => s + x.amount, 0) || 1;
-                    return (
-                      <div key={c.category}>
-                        <div className="flex justify-between text-xs text-gray-600 mb-0.5">
-                          <span>{c.category}</span><span>${c.amount.toFixed(2)}</span>
-                        </div>
-                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.round((c.amount / total) * 100)}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : <p className="text-xs text-gray-400">No expenses yet.</p>}
-              <Link href={`/apartment/${apt.id}/finance`} className="text-xs text-blue-600 hover:underline mt-3 inline-block">View All Expenses</Link>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-gray-900">Household Members</p>
-                <span className="text-xs text-gray-400">{apt.members.length} total</span>
-              </div>
-              <div className="space-y-2.5">
-                {apt.members.slice(0, 5).map(m => (
-                  <div key={m.id} className="flex items-center gap-2.5">
-                    {m.user.photo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.user.photo} alt={m.user.name} className="w-7 h-7 rounded-full object-cover border border-gray-200" />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold text-blue-600">{m.user.name[0]?.toUpperCase()}</div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-gray-800 truncate">{m.user.name}{m.user.id === currentUserId ? " (you)" : ""}</p>
-                    </div>
-                    {m.user.id !== currentUserId && (
-                      <Link href={`/apartment/${apt.id}/chat/dm/${m.user.id}`} className="p-1.5 rounded-lg text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" aria-label={`Message ${m.user.name}`}>
-                        <ChatIcon className="w-4 h-4" />
-                      </Link>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-4 flex flex-col justify-between">
-              <div>
-                <IconBadge icon={<HouseIcon />} color="blue" size="lg" className="mb-2" />
-                <p className="text-sm font-semibold text-gray-900 mb-1">Find Your Next Home</p>
-                <p className="text-xs text-gray-500">Browse listings and find the perfect place.</p>
-              </div>
-              <Link href="/listings" className="mt-3 inline-block text-center bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                Search Listings
-              </Link>
-            </div>
-          </div>
-
-          {/* Quick actions */}
-          <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4">
-            <p className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</p>
-            <div className="grid grid-cols-4 gap-3">
-              <Link href={`/apartment/${apt.id}/finance`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors">
-                <IconBadge icon={<FinanceIcon />} color="blue" size="sm" /> Add Expense
-              </Link>
-              <Link href={`/apartment/${apt.id}/chores`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors">
-                <IconBadge icon={<ChoresIcon />} color="orange" size="sm" /> Create Chore
-              </Link>
-              <Link href={`/apartment/${apt.id}/maintenance`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors">
-                <IconBadge icon={<MaintenanceIcon />} color="amber" size="sm" /> Add Maintenance
-              </Link>
-              <button onClick={copyInviteLink} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors text-left">
-                <IconBadge icon={<ProfileIcon />} color="indigo" size="sm" /> {linkCopied ? "Link copied!" : "Invite Roommate"}
-              </button>
-            </div>
-          </div>
-        </main>
-      </div>
-    </div>
-    </>
+      {recent.length > 0 && (
+        <section className="mt-8" aria-labelledby="recent-heading">
+          <h2 id="recent-heading" className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Recently</h2>
+          <ul className="space-y-1.5">
+            {recent.map(item => (
+              <li key={item.id}>
+                <Link href={item.href} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
+                  <MessageIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                  <span className="truncate">{item.title}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </main>
   );
 }

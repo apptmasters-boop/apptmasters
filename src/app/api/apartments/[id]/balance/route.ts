@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
+import { householdDebts } from "@/lib/balances";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
@@ -11,42 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const membership = access.membership;
   if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
 
-  const expenses = await prisma.expense.findMany({
-    where: { apartmentId, status: { not: "SETTLED" } },
-    include: { splits: true },
-  });
-
-  // Build net balance map: positive = owed to you, negative = you owe
-  const balances: Record<string, Record<string, number>> = {};
-
-  for (const expense of expenses) {
-    for (const split of expense.splits) {
-      if (split.status === "PAID") continue;
-      const owerId = split.userId;
-      const payeeId = expense.paidById;
-      if (owerId === payeeId) continue;
-
-      if (!balances[owerId]) balances[owerId] = {};
-      if (!balances[payeeId]) balances[payeeId] = {};
-      balances[owerId][payeeId] = (balances[owerId][payeeId] ?? 0) - split.amount;
-      balances[payeeId][owerId] = (balances[payeeId][owerId] ?? 0) + split.amount;
-    }
-  }
-
-  // Simplify debts: balances[A][B] is already net (positive = A is owed by B, negative = A owes B)
-  // balances[A][B] === -balances[B][A] by construction, so just use amount directly — don't subtract
-  // the mirror entry or you double the value.
-  const simplified: { from: string; to: string; amount: number }[] = [];
-  const seen = new Set<string>();
-  for (const [fromId, tos] of Object.entries(balances)) {
-    for (const [toId, amount] of Object.entries(tos)) {
-      const key = [fromId, toId].sort().join(":");
-      if (seen.has(key)) continue;
-      seen.add(key);
-      if (amount > 0.01) simplified.push({ from: toId, to: fromId, amount: parseFloat(amount.toFixed(2)) });
-      else if (amount < -0.01) simplified.push({ from: fromId, to: toId, amount: parseFloat((-amount).toFixed(2)) });
-    }
-  }
+  const simplified = await householdDebts(apartmentId);
 
   // Fetch user names
   const userIds = [...new Set(simplified.flatMap(s => [s.from, s.to]))];
