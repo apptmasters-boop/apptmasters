@@ -4,6 +4,7 @@ import { POST as register } from "@/app/api/auth/register/route";
 import { GET as me } from "@/app/api/auth/me/route";
 import { POST as verify2fa } from "@/app/api/auth/2fa/verify/route";
 import { POST as send2fa } from "@/app/api/auth/2fa/send/route";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { createUser, request, TEST_PASSWORD } from "./helpers";
 
@@ -114,6 +115,16 @@ describe("two-factor sign-in", () => {
     const { challenge } = await passwordStep(user.email);
     for (let i = 0; i < 5; i++) await verify({ challenge, code: "000000" });
     expect((await verify({ challenge, code: await latestCode(user.id) })).status).toBe(429);
+  });
+
+  it("accepts a backup code once (in any letter case)", async () => {
+    const { user } = await twoFactorUser();
+    await prisma.backupCode.create({ data: { userId: user.id, codeHash: await bcrypt.hash("ABCD-EF23", 4) } });
+    const { challenge } = await passwordStep(user.email);
+    expect((await verify({ challenge, code: "abcd-ef23" })).status).toBe(200);
+
+    const { challenge: again } = await passwordStep(user.email);
+    expect((await verify({ challenge: again, code: "ABCD-EF23" })).status).toBe(401);
   });
 
   it("only re-sends a code for a valid challenge", async () => {

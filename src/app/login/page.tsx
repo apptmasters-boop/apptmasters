@@ -27,6 +27,16 @@ function ResendVerification({ email }: { email: string }) {
   );
 }
 
+/**
+ * Backup codes are 8 letters/digits shown as XXXX-XXXX (see
+ * api/users/2fa/backup-codes). The server compares that exact form, so we
+ * uppercase, drop anything else, and insert the dash as the user types.
+ */
+function formatBackupCode(input: string): string {
+  const raw = input.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+  return raw.length > 4 ? `${raw.slice(0, 4)}-${raw.slice(4)}` : raw;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,6 +47,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"credentials" | "2fa">("credentials");
   const [code, setCode] = useState("");
+  const [useBackupCode, setUseBackupCode] = useState(false);
   const [challenge, setChallenge] = useState("");
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
 
@@ -96,17 +107,28 @@ function LoginForm() {
 
   if (step === "2fa") {
     return (
-      <AuthShell title="Check your email" subtitle={`We sent a 6-digit code to ${form.email}`}
+      <AuthShell title={useBackupCode ? "Use a backup code" : "Check your email"}
+        subtitle={useBackupCode ? "Enter one of the backup codes you saved when you turned on two-factor sign-in" : `We sent a 6-digit code to ${form.email}`}
         heroTitle="Find a safe place with people you can trust."
         heroText={<p>Temporary housing. Real community.<br />A path to your independence.</p>}>
         <form onSubmit={handleVerify} className="space-y-4">
           {error && <FormError>{error}</FormError>}
-          <AuthField icon={<ShieldCheckIcon className="h-5 w-5" />} label="Login code"
-            type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="one-time-code"
-            value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" />
-          <PrimaryButton loading={loading} disabled={code.length !== 6} icon={<LogInIcon className="h-4 w-4" />}>
+          {useBackupCode ? (
+            <AuthField key="backup" icon={<ShieldCheckIcon className="h-5 w-5" />} label="Backup code"
+              type="text" autoCapitalize="characters" autoComplete="off" spellCheck={false} required
+              value={code} onChange={e => setCode(formatBackupCode(e.target.value))} placeholder="XXXX-XXXX" />
+          ) : (
+            <AuthField key="email-code" icon={<ShieldCheckIcon className="h-5 w-5" />} label="Login code"
+              type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="one-time-code"
+              value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ""))} placeholder="000000" />
+          )}
+          <PrimaryButton loading={loading} disabled={code.length !== (useBackupCode ? 9 : 6)} icon={<LogInIcon className="h-4 w-4" />}>
             {loading ? "Verifying…" : "Verify and sign in"}
           </PrimaryButton>
+          <button type="button" onClick={() => { setUseBackupCode(b => !b); setCode(""); setError(""); }}
+            className="w-full text-sm font-medium text-brand hover:underline">
+            {useBackupCode ? "Use the code from my email instead" : "Lost access to your email? Use a backup code"}
+          </button>
           <button type="button" onClick={() => { setStep("credentials"); setCode(""); setError(""); }}
             className="w-full text-sm text-gray-500 hover:text-gray-800">
             ← Use a different account
