@@ -163,8 +163,8 @@ Split into two slices, each with its own sign-off.
 - [x] Tests pass: 108 (+15 new: navigation rules for every page, unread count, members-only)
 - [x] Lint: no new errors (70)
 - [x] Local production build passes
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (ed1f241)
+- [x] Deployed to apptmasters.com 2026-10-08; all new pages respond; no new server errors
 
 **Your test on apptmasters.com**
 1. On your **phone**, sign in and open your home. → A bar at the bottom shows
