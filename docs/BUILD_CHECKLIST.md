@@ -432,15 +432,15 @@ saved → next person's turn scheduled*, all automatically.
 
 ## Sprint 4 — Shopping
 
-**Status:** 4a round 2 building · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
+**Status:** 4a ready for your test (round 2) · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
 
 Shopping becomes one flow: whose turn it is, one shared list, and the trip
-itself. Paying for the trip (total, receipt, split) comes in Sprint 6, once the
-Money ledger exists.
+itself. The total and receipt are saved on each trip now; splitting them into
+everyone's balances comes in Sprint 6, once the Money ledger exists.
 
 ### 4a — Whose turn, one shared list, and the trip card by card
 
-**Status:** Building (round 2: owner feedback 2026-10-09)
+**Status:** Ready for your test (round 2)
 
 **Owner feedback on round 1 (2026-10-09):** show one card after another:
 start preparing → do the inventory → at the store → tick the items into the
@@ -476,16 +476,17 @@ inventory step can be skipped. (This brings 4c, the Home Check, into 4a.)
   under Household → **Who buys what**. Nothing is deleted.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass: 161 (+13: who is in the turn, away people skipped, only the
+- [x] Type check passes
+- [x] Tests pass: 161 (+13: who is in the turn, away people skipped, only the
       shopper moves the trip on, one card at a time, the inventory can be
       skipped, checkout needs a total and a receipt, the total can be
       corrected, leaving the store clears bought items and passes the turn,
       no duplicate items, receipts must be real images, Home item, admins
       only for the order)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (65)
+- [x] CI green on GitHub (4718605)
+- [x] Deployed to apptmasters.com 2026-10-09 (4 new trip columns added with
+      targeted SQL; checked with a real household)
 
 **Your test on apptmasters.com** (two accounts in the same home; put one or
 two items in Household → Inventory with a low quantity first)
