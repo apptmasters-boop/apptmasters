@@ -20,6 +20,9 @@ model User {
   notifPrefs     String    @default("{}") // JSON: { pushEnabled, emailEnabled, types: { [type]: bool } }
   twoFactorEnabled Boolean @default(false)
   emailVerified  Boolean  @default(true)
+  // Legacy column from an earlier version of the app; nothing reads it. Declared so
+  // `prisma db push` keeps its data instead of dropping it (docs/ROADMAP.md, schema drift).
+  platformRole   PlatformRole @default(tenant) @map("platform_role")
   foundHomeAt    DateTime? // self-reported "I found a place" (PRODUCT_LOGIC §2.1, §3.3); see src/lib/housing.ts
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -38,6 +41,8 @@ model User {
   expenseEditApprovals     ExpenseEditApproval[] @relation("EditApprover")
   travelPeriods            TravelPeriod[]        @relation("UserTravels")
   cleaningLogs             CleaningLog[]         @relation("CleaningLogger")
+  cleaningSwapsRequested   CleaningSwapRequest[] @relation("SwapRequester")
+  cleaningSwapsReceived    CleaningSwapRequest[] @relation("SwapTarget")
   settlementsFrom          Settlement[]       @relation("SettlementFrom")
   settlementsTo            Settlement[]       @relation("SettlementTo")
   rentCyclesAsPayer        RentCycle[]
@@ -328,6 +333,7 @@ model CleaningRotation {
   apartmentId String
   apartment   Apartment    @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   logs        CleaningLog[]
+  swapRequests CleaningSwapRequest[]
 }
 
 model CleaningLog {
@@ -1004,4 +1010,33 @@ model ListingMessage {
   listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
   sender   User    @relation("ListingMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User    @relation("ListingMessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+enum PlatformRole {
+  super_admin
+  landlord
+  tenant
+
+  @@map("platform_role")
+}
+
+// "Can't clean this week?" (PRODUCT_LOGIC §8.2): the person whose turn it is
+// asks the next person to swap. Only the next person can accept; on accept
+// they trade places in the order. Kept after answering, for History.
+model CleaningSwapRequest {
+  id          String    @id @default(cuid())
+  status      String    @default("PENDING") // PENDING | ACCEPTED | DECLINED | CANCELLED
+  reason      String?
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  apartmentId String
+  rotationId  String
+  requesterId String
+  targetId    String
+  rotation    CleaningRotation @relation(fields: [rotationId], references: [id], onDelete: Cascade)
+  requester   User             @relation("SwapRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  target      User             @relation("SwapTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([rotationId, status])
 }

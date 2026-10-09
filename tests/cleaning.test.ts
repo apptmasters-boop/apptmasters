@@ -68,7 +68,7 @@ describe("cleaning API", () => {
 
     const res = await history(request(`/api/apartments/${apt.id}/cleaning/${rotation.id}/history`, { token: me.token }),
       routeParams({ id: apt.id, rotationId: rotation.id }));
-    const logs = await res.json();
+    const { logs } = await res.json();
     expect(logs[0]).toMatchObject({ notes: "Kitchen too", cleanedBy: { id: me.user.id } });
   });
 

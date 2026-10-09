@@ -83,6 +83,10 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
     prisma.calendarEvent.findMany({ where: { apartmentId, startDate: { gte: now, lte: in7Days } }, orderBy: { startDate: "asc" }, take: 5 }),
     prisma.feedItem.findMany({ where: { apartmentId }, orderBy: { createdAt: "desc" }, take: 3 }),
   ]);
+  const swapsForMe = await prisma.cleaningSwapRequest.findMany({
+    where: { apartmentId, targetId: userId, status: "PENDING" },
+    include: { requester: { select: { name: true } } },
+  });
 
   const items: FeedItem[] = [];
 
@@ -130,6 +134,9 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
         items.push({ id: `cleaning-approve:${r.id}`, priority: 3, href: `${base}/cleaning`, title: "A cleaning turn needs your approval", detail: "Someone asked to pass the rotation on" });
       }
     }
+  }
+  for (const s of swapsForMe) {
+    items.push({ id: `cleaning-swap:${s.id}`, priority: 3, href: `${base}/cleaning`, title: `${s.requester.name} asked you to swap cleaning turns`, detail: s.reason ?? "Accept or decline" });
   }
   for (const r of purchases) {
     if (currentOf(r.memberOrder, r.currentIndex) !== userId) continue;

@@ -17,5 +17,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     take: 100,
     include: { cleanedBy: { select: { id: true, name: true } } },
   });
-  return NextResponse.json(logs);
+  // Accepted swaps appear in History alongside cleanings ("Sam cleaned for Alex")
+  const swaps = await prisma.cleaningSwapRequest.findMany({
+    where: { rotationId, status: "ACCEPTED" },
+    orderBy: { respondedAt: "desc" },
+    take: 50,
+    include: { requester: { select: { id: true, name: true } }, target: { select: { id: true, name: true } } },
+  });
+  return NextResponse.json({ logs, swaps });
 }

@@ -349,7 +349,7 @@ now has a home):
 
 ## Sprint 3 — Cleaning
 
-**Status:** 3a ready for your test · 3b not started · Spec: `PRODUCT_LOGIC.md` §8, §21
+**Status:** 3a approved · 3b building · Spec: `PRODUCT_LOGIC.md` §8, §21
 
 Cleaning is one whole-home rotation: *your turn → mark as cleaned → history
 saved → next person's turn scheduled*, all automatically.
@@ -392,7 +392,7 @@ saved → next person's turn scheduled*, all automatically.
 5. As a **regular member**, there's no create or delete option. As a
    **household admin**, they're in the settings area.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-09
 
 ### 3b — "Can't clean this week?"
 

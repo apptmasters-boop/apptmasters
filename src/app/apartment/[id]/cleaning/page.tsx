@@ -25,7 +25,9 @@ interface Rotation {
   memberOrder: RotationMember[]; logs: CleaningLog[];
   schedule: { userId: string; name: string; due: string | null }[];
   pendingAdvanceById: string | null; pendingAdvanceByName: string | null;
+  pendingSwap: { id: string; reason: string | null; requesterId: string; requesterName: string; targetId: string; targetName: string } | null;
 }
+interface SwapEvent { id: string; respondedAt: string; reason: string | null; requester: { id: string; name: string }; target: { id: string; name: string } }
 interface Member { id: string; name: string }
 
 const day = (iso: string, withWeekday = true) =>
@@ -38,7 +40,10 @@ export default function CleaningPage() {
   const [rotations, setRotations] = useState<Rotation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("rotation");
-  const [history, setHistory] = useState<CleaningLog[] | null>(null);
+  const [history, setHistory] = useState<{ logs: CleaningLog[]; swaps: SwapEvent[] } | null>(null);
+  const [swapOpen, setSwapOpen] = useState(false);
+  const [swapReason, setSwapReason] = useState("");
+  const [swapBusy, setSwapBusy] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [currentUserId, setCurrentUserId] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -90,8 +95,8 @@ export default function CleaningPage() {
     if (tab !== "history" || !selectedId) return;
     let current = true;
     apiFetch(`/api/apartments/${apartmentId}/cleaning/${selectedId}/history`)
-      .then(res => (res.ok ? res.json() : []))
-      .then(logs => { if (current) setHistory(logs); })
+      .then(res => (res.ok ? res.json() : { logs: [], swaps: [] }))
+      .then(data => { if (current) setHistory(data); })
       .catch(() => {});
     return () => { current = false; };
   }, [tab, selectedId, apartmentId, rotations]);
@@ -120,6 +125,22 @@ export default function CleaningPage() {
     setResolving(true);
     await apiFetch(`/api/apartments/${apartmentId}/cleaning/${rotationId}/${action}-advance`, { method: "POST" });
     setResolving(false);
+    load();
+  }
+
+  async function requestSwap(rotationId: string) {
+    setSwapBusy(true);
+    const res = await apiFetch(`/api/apartments/${apartmentId}/cleaning/${rotationId}/swap`, { method: "POST", body: JSON.stringify({ reason: swapReason || undefined }) });
+    setSwapBusy(false);
+    if (!res.ok) { alert((await res.json().catch(() => ({}))).error ?? "Could not send the request."); return; }
+    setSwapOpen(false); setSwapReason("");
+    load();
+  }
+  async function answerSwap(swapId: string, action: "accept" | "decline" | "cancel") {
+    setSwapBusy(true);
+    const res = await apiFetch(`/api/apartments/${apartmentId}/cleaning/swaps/${swapId}`, { method: "POST", body: JSON.stringify({ action }) });
+    setSwapBusy(false);
+    if (!res.ok) alert((await res.json().catch(() => ({}))).error ?? "Something went wrong.");
     load();
   }
 
@@ -211,6 +232,32 @@ export default function CleaningPage() {
                 </button>
               </div>
 
+              {rot.pendingSwap ? (
+                <div className="rounded-2xl border border-brand/30 bg-brand-soft/70 px-4 py-3 text-sm text-gray-800 dark:bg-brand/20">
+                  {rot.pendingSwap.targetId === currentUserId ? (
+                    <>
+                      <p><span className="font-semibold">{rot.pendingSwap.requesterName}</span> can&apos;t clean this week and asked you to swap: you clean now, they take your next turn.</p>
+                      {rot.pendingSwap.reason && <p className="mt-1 text-xs text-gray-600">Reason: {rot.pendingSwap.reason}</p>}
+                      <div className="mt-2 flex gap-2">
+                        <button onClick={() => answerSwap(rot.pendingSwap!.id, "accept")} disabled={swapBusy} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Accept</button>
+                        <button onClick={() => answerSwap(rot.pendingSwap!.id, "decline")} disabled={swapBusy} className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium">Decline</button>
+                      </div>
+                    </>
+                  ) : rot.pendingSwap.requesterId === currentUserId ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <p>Waiting for <span className="font-semibold">{rot.pendingSwap.targetName}</span> to answer your swap request.</p>
+                      <button onClick={() => answerSwap(rot.pendingSwap!.id, "cancel")} disabled={swapBusy} className="text-xs font-medium text-red-600 hover:underline">Cancel</button>
+                    </div>
+                  ) : (
+                    <p>{rot.pendingSwap.requesterName} asked {rot.pendingSwap.targetName} to swap this turn.</p>
+                  )}
+                </div>
+              ) : isMyTurn && canMark && (
+                <button onClick={() => setSwapOpen(true)} className="w-full text-center text-sm font-medium text-gray-600 hover:text-gray-900">
+                  Can&apos;t clean this week?
+                </button>
+              )}
+
               {hasPending && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30">
                   {isAdmin ? (
@@ -262,10 +309,19 @@ export default function CleaningPage() {
           {tab === "history" && (
             <section className="mt-5">
               {history === null ? <p className="py-6 text-center text-sm text-gray-400">Loading…</p>
-                : history.length === 0 ? <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-500">No cleanings recorded yet.</p>
+                : history.logs.length + history.swaps.length === 0 ? <p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-500">No cleanings recorded yet.</p>
                 : (
                   <ul className="space-y-2">
-                    {history.map(log => (
+                    {history.swaps.map(sw => (
+                      <li key={sw.id} className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">⇄</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-gray-900">{sw.target.name} took {sw.requester.name}&apos;s turn</span>
+                          <span className="block text-xs text-gray-500">Swap · {day(sw.respondedAt)}{sw.reason ? ` · ${sw.reason}` : ""}</span>
+                        </span>
+                      </li>
+                    ))}
+                    {history.logs.map(log => (
                       <li key={log.id} className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3">
                         {log.photoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -344,6 +400,21 @@ export default function CleaningPage() {
             </div>
           )}
         </section>
+      )}
+
+      {swapOpen && rot && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="swap-title">
+          <div className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6">
+            <h2 id="swap-title" className="font-bold text-gray-900">Can&apos;t clean this week?</h2>
+            <p className="text-sm text-gray-600">We&apos;ll ask <span className="font-semibold">{rot.nextUserName}</span> to swap: they clean now and you take their next turn. Nothing changes until they accept.</p>
+            <input type="text" maxLength={300} placeholder="Reason (optional)" value={swapReason} onChange={e => setSwapReason(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <div className="flex gap-2">
+              <button onClick={() => requestSwap(rot.id)} disabled={swapBusy} className={`flex-1 ${primaryBtn}`}>{swapBusy ? "Sending…" : "Ask to swap"}</button>
+              <button onClick={() => setSwapOpen(false)} className="flex-1 rounded-xl border border-gray-300 py-2.5 text-sm font-medium text-gray-700">Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {doneFor && (() => {

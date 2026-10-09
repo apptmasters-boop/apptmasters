@@ -61,3 +61,13 @@ export function upcomingTurns(rotation: { memberOrder: string[]; currentIndex: n
   }
   return turns;
 }
+
+/** The order with `a` and `b` trading places ("Can't clean this week?" swap, §8.2). */
+export function swapPositions(order: string[], a: string, b: string): string[] {
+  const i = order.indexOf(a);
+  const j = order.indexOf(b);
+  if (i < 0 || j < 0) return order;
+  const next = [...order];
+  [next[i], next[j]] = [next[j], next[i]];
+  return next;
+}

@@ -37,6 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     include: { user: { select: { id: true, name: true } } },
   });
   const memberMap = Object.fromEntries(members.map(m => [m.user.id, m.user]));
+  const pendingSwaps = await prisma.cleaningSwapRequest.findMany({ where: { apartmentId, status: "PENDING" } });
 
   const enriched = rotations.map(r => {
     const order: string[] = JSON.parse(r.memberOrder);
@@ -52,6 +53,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       nextUserName: memberMap[order[nextIndex]]?.name ?? "Unknown",
       memberOrder: order.map(id => ({ id, name: memberMap[id]?.name ?? "Unknown", traveling: travelingIds.has(id) })),
       schedule,
+      pendingSwap: (() => {
+        const p = pendingSwaps.find(s => s.rotationId === r.id);
+        return p ? { id: p.id, reason: p.reason, requesterId: p.requesterId, requesterName: memberMap[p.requesterId]?.name ?? "Someone", targetId: p.targetId, targetName: memberMap[p.targetId]?.name ?? "Someone" } : null;
+      })(),
       pendingAdvanceByName: r.pendingAdvanceById ? (memberMap[r.pendingAdvanceById]?.name ?? "Unknown") : null,
     };
   });
