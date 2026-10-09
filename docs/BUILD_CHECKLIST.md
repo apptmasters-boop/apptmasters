@@ -432,56 +432,75 @@ saved → next person's turn scheduled*, all automatically.
 
 ## Sprint 4 — Shopping
 
-**Status:** 4a ready for your test · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
+**Status:** 4a round 2 building · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
 
 Shopping becomes one flow: whose turn it is, one shared list, and the trip
 itself. Paying for the trip (total, receipt, split) comes in Sprint 6, once the
 Money ledger exists.
 
-### 4a — Whose turn, one shared list, and the trip steps
+### 4a — Whose turn, one shared list, and the trip card by card
 
-**Status:** Ready for your test
+**Status:** Building (round 2: owner feedback 2026-10-09)
+
+**Owner feedback on round 1 (2026-10-09):** show one card after another:
+start preparing → do the inventory → at the store → tick the items into the
+cart, enter the total, upload the receipt, validate → I've left the store.
+Decisions: "I've left the store" ends the trip; the total and receipt are
+saved on the trip (the split comes with the Money ledger, Sprints 5–6); the
+inventory step can be skipped. (This brings 4c, the Home Check, into 4a.)
 
 **What I'm building**
 - **One household shopping turn.** Everyone living in the home (not guests),
   in the order they joined; admins can change the order. People who are away
-  are skipped, the same way as for cleaning. New members join the end of the
-  order automatically.
-- **One Shopping page** (Household → Shopping) with the shopper at the top,
-  then the shared list. The old Grocery list page opens this page.
-- **Trip steps for the shopper:** **Start preparing** → **I'm at the store** →
-  **I've left the store** → **Finish trip**. Everyone sees which step the
-  shopper is on.
-- **Finish trip:** ticked items leave the list (they were bought); unticked
-  items stay for next time; the turn passes to the next person.
-- **The list updates by itself** every few seconds while the page is open.
-- **Home** shows "Your turn to do the shopping" to the shopper.
-- **Kept as they are:** the per-item rotations ("toilet paper, monthly") move
-  to Household → **Who buys what**. Nothing is deleted.
+  are skipped, as for cleaning. New members join the end of the order.
+- **One Shopping page** (Household → Shopping). The old Grocery list page
+  opens it.
+- **The shopper sees one card at a time** (step 1 of 5 … 5 of 5):
+  1. **Start preparing.**
+  2. **Do the inventory:** items that are Low or Out at home, each with
+     **Add** to put it on the list (never twice). **Done with the inventory**,
+     or **Skip for now**.
+  3. **I'm at the store.**
+  4. **The list:** tick each item into the cart. Then **Checkout**: total paid,
+     photo of the receipt (or "I don't have the receipt"), **Review and
+     validate**, **Validate**.
+  5. **Paid $…:** **I've left the store** ends the trip. Ticked items leave the
+     list, unticked ones stay for next time, and it's the next person's turn
+     (they get a notification). The total can still be corrected before
+     leaving.
+- **Everyone else** sees which step the shopper is on, and can add items; the
+  page refreshes itself every few seconds.
+- **Home** shows the shopper their turn once something is on the list, and
+  "Your shopping trip is under way" during a trip.
+- **Kept as they are:** the per-item rotations ("toilet paper, monthly") are
+  under Household → **Who buys what**. Nothing is deleted.
 
 **Automatic checks (developer)**
-- [x] Type check passes
-- [x] Tests pass: 157 (+9: who is in the turn, away people skipped, only the
-      shopper can move the trip on, steps only go forward, finishing passes the
-      turn and clears bought items, cancelling keeps the turn, Home item,
-      admins only for the order)
-- [x] Lint: no new errors (68 → 65)
-- [x] CI green on GitHub (eea1eda)
-- [x] Deployed to apptmasters.com 2026-10-09 (2 new tables and 1 new column
-      added with targeted SQL, owned by the app's database account; checked
-      with a real household)
+- [ ] Type check passes
+- [ ] Tests pass: 161 (+13: who is in the turn, away people skipped, only the
+      shopper moves the trip on, one card at a time, the inventory can be
+      skipped, checkout needs a total and a receipt, the total can be
+      corrected, leaving the store clears bought items and passes the turn,
+      no duplicate items, receipts must be real images, Home item, admins
+      only for the order)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
 
-**Your test on apptmasters.com** (two accounts in the same home)
-1. Household → **Shopping**. The top card says whose turn it is.
-2. On both accounts, add a few items. Each one appears on the other screen
-   within a few seconds, without refreshing.
-3. On the shopper's account, tap **Start preparing**, then **I'm at the
-   store**. The other account shows "*Name* is at the store".
-4. Tick two items, tap **I've left the store**, then **Finish trip**. The two
-   ticked items are gone, the others are still there, and it's now the next
-   person's turn.
-5. On the next person's account, once something is on the list, Home shows
-   "Your turn to do the shopping".
+**Your test on apptmasters.com** (two accounts in the same home; put one or
+two items in Household → Inventory with a low quantity first)
+1. Household → **Shopping**. On the shopper's account the card says "Step 1
+   of 5 · It's your turn to shop". Tap **Start preparing**.
+2. **Do the inventory:** the low items are listed. Tap **Add** on one; it says
+   "On the list ✓". Tap **Done with the inventory**. (Next time, try **Skip
+   for now**.)
+3. Tap **I'm at the store**. The other account shows "*Name* is at the store".
+   Add an item from the other account; it appears in the shopper's list within
+   a few seconds.
+4. Tick some items. Enter the total, take a photo of a receipt, tap **Review
+   and validate**, check the summary, then **Validate**.
+5. The card says "Paid $…". Tap **I've left the store**. The ticked items are
+   gone, the others are still on the list, and it's the next person's turn.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
@@ -492,16 +511,12 @@ Money ledger exists.
 - While the shopper is at the store, items added by others go to the shopper as
   a notification, grouped ("3 new items: Tomatoes, Milk, Rice"). Others don't
   get it.
-- After "I've left the store", adding an item says "*Name* has already left the
-  store. This item will be on the next list."
+- Once the shopper has paid, adding an item says "*Name* has already paid.
+  This item will be on the next list."
 
-### 4c — Optional Home Check
+### 4c — Home Check
 
-**Status:** Not started (test steps written when it starts)
-
-- At the start of their turn, the shopper can **Start Home Check** or **Skip
-  for now**. Home Check shows Inventory items that are Low or Out, and adds them
-  to the list in one tap. Shopping never waits for it.
+**Status:** Moved into 4a (owner's flow, 2026-10-09)
 
 ---
 

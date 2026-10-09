@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
 import { notify } from "@/lib/notify";
-import { shoppingTurn, TRIP_STEPS, type TripStep } from "@/lib/shopping";
+import { shoppingTurn, TRIP_STEPS, MAX_TRIP_TOTAL, isReceiptUrl, type TripStep } from "@/lib/shopping";
 import { isAwayOn, nextMemberIndex } from "@/lib/rotation";
 
 /**
- * Moves the shopping trip on (PRODUCT_LOGIC §10.5). Body: { action }.
+ * Moves the shopping trip on, one card at a time (see src/lib/shopping.ts).
+ * Body: { action } and, for "checkout", { total, receiptUrl | noReceipt: true }.
  * "start" is for the person whose turn it is; every other step is for the
- * shopper of the trip under way, and only goes forward.
+ * shopper of the trip under way.
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
@@ -17,7 +18,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { userId } = access;
   if (access.membership.role === "GUEST") return NextResponse.json({ error: "Guests don't take part in shopping" }, { status: 403 });
 
-  const { action } = await req.json().catch(() => ({}));
+  const body = await req.json().catch(() => ({}));
+  const action = body.action;
   const turn = await shoppingTurn(apartmentId, { save: true });
 
   if (action === "start") {
@@ -35,16 +37,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!step.from.includes(trip.status)) return NextResponse.json({ error: "That step isn't available right now" }, { status: 409 });
 
   const now = new Date();
-  const stamp = action === "at_store" ? { atStoreAt: now }
-    : action === "left_store" ? { leftStoreAt: now }
-    : action === "finish" ? { endedAt: now, leftStoreAt: trip.leftStoreAt ?? now }
-    : { endedAt: now };
+  let stamp: Record<string, unknown>;
+  switch (action as TripStep) {
+    case "inventory_done": stamp = { homeCheck: "DONE" }; break;
+    case "skip_inventory": stamp = { homeCheck: "SKIPPED" }; break;
+    case "at_store": stamp = { atStoreAt: now }; break;
+    case "checkout": {
+      const total = Math.round(Number(body.total) * 100) / 100;
+      if (!Number.isFinite(total) || total <= 0 || total > MAX_TRIP_TOTAL) {
+        return NextResponse.json({ error: `Enter the total you paid (up to ${MAX_TRIP_TOTAL.toLocaleString("en-US")})` }, { status: 400 });
+      }
+      if (body.noReceipt !== true && !isReceiptUrl(body.receiptUrl)) {
+        return NextResponse.json({ error: "Upload a photo of the receipt, or tick \"I don't have the receipt\"" }, { status: 400 });
+      }
+      stamp = { totalAmount: total, receiptUrl: body.noReceipt === true ? null : body.receiptUrl, checkedOutAt: now };
+      break;
+    }
+    case "left_store": stamp = { leftStoreAt: now, endedAt: now }; break;
+    default: stamp = { endedAt: now }; // cancel
+  }
 
   let nextShopperId: string | null = null;
   const moved = await prisma.$transaction(async tx => {
     // Only moves on if nobody changed the trip in the meantime (two taps, two devices).
     const { count } = await tx.shoppingTrip.updateMany({ where: { id: trip.id, status: trip.status }, data: { status: step.to, ...stamp } });
-    if (count === 0 || action !== "finish") return count > 0;
+    if (count === 0 || action !== "left_store") return count > 0;
 
     // Ticked items were bought on this trip and leave the list; the rest wait for next time.
     await tx.groceryItem.updateMany({ where: { apartmentId, tripId: null, purchased: true }, data: { tripId: trip.id } });

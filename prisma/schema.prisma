@@ -1059,14 +1059,19 @@ model ShoppingRotation {
   apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
 }
 
-// One shopping trip (PRODUCT_LOGIC §10.5): PREPARING → SHOPPING → LEFT_STORE → COMPLETED, or CANCELLED.
+// One shopping trip, one card per step (owner's flow, 2026-10-09; PRODUCT_LOGIC §10.2–10.7):
+// PREPARING (inventory) → READY → SHOPPING → CHECKED_OUT (total + receipt) → COMPLETED ("I've left the store"), or CANCELLED.
 model ShoppingTrip {
-  id          String    @id @default(cuid())
-  status      String    @default("PREPARING")
-  startedAt   DateTime  @default(now())
-  atStoreAt   DateTime?
-  leftStoreAt DateTime?
-  endedAt     DateTime?
+  id           String    @id @default(cuid())
+  status       String    @default("PREPARING")
+  startedAt    DateTime  @default(now())
+  homeCheck    String? // DONE | SKIPPED
+  atStoreAt    DateTime?
+  totalAmount  Float? // typed by the shopper; split into balances with the Money ledger (Sprint 6)
+  receiptUrl   String?
+  checkedOutAt DateTime?
+  leftStoreAt  DateTime?
+  endedAt      DateTime?
 
   apartmentId String
   shopperId   String

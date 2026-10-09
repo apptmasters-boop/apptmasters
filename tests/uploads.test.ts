@@ -5,6 +5,8 @@ import { NextRequest } from "next/server";
 import { sniffFileType } from "@/lib/uploads";
 import { POST as uploadAvatar } from "@/app/api/users/upload-photo/route";
 import { POST as uploadAudio } from "@/app/api/upload/audio/route";
+import { POST as uploadReceipt } from "@/app/api/upload/receipt/route";
+import { isReceiptUrl } from "@/lib/shopping";
 import { createUser } from "./helpers";
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]);
@@ -51,5 +53,15 @@ describe("upload routes", () => {
     const { token } = await createUser();
     const res = await uploadAudio(upload("/api/upload/audio", token, "audio", PNG, "voice.webm", "audio/webm"));
     expect(res.status).toBe(400);
+  });
+
+  it("receipts: refuses a fake image, and a saved receipt is accepted at checkout", async () => {
+    const { token } = await createUser();
+    expect((await uploadReceipt(upload("/api/upload/receipt", token, "photo", TEXT, "receipt.jpg", "image/jpeg"))).status).toBe(400);
+    const res = await uploadReceipt(upload("/api/upload/receipt", token, "photo", JPEG, "receipt.jpg", "image/jpeg"));
+    expect(res.status).toBe(200);
+    const { url } = await res.json();
+    expect(isReceiptUrl(url)).toBe(true);
+    await unlink(join(process.cwd(), "public", url)).catch(() => {});
   });
 });

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const lastTrip = await prisma.shoppingTrip.findFirst({
     where: { apartmentId, status: "COMPLETED" },
     orderBy: { endedAt: "desc" },
-    select: { endedAt: true, shopper: { select: { name: true } }, _count: { select: { items: true } } },
+    select: { endedAt: true, totalAmount: true, shopper: { select: { name: true } }, _count: { select: { items: true } } },
   });
 
   return NextResponse.json({
@@ -33,8 +33,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     order: turn.order.map(id => ({ id, name: turn.names[id] ?? "Someone", away: away(id) })),
     trip: turn.trip && {
       id: turn.trip.id, status: turn.trip.status, shopperId: turn.trip.shopperId,
-      startedAt: turn.trip.startedAt, atStoreAt: turn.trip.atStoreAt, leftStoreAt: turn.trip.leftStoreAt,
+      startedAt: turn.trip.startedAt, homeCheck: turn.trip.homeCheck, atStoreAt: turn.trip.atStoreAt,
+      totalAmount: turn.trip.totalAmount, receiptUrl: turn.trip.receiptUrl,
     },
-    lastTrip: lastTrip && { endedAt: lastTrip.endedAt, shopperName: lastTrip.shopper.name, itemCount: lastTrip._count.items },
+    lastTrip: lastTrip && { endedAt: lastTrip.endedAt, totalAmount: lastTrip.totalAmount, shopperName: lastTrip.shopper.name, itemCount: lastTrip._count.items },
   });
 }

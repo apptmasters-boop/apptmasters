@@ -143,7 +143,7 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
   }
   // Shopping turn: only once there's something to buy, so an empty list isn't a to-do.
   if (shopping.shopperId === userId && shopping.trip) {
-    items.push({ id: "shopping-trip", priority: 3, href: `${base}/shopping`, title: "Finish your shopping trip", detail: "Tap Finish trip when you're home" });
+    items.push({ id: "shopping-trip", priority: 3, href: `${base}/shopping`, title: "Your shopping trip is under way", detail: "Pick up where you left off" });
   } else if (shopping.shopperId === userId && shoppingListSize > 0) {
     items.push({ id: "shopping-turn", priority: 3, href: `${base}/shopping`, title: "Your turn to do the shopping",
       detail: `${shoppingListSize} ${shoppingListSize === 1 ? "item" : "items"} on the list` });

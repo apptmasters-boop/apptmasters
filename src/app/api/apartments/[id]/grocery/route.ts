@@ -24,13 +24,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!access.ok) return access.response;
   const { userId } = access;
 
-  const { name, quantity } = await req.json();
+  const body = await req.json().catch(() => ({}));
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 100) : "";
+  const quantity = typeof body.quantity === "string" && body.quantity.trim() ? body.quantity.trim().slice(0, 20) : "1";
   if (!name) return NextResponse.json({ error: "Name required" }, { status: 400 });
+
+  // Already on the list (e.g. added again from the inventory): don't add it twice (PRODUCT_LOGIC §10.3).
+  const existing = await prisma.groceryItem.findFirst({
+    where: { apartmentId, tripId: null, purchased: false, name: { equals: name, mode: "insensitive" } },
+    include: { addedBy: { select: { id: true, name: true } } },
+  });
+  if (existing) return NextResponse.json({ ...existing, alreadyOnList: true });
 
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
 
   const item = await prisma.groceryItem.create({
-    data: { apartmentId, addedById: userId, name, quantity: quantity ?? "1" },
+    data: { apartmentId, addedById: userId, name, quantity },
     include: { addedBy: { select: { id: true, name: true } } },
   });
 

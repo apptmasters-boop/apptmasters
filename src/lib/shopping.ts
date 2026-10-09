@@ -1,28 +1,44 @@
 /**
- * Shopping turn and trip rules (docs/PRODUCT_LOGIC.md §10.1, §10.5).
+ * Shopping turn and trip rules (docs/PRODUCT_LOGIC.md §10.1–10.7).
  *
  * One household shopping turn: everyone living here except guests, in the
- * order they joined unless an admin changed it. A trip goes
- * PREPARING → SHOPPING ("I'm at the store") → LEFT_STORE → COMPLETED, and only
- * the shopper moves it on. Finishing passes the turn to the next person who
- * isn't away. Sprint 6 adds the total, receipt and expense to "finish".
+ * order they joined unless an admin changed it. A trip is one card per step
+ * (owner's flow, 2026-10-09), and only the shopper moves it on:
+ *
+ *   PREPARING    do the inventory, or skip it         → READY
+ *   READY        "I'm at the store"                   → SHOPPING
+ *   SHOPPING     tick items into the cart, then enter
+ *                the total and the receipt, validate  → CHECKED_OUT
+ *   CHECKED_OUT  "I've left the store"                → COMPLETED (turn passes on)
+ *
+ * The total and receipt are saved on the trip; turning them into the grocery
+ * expense and balances is Sprint 6, on the new Money ledger.
  */
 import { prisma } from "@/lib/db";
 import { syncOrder } from "@/lib/rotation";
 
 /** A trip in one of these states is under way; there is at most one per home. */
-export const ACTIVE_TRIP = ["PREPARING", "SHOPPING", "LEFT_STORE"];
+export const ACTIVE_TRIP = ["PREPARING", "READY", "SHOPPING", "CHECKED_OUT"];
 
-export type TripStep = "at_store" | "left_store" | "finish" | "cancel";
+export type TripStep = "inventory_done" | "skip_inventory" | "at_store" | "checkout" | "left_store" | "cancel";
 
-/** Which states each step can be taken from, and where it leads. Steps only go forward. */
+/** Which states each step can be taken from, and where it leads. */
 export const TRIP_STEPS: Record<TripStep, { from: string[]; to: string }> = {
-  at_store: { from: ["PREPARING"], to: "SHOPPING" },
-  left_store: { from: ["SHOPPING"], to: "LEFT_STORE" },
-  // Forgetting to tap "I've left the store" shouldn't block finishing.
-  finish: { from: ["SHOPPING", "LEFT_STORE"], to: "COMPLETED" },
+  inventory_done: { from: ["PREPARING"], to: "READY" },
+  skip_inventory: { from: ["PREPARING"], to: "READY" }, // the inventory never blocks shopping (§10.2)
+  at_store: { from: ["READY"], to: "SHOPPING" },
+  // Validating again from CHECKED_OUT corrects a mistyped total before leaving.
+  checkout: { from: ["SHOPPING", "CHECKED_OUT"], to: "CHECKED_OUT" },
+  left_store: { from: ["CHECKED_OUT"], to: "COMPLETED" },
   cancel: { from: ACTIVE_TRIP, to: "CANCELLED" },
 };
+
+/** Largest total a shopper can type, as a guard against extra zeros. */
+export const MAX_TRIP_TOTAL = 10_000;
+
+/** Receipts are uploaded through /api/upload/receipt; anything else is refused. */
+export const isReceiptUrl = (url: unknown): url is string =>
+  typeof url === "string" && /^\/uploads\/receipts\/[0-9a-f-]{36}\.(jpg|png|gif|webp)$/.test(url);
 
 /** Who takes part in the shopping turn, in the order they joined. */
 export async function shoppers(apartmentId: string) {
