@@ -432,7 +432,7 @@ saved → next person's turn scheduled*, all automatically.
 
 ## Sprint 4 — Shopping
 
-**Status:** 4a building · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
+**Status:** 4a ready for your test · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
 
 Shopping becomes one flow: whose turn it is, one shared list, and the trip
 itself. Paying for the trip (total, receipt, split) comes in Sprint 6, once the
@@ -440,7 +440,7 @@ Money ledger exists.
 
 ### 4a — Whose turn, one shared list, and the trip steps
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building**
 - **One household shopping turn.** Everyone living in the home (not guests),
@@ -460,13 +460,16 @@ Money ledger exists.
   to Household → **Who buys what**. Nothing is deleted.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: who is in the turn, away people skipped, only the
+- [x] Type check passes
+- [x] Tests pass: 157 (+9: who is in the turn, away people skipped, only the
       shopper can move the trip on, steps only go forward, finishing passes the
-      turn and clears bought items, admins only for the order)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+      turn and clears bought items, cancelling keeps the turn, Home item,
+      admins only for the order)
+- [x] Lint: no new errors (68 → 65)
+- [x] CI green on GitHub (eea1eda)
+- [x] Deployed to apptmasters.com 2026-10-09 (2 new tables and 1 new column
+      added with targeted SQL, owned by the app's database account; checked
+      with a real household)
 
 **Your test on apptmasters.com** (two accounts in the same home)
 1. Household → **Shopping**. The top card says whose turn it is.
@@ -477,7 +480,8 @@ Money ledger exists.
 4. Tick two items, tap **I've left the store**, then **Finish trip**. The two
    ticked items are gone, the others are still there, and it's now the next
    person's turn.
-5. On the next person's account, Home shows "Your turn to do the shopping".
+5. On the next person's account, once something is on the list, Home shows
+   "Your turn to do the shopping".
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
