@@ -92,7 +92,7 @@ export default function RotationPage() {
         <div className="flex items-center gap-3">
           <BackLink />
           <span className="text-gray-300">|</span>
-          <span className="font-bold text-gray-900">Purchase Rotation</span>
+          <span className="font-bold text-gray-900">Who buys what</span>
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell apartmentId={apartmentId} />

@@ -49,6 +49,7 @@ model User {
   rentPayments             RentPayment[]
   notifications            Notification[]
   groceryItemsAdded        GroceryItem[]
+  shoppingTrips            ShoppingTrip[]
   fundContributions        FundTransaction[]
   feedItems                FeedItem[]
   feedReactions            FeedReaction[]
@@ -120,6 +121,8 @@ model Apartment {
   callSessions   CallSession[]
   borrowRequests BorrowRequest[]
   purchaseRotations PurchaseRotation[]
+  shoppingRotation  ShoppingRotation?
+  shoppingTrips     ShoppingTrip[]
   roommateScores RoommateScore[]
   disputes       Dispute[]
   auditLogs      AuditLog[]
@@ -477,6 +480,9 @@ model GroceryItem {
   apartmentId String
   apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   addedBy     User      @relation(fields: [addedById], references: [id], onDelete: Cascade)
+  // Set when the trip that bought it finishes; items without a trip are the current list.
+  tripId      String?
+  trip        ShoppingTrip? @relation(fields: [tripId], references: [id], onDelete: SetNull)
 }
 
 model InventoryItem {
@@ -1039,4 +1045,34 @@ model CleaningSwapRequest {
   target      User             @relation("SwapTarget", fields: [targetId], references: [id], onDelete: Cascade)
 
   @@index([rotationId, status])
+}
+
+// One household shopping turn (PRODUCT_LOGIC §10.1). Per-item PurchaseRotation stays as "Who buys what".
+model ShoppingRotation {
+  id           String   @id @default(cuid())
+  memberOrder  String // JSON: userId[]
+  currentIndex Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  apartmentId String    @unique
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+}
+
+// One shopping trip (PRODUCT_LOGIC §10.5): PREPARING → SHOPPING → LEFT_STORE → COMPLETED, or CANCELLED.
+model ShoppingTrip {
+  id          String    @id @default(cuid())
+  status      String    @default("PREPARING")
+  startedAt   DateTime  @default(now())
+  atStoreAt   DateTime?
+  leftStoreAt DateTime?
+  endedAt     DateTime?
+
+  apartmentId String
+  shopperId   String
+  apartment   Apartment     @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  shopper     User          @relation(fields: [shopperId], references: [id], onDelete: Cascade)
+  items       GroceryItem[]
+
+  @@index([apartmentId, status])
 }

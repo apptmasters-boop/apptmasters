@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
 import { notifyApartment } from "@/lib/notify";
+import { nextMemberIndex } from "@/lib/rotation";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string; rotationId: string }> }) {
   const { id: apartmentId, rotationId } = await params;
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Not your turn" }, { status: 403 });
   }
 
-  const nextIndex = (rotation.currentIndex + 1) % order.length;
+  const nextIndex = nextMemberIndex(order, rotation.currentIndex % order.length, () => false);
   const nextUserId = order[nextIndex];
 
   const updated = await prisma.purchaseRotation.update({

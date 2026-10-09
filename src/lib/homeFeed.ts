@@ -13,6 +13,7 @@
  */
 import { prisma } from "@/lib/db";
 import { householdDebts, totalOwedBy } from "@/lib/balances";
+import { shoppingTurn } from "@/lib/shopping";
 
 export type Priority = 1 | 2 | 3 | 4 | 5;
 
@@ -87,6 +88,8 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
     where: { apartmentId, targetId: userId, status: "PENDING" },
     include: { requester: { select: { name: true } } },
   });
+  const shopping = await shoppingTurn(apartmentId);
+  const shoppingListSize = shopping.shopperId === userId ? await prisma.groceryItem.count({ where: { apartmentId, tripId: null, purchased: false } }) : 0;
 
   const items: FeedItem[] = [];
 
@@ -137,6 +140,13 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
   }
   for (const s of swapsForMe) {
     items.push({ id: `cleaning-swap:${s.id}`, priority: 3, href: `${base}/cleaning`, title: `${s.requester.name} asked you to swap cleaning turns`, detail: s.reason ?? "Accept or decline" });
+  }
+  // Shopping turn: only once there's something to buy, so an empty list isn't a to-do.
+  if (shopping.shopperId === userId && shopping.trip) {
+    items.push({ id: "shopping-trip", priority: 3, href: `${base}/shopping`, title: "Finish your shopping trip", detail: "Tap Finish trip when you're home" });
+  } else if (shopping.shopperId === userId && shoppingListSize > 0) {
+    items.push({ id: "shopping-turn", priority: 3, href: `${base}/shopping`, title: "Your turn to do the shopping",
+      detail: `${shoppingListSize} ${shoppingListSize === 1 ? "item" : "items"} on the list` });
   }
   for (const r of purchases) {
     if (currentOf(r.memberOrder, r.currentIndex) !== userId) continue;

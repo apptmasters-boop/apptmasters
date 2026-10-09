@@ -71,3 +71,17 @@ export function swapPositions(order: string[], a: string, b: string): string[] {
   [next[i], next[j]] = [next[j], next[i]];
   return next;
 }
+
+/**
+ * Keeps a rotation in step with who lives here now: people who left drop out,
+ * newcomers join the end (in the order given), and whoever's turn it was keeps
+ * it if they're still here.
+ */
+export function syncOrder(order: string[], currentIndex: number, memberIds: string[]): { order: string[]; currentIndex: number } {
+  const here = new Set(memberIds);
+  const next = [...order.filter(id => here.has(id)), ...memberIds.filter(id => !order.includes(id))];
+  if (next.length === 0) return { order: next, currentIndex: 0 };
+  const current = order.length ? order[currentIndex % order.length] : undefined;
+  const kept = current ? next.indexOf(current) : -1;
+  return { order: next, currentIndex: kept >= 0 ? kept : currentIndex % next.length };
+}

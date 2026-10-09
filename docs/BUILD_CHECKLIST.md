@@ -349,7 +349,7 @@ now has a home):
 
 ## Sprint 3 — Cleaning
 
-**Status:** 3a approved · 3b ready for your test · Spec: `PRODUCT_LOGIC.md` §8, §21
+**Status:** Approved (3a and 3b, 2026-10-09) · Spec: `PRODUCT_LOGIC.md` §8, §21
 
 Cleaning is one whole-home rotation: *your turn → mark as cleaned → history
 saved → next person's turn scheduled*, all automatically.
@@ -396,7 +396,7 @@ saved → next person's turn scheduled*, all automatically.
 
 ### 3b — "Can't clean this week?"
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building** (owner's choice, 2026-10-09: the next person must accept)
 - **The request:** the person whose turn it is taps **"Can't clean this
@@ -426,7 +426,78 @@ saved → next person's turn scheduled*, all automatically.
 3. Try again and tap **Decline**. The turn stays with the first person.
 4. Send a request and **cancel** it before it's answered. It disappears.
 
+**Sign-off:** [x] Approved on 2026-10-09
+
+---
+
+## Sprint 4 — Shopping
+
+**Status:** 4a building · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
+
+Shopping becomes one flow: whose turn it is, one shared list, and the trip
+itself. Paying for the trip (total, receipt, split) comes in Sprint 6, once the
+Money ledger exists.
+
+### 4a — Whose turn, one shared list, and the trip steps
+
+**Status:** Building
+
+**What I'm building**
+- **One household shopping turn.** Everyone living in the home (not guests),
+  in the order they joined; admins can change the order. People who are away
+  are skipped, the same way as for cleaning. New members join the end of the
+  order automatically.
+- **One Shopping page** (Household → Shopping) with the shopper at the top,
+  then the shared list. The old Grocery list page opens this page.
+- **Trip steps for the shopper:** **Start preparing** → **I'm at the store** →
+  **I've left the store** → **Finish trip**. Everyone sees which step the
+  shopper is on.
+- **Finish trip:** ticked items leave the list (they were bought); unticked
+  items stay for next time; the turn passes to the next person.
+- **The list updates by itself** every few seconds while the page is open.
+- **Home** shows "Your turn to do the shopping" to the shopper.
+- **Kept as they are:** the per-item rotations ("toilet paper, monthly") move
+  to Household → **Who buys what**. Nothing is deleted.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: who is in the turn, away people skipped, only the
+      shopper can move the trip on, steps only go forward, finishing passes the
+      turn and clears bought items, admins only for the order)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (two accounts in the same home)
+1. Household → **Shopping**. The top card says whose turn it is.
+2. On both accounts, add a few items. Each one appears on the other screen
+   within a few seconds, without refreshing.
+3. On the shopper's account, tap **Start preparing**, then **I'm at the
+   store**. The other account shows "*Name* is at the store".
+4. Tick two items, tap **I've left the store**, then **Finish trip**. The two
+   ticked items are gone, the others are still there, and it's now the next
+   person's turn.
+5. On the next person's account, Home shows "Your turn to do the shopping".
+
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### 4b — Live alerts for the shopper, and late items
+
+**Status:** Not started (test steps written when it starts)
+
+- While the shopper is at the store, items added by others go to the shopper as
+  a notification, grouped ("3 new items: Tomatoes, Milk, Rice"). Others don't
+  get it.
+- After "I've left the store", adding an item says "*Name* has already left the
+  store. This item will be on the next list."
+
+### 4c — Optional Home Check
+
+**Status:** Not started (test steps written when it starts)
+
+- At the start of their turn, the shopper can **Start Home Check** or **Skip
+  for now**. Home Check shows Inventory items that are Low or Out, and adds them
+  to the list in one tap. Shopping never waits for it.
 
 ---
 
@@ -434,7 +505,6 @@ saved → next person's turn scheduled*, all automatically.
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 4 — Shopping | 4a shared list and live shopper alerts · 4b trip states (preparing → at the store → left the store) · 4c optional Home Check from Inventory | Not started |
 | 5 — Money engine | 5a ledger built in parallel + comparison report · 5b switch-over once numbers match | Not started |
 | 6 — Shopping → Money | 6a finish trip: total, receipt, review split, confirm → expense created | Not started |
 | 7 — Rent | 7a landlord paid vs. roommates reimbursed · 7b monthly history and reminders | Not started |

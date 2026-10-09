@@ -159,7 +159,7 @@ export default function SearchPage() {
             {results.grocery.length > 0 && (
               <Section title="Grocery" icon="🛒">
                 {results.grocery.map(g => (
-                  <Link key={g.id} href={`/apartment/${apartmentId}/grocery`}
+                  <Link key={g.id} href={`/apartment/${apartmentId}/shopping`}
                     className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors">
                     <div>
                       <p className={`text-sm font-medium ${g.purchased ? "line-through text-gray-400" : "text-gray-900"}`}>{g.name}</p>

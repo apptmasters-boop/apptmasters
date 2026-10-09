@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { userId } = access;
 
   const items = await prisma.groceryItem.findMany({
-    where: { apartmentId },
+    where: { apartmentId, tripId: null }, // bought on a finished trip = off the list
     include: { addedBy: { select: { id: true, name: true } } },
     orderBy: [{ purchased: "asc" }, { createdAt: "desc" }],
   });
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     "GROCERY_ADDED",
     "Grocery list updated",
     `${user?.name} added "${name}" to the grocery list`,
-    `/apartment/${apartmentId}/grocery`,
+    `/apartment/${apartmentId}/shopping`,
   );
 
   return NextResponse.json(item, { status: 201 });

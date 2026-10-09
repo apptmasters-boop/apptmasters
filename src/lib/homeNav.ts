@@ -18,7 +18,7 @@ export const HOME_TABS: { tab: HomeTab; label: string; path: string }[] = [
 
 /** Which primary destination each apartment section belongs to. Anything not listed lives under More. */
 const SECTION_TAB: Record<string, HomeTab> = {
-  household: "household", cleaning: "household", grocery: "household", rotation: "household",
+  household: "household", cleaning: "household", shopping: "household", grocery: "household", rotation: "household",
   inventory: "household", chores: "household", rooms: "household", members: "household", rules: "household",
   money: "money", finance: "money", rent: "money", fund: "money",
   chat: "chat",

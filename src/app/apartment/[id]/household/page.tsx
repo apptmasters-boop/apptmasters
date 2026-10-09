@@ -11,8 +11,8 @@ export default function HouseholdPage() {
     <HubPage title="Household" subtitle="Day-to-day responsibilities, shared by everyone at home.">
       <HubSection items={[
         { href: at("cleaning"), label: "Cleaning", description: "Whole-home cleaning rotation", icon: BroomIcon },
-        { href: at("grocery"), label: "Shopping list", description: "Shared grocery list", icon: CartIcon },
-        { href: at("rotation"), label: "Shopping rotation", description: "Whose turn it is to shop", icon: RepeatIcon },
+        { href: at("shopping"), label: "Shopping", description: "Whose turn it is and the shared list", icon: CartIcon },
+        { href: at("rotation"), label: "Who buys what", description: "Turns for single items, like toilet paper", icon: RepeatIcon },
         { href: at("inventory"), label: "Inventory", description: "What the household has at home", icon: BoxIcon },
         { href: at("chores"), label: "Chores", description: "Optional small tasks", icon: ClipboardCheckIcon },
         { href: at("rooms"), label: "Rooms", description: "Rooms and their condition", icon: BedIcon },

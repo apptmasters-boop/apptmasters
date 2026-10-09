@@ -8,7 +8,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!access.ok) return access.response;
   const { userId } = access;
 
-  const item = await prisma.groceryItem.findFirst({ where: { id: itemId, apartmentId } });
+  const item = await prisma.groceryItem.findFirst({ where: { id: itemId, apartmentId, tripId: null } });
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
@@ -31,7 +31,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if (!access.ok) return access.response;
   const { userId } = access;
 
-  const item = await prisma.groceryItem.findFirst({ where: { id: itemId, apartmentId } });
+  const item = await prisma.groceryItem.findFirst({ where: { id: itemId, apartmentId, tripId: null } });
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await prisma.groceryItem.delete({ where: { id: itemId } });
