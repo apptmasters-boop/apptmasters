@@ -349,7 +349,7 @@ now has a home):
 
 ## Sprint 3 — Cleaning
 
-**Status:** 3a approved · 3b building · Spec: `PRODUCT_LOGIC.md` §8, §21
+**Status:** 3a approved · 3b ready for your test · Spec: `PRODUCT_LOGIC.md` §8, §21
 
 Cleaning is one whole-home rotation: *your turn → mark as cleaned → history
 saved → next person's turn scheduled*, all automatically.
