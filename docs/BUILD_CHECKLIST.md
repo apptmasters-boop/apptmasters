@@ -396,6 +396,8 @@ saved → next person's turn scheduled*, all automatically.
 
 ### 3b — "Can't clean this week?"
 
+**Status:** Ready for your test
+
 **What I'm building** (owner's choice, 2026-10-09: the next person must accept)
 - **The request:** the person whose turn it is taps **"Can't clean this
   week?"** and can add a reason. This asks the **next person** to swap.
@@ -407,6 +409,13 @@ saved → next person's turn scheduled*, all automatically.
 - **The requester can cancel** while it's still waiting.
 - **History** shows swaps ("Sam cleaned for Alex").
 - One new database table for swap requests.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 148 (+7: only the current person can ask; the next person is asked and sees it on Home; no double request; accept trades places; decline keeps the turn; only the asker can cancel; answered requests are final; a stale accept is refused)
+- [x] Lint: no new errors (68)
+- [x] CI green on GitHub (8148766)
+- [x] Deployed to apptmasters.com 2026-10-09 (new table created with targeted SQL, owned by the app's database account; checked with a real household)
 
 **Your test on apptmasters.com** (needs two accounts in the same home)
 1. On the account **whose turn it is**, tap **Can't clean this week?**, add a

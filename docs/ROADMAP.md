@@ -169,6 +169,18 @@ Open (recorded in `docs/SECURITY.md`):
 
 ## Open decisions
 
+- **Schema drift, update 2026-10-09:** `platform_role` is now declared in
+  `schema.prisma` (enum `PlatformRole`), so its data is kept. A preview against
+  the live database still shows small differences, which were *not* applied:
+  - foreign keys on `MaintenanceRequest` and `ApartmentDeleteCode` would be
+    recreated;
+  - defaults would be dropped on `ArchivedApartment.memberCount` and
+    `MaintenanceRequest.updatedAt`.
+
+  No data loss, but behavior changes, so it's a separate decision. Until then,
+  apply new tables and columns with targeted SQL. Preview first with
+  `prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`,
+  and create them as the `apptmasters` role.
 - **Schema drift (found 2026-10-08):** the live `User` table has an old
   column `platform_role` (enum `super_admin | landlord | tenant`, default
   `tenant`, filled for every user) that `prisma/schema.prisma` doesn't know.
