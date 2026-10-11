@@ -17,7 +17,19 @@ once and every part of the app that's affected updates itself:
 | [`docs/PRODUCT_LOGIC.md`](docs/PRODUCT_LOGIC.md) | Product & functional blueprint, the source of truth for how the product behaves |
 | [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md) | Phase-by-phase build checklist with owner test steps and sign-offs |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Security & engineering roadmap (what's fixed, what's open) |
-| [`tests/README.md`](tests/README.md) | How the automated tests work |
+| [`tests/README.md`](tests/README.md) | How the automated tests work, and the developer PC's test database |
+| [`prisma/manual-sql/`](prisma/manual-sql/) | Every database change applied by hand on the live server, and how to add one |
+| [`scripts/ops/verify-live.sh`](scripts/ops/verify-live.sh) | Post-deploy check run on the server |
+
+## Where we are (2026-10-10)
+
+- **Done and approved by the owner:** Phase S (security), Sprints 1–4
+  (navigation, Home feed, Cleaning, Shopping). See the roadmap table below.
+- **Next:** Sprint 5, the Money ledger, built alongside the current Money page
+  with a report comparing both before anything switches over.
+- **Tests:** 165 automated tests; lint errors down from 75 to 65.
+- **Not in GitHub, on purpose:** `.env.local` (passwords and keys; keep a
+  copy in a password manager) and the server's own configuration.
 
 ---
 
@@ -35,8 +47,10 @@ Create `.env.local` with the keys listed in [`.env.example`](.env.example):
 `DATABASE_URL`, `APP_URL`, `JWT_SECRET`, `SUPER_ADMIN_EMAIL`, `RESEND_API_KEY`,
 `RESEND_FROM`, `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`.
 Without the Resend key, emails are skipped. Without the VAPID keys, push
-notifications are off. The schema is applied with `prisma db push`; the
-`prisma/migrations` folder is out of date (left over from SQLite).
+notifications are off. On a new or local database the schema is applied with
+`prisma db push`; the `prisma/migrations` folder is out of date (left over
+from SQLite). The live database is changed only with small reviewed SQL files,
+see [`prisma/manual-sql/README.md`](prisma/manual-sql/README.md).
 
 ## Checks
 
@@ -65,11 +79,16 @@ on port 3000 behind nginx with Let's Encrypt, in `/var/www/apptmasters`.
    ```
    Wait for `EXIT=0` in `/tmp/build.log` (about 2–15 minutes). The site keeps
    serving the old version meanwhile.
-5. `pm2 restart apptmasters`, then check the main pages and
-   `~/.pm2/logs/apptmasters-error.log`.
+5. `bash scripts/ops/verify-live.sh`: restarts the app, then checks the main
+   pages and APIs as a real household member (with a 60-second token that is
+   never printed) and shows any new lines in the error log.
 
-After any database schema change (`npx prisma db push`), check that every table
-belongs to the app's database role, or the app gets "permission denied":
+**Database changes:** don't run `prisma db push` on the live server (the
+live database has old differences it would try to "fix"). Apply each new
+table or column with its own SQL file, as described in
+[`prisma/manual-sql/README.md`](prisma/manual-sql/README.md), **before** the
+build, and run `npx prisma generate`. New tables must belong to the app's
+database role, or the app gets "permission denied":
 ```sql
 select tablename, tableowner from pg_tables where schemaname = 'public';
 ```
@@ -107,9 +126,9 @@ in [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md).
 | [x] | **1 — Foundation** | User states (Visitor → Home Seeker → Found a Home → Home Member), roles in context, one design system, bottom navigation **Home \| Household \| Money \| Chat \| More** | `src/lib/access.ts`, `components/landing`, `components/auth` |
 | [x] | **2 — Home** | Priority feed (P1 critical → P5 info): "what needs my attention now?" instead of a feature grid | notifications, rent, rotations, maintenance |
 | [x] | **3 — Cleaning** | Whole-home rotation with Rotation \| Schedule \| History, travel skip, "Can't clean this week?" | `CleaningRotation`, `CleaningLog`, `TravelPeriod` |
-| [ ] | **4 — Shopping** | One flow: rotation, optional Home Check, live shared list, shopper alerts, PREPARING → SHOPPING → LEFT_STORE → COMPLETED | `PurchaseRotation`, `GroceryItem`, `InventoryItem` |
+| [x] | **4 — Shopping** | One shopping turn and one shared list; the trip one card at a time: prepare → inventory (skippable) → at the store → tick items, total + receipt → left the store; grouped alerts for the shopper | `ShoppingRotation`, `ShoppingTrip`, `GroceryItem`, `InventoryItem` |
 | [ ] | **5 — Money engine** | One ledger for rent, groceries, expenses, payments and the fund, **built in parallel and compared** before switch-over | `Expense`, `ExpenseSplit`, `Settlement`, `RentPayment`, `FundTransaction` |
-| [ ] | **6 — Shopping → Money** | Completing a trip creates the expense, split, balances and next turn; no manual Add Expense | Sprints 4 + 5 |
+| [ ] | **6 — Shopping → Money** | The trip's total (already saved with its receipt) becomes the grocery expense, split and balances; no manual Add Expense | Sprints 4 + 5 |
 | [ ] | **7 — Rent** | Landlord paid vs. roommates reimbursed; outstanding per month; reminders. Rent appears in the shared balance (today it doesn't) | `RentConfig`, `RentCycle`, `RentPayment` |
 | [ ] | **8 — Maintenance** | REPORTED → ACKNOWLEDGED → SCHEDULED → IN PROGRESS → COMPLETED → RESOLVED, landlord scheduling, resident confirmation | `MaintenanceRequest`, manager portal |
 | [ ] | **9 — Calendar + Notifications** | Calendar built from other modules' events; one notification service with preferences and anti-spam grouping | `CalendarEvent`, `Notification`, push |
@@ -126,6 +145,8 @@ Done so far:
 - User text escaped in all emails.
 - Same-site-only redirects after sign-in.
 - Next.js security update.
+- Live connections use 60-second tickets instead of the login token.
+- Uploads checked by their real content (photos, voice messages, receipts).
 - Automated tests and CI.
 
 Open items and the full history are in [`docs/ROADMAP.md`](docs/ROADMAP.md).

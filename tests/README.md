@@ -28,6 +28,30 @@ database is empty: each one creates its own uniquely named data.
 
 Email is replaced by a no-op (see `setup-env.ts`), so tests never send mail.
 
+### The developer PC's test database
+
+On the developer's Windows PC the test server is a separate Postgres 16
+instance on port 5433, with trust login for `postgres` and two databases:
+`apptmasters_test` (the suite) and `apptmasters_live` (local preview, sample
+listings in `fixtures/local-preview-seed.sql`). Its data folder is
+`C:\Users\selle\develop\pgdata\apptmasters-test`. Start it with:
+```
+"C:\Program Files\PostgreSQL\16\bin\pg_ctl" -D C:\Users\selle\develop\pgdata\apptmasters-test -l C:\Users\selle\develop\pgdata\apptmasters-test.log -o "-p 5433" start
+```
+
+**Incident, 2026-10-10:** the data folder used to live in a Windows temp
+folder. Windows' overnight temp cleanup deleted some of its files, and the
+suite then hung at start-up (the log showed `could not open file
+"global/6100"`). It only held test data, so it was recreated from scratch;
+the live site was not affected. The folder was then moved out of the temp
+area to the location above. If it ever happens again, nothing is lost:
+```
+initdb -D <folder> -U postgres -A trust -E UTF8
+pg_ctl -D <folder> -o "-p 5433" start
+psql -p 5433 -U postgres -c "create database apptmasters_test"
+```
+The suite recreates all tables itself on the next `npm test`.
+
 ## Writing a test
 
 - Build data with the helpers in `helpers.ts` (`createUser`, `createApartment`)

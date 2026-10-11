@@ -432,7 +432,7 @@ saved → next person's turn scheduled*, all automatically.
 
 ## Sprint 4 — Shopping
 
-**Status:** 4a approved · 4b ready for your test · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
+**Status:** Approved (4a and 4b, 2026-10-10) · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
 
 Shopping becomes one flow: whose turn it is, one shared list, and the trip
 itself. The total and receipt are saved on each trip now; splitting them into
@@ -507,7 +507,7 @@ two items in Household → Inventory with a low quantity first)
 
 ### 4b — Alerts for the shopper, and late items
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building** (PRODUCT_LOGIC §10.4, §10.6)
 - **While the shopper is at the store,** items added by others reach the
@@ -546,7 +546,7 @@ two items in Household → Inventory with a low quantity first)
 6. On the shopper's account, tap **I've left the store**. That late item is
    still on the list for next time.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-10
 
 ### 4c — Home Check
 
