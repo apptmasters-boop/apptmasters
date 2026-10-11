@@ -1,7 +1,8 @@
 /**
- * Who owes whom in shared expenses (not rent yet; that joins in Sprint 5's
- * ledger). Used by the balance API and the Home feed so both show the same
- * numbers.
+ * Who owes whom in shared expenses, as today's Money page shows it (no rent).
+ * Used by the balance API and the Home feed so both show the same numbers.
+ * The new ledger (src/lib/ledger.ts) is checked against this before it
+ * replaces it (Admin → Money check).
  */
 import { prisma } from "@/lib/db";
 

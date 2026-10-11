@@ -554,11 +554,86 @@ two items in Household → Inventory with a low quantity first)
 
 ---
 
+## Sprint 5 — Money engine
+
+**Status:** 5a building · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
+
+One ledger for everything that's owed: shared expenses, rent, payments and the
+shared fund. Owner's rule (2026-10-07): it is built **alongside** today's Money
+page, and both must give the same numbers for every household before
+anything switches over.
+
+### 5a — The ledger and the comparison report
+
+**Status:** Building
+
+**What I'm building** (residents see no change yet)
+- **One calculation for all money** (`src/lib/ledger.ts`). It turns every
+  source into the same kind of entry:
+  - a share of an expense: *Sam owes Alex $20 for Groceries*;
+  - a share of the month's rent: *Sam owes the rent payer $650 for October*;
+  - a payment: *Sam paid Alex $20*. A payment that is waiting for the
+    receiver's confirmation is listed, but doesn't count until it's confirmed;
+  - an expense marked "settled" by hand counts as paid;
+  - money put into or taken out of the shared fund (it changes the fund's
+    balance, not what people owe each other).
+- **Balances** come from adding up those entries: rent + expenses −
+  payments = what each person owes or is owed.
+- **The comparison report**, in the site admin area (Admin → **Money
+  check**). For every household it shows:
+  - ✓ when the ledger gives exactly the same shared-expense balances as
+    today's Money page, or ✗ with the differences, person by person;
+  - the rent each person still owes, which today's Money page leaves out.
+    This is expected to be new; it is what the blueprint asks for (§12.2).
+
+**Decisions I made (tell me if you disagree)**
+- Rent marked "paid" by a roommate counts as paid only once the rent payer
+  confirms it, the same rule as cash payments for expenses.
+- The shared fund is shown as its own balance, not as debts between people.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: expense shares, payments, waiting cash payments,
+      expenses marked settled, rent shares and confirmations, fund, the ledger
+      matches today's numbers, the report is for site admins only)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (signed in with the site admin account)
+1. Open **Admin → Money check**.
+2. Every household shows ✓ for shared expenses. If one shows ✗, tell me its
+   name; the lines underneath show the difference.
+3. Look at **Rent still owed** for a household you know. The amounts should
+   match what people really still owe their rent payer. If some months were
+   paid long ago but never confirmed in the app, they will show here. That's
+   the data to clean up before we switch over.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### 5b — The new Money page
+
+**Status:** Not started (test steps written when it starts)
+
+- Money becomes **Overview | Activity | Balances** (§11), built on the ledger,
+  with rent included. It never says "All settled up" while rent is unpaid.
+- Home's "You owe" uses the ledger too.
+- Switches over only after you've confirmed the Money check in 5a.
+
+### 5c — Record a payment
+
+**Status:** Not started (test steps written when it starts)
+
+- One **Record payment** to a person covers what you owe them in expenses and
+  rent. They confirm it; nothing is deleted, and the history shows every
+  payment (§13.2).
+
+---
+
 ## Later sprints (outline; detailed test steps are written when each starts)
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 5 — Money engine | 5a ledger built in parallel + comparison report · 5b switch-over once numbers match | Not started |
 | 6 — Shopping → Money | 6a finish trip: total, receipt, review split, confirm → expense created | Not started |
 | 7 — Rent | 7a landlord paid vs. roommates reimbursed · 7b monthly history and reminders | Not started |
 | 8 — Maintenance | 8a new statuses and landlord scheduling · 8b resident "fixed / still a problem" | Not started |

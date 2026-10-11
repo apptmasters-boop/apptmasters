@@ -207,6 +207,7 @@ export default function AdminPage() {
           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">ApptMasters</span>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/admin/money-check" className="text-sm font-medium text-purple-700 hover:text-purple-900">Money check</Link>
           <Link href={myApartmentId ? `/apartment/${myApartmentId}` : "/dashboard"} className="text-sm text-gray-400 hover:text-gray-600">Tenant view →</Link>
           <button onClick={() => { clearToken(); router.replace("/login"); }}
             className="text-sm text-gray-400 hover:text-red-500 transition-colors">Sign out</button>
