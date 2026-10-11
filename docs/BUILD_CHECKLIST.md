@@ -556,7 +556,7 @@ two items in Household → Inventory with a low quantity first)
 
 ## Sprint 5 — Money engine
 
-**Status:** 5a building · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
+**Status:** 5a ready for your test · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
 
 One ledger for everything that's owed: shared expenses, rent, payments and the
 shared fund. Owner's rule (2026-10-07): it is built **alongside** today's Money
@@ -565,7 +565,7 @@ anything switches over.
 
 ### 5a — The ledger and the comparison report
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building** (residents see no change yet)
 - **One calculation for all money** (`src/lib/ledger.ts`). It turns every
@@ -592,13 +592,15 @@ anything switches over.
 - The shared fund is shown as its own balance, not as debts between people.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: expense shares, payments, waiting cash payments,
+- [x] Type check passes
+- [x] Tests pass: 177 (+12: expense shares, payments, waiting cash payments,
       expenses marked settled, rent shares and confirmations, fund, the ledger
       matches today's numbers, the report is for site admins only)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (65)
+- [x] CI green on GitHub (498743f)
+- [x] Deployed to apptmasters.com 2026-10-10 (no database change). First
+      live run of the Money check: 2 of 2 households match, no rent owed,
+      shared funds consistent
 
 **Your test on apptmasters.com** (signed in with the site admin account)
 1. Open **Admin → Money check**.
