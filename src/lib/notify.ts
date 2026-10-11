@@ -59,3 +59,10 @@ export async function notifyApartment(
   const userIds = members.map(m => m.userId).filter(id => id !== excludeUserId);
   await notify({ apartmentId, userIds, type, title, body, link });
 }
+
+/** Sends a phone/browser push to one person unless they turned push off (used when a notification is updated, not created). */
+export async function pushIfEnabled(userId: string, title: string, body: string, link?: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { notifPrefs: true } });
+  if (!user || JSON.parse(user.notifPrefs || "{}").pushEnabled === false) return;
+  sendPushToUsers([userId], title, body, link).catch(() => {});
+}

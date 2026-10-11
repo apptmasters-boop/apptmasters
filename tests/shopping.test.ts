@@ -10,6 +10,7 @@ import { PUT as setOrder } from "@/app/api/apartments/[id]/shopping/order/route"
 import { GET as listItems, POST as addItem } from "@/app/api/apartments/[id]/grocery/route";
 import { buildHomeFeed } from "@/lib/homeFeed";
 import { syncOrder } from "@/lib/rotation";
+import { alertShopper, ALERT_EVERY_MS } from "@/lib/shopping";
 import { prisma } from "@/lib/db";
 import { createUser, createApartment, request, routeParams } from "./helpers";
 
@@ -169,5 +170,70 @@ describe("shopping order", () => {
 
     await step(kim.token, apt.id, "start");
     expect((await put(alex.token, [alex.user.id, sam.user.id, kim.user.id])).status).toBe(409); // not during a trip
+  });
+});
+
+describe("Sprint 4b: alerts for the shopper and late items", () => {
+  const atStore = async (token: string, aptId: string) => { for (const a of ["start", "skip_inventory", "at_store"]) await step(token, aptId, a); };
+  const shoppingAlerts = (userId: string) => prisma.notification.findMany({ where: { userId, type: "SHOPPING_ITEMS" } });
+
+  it("only the shopper is alerted, only at the store, and quick additions are grouped", async () => {
+    const { alex, sam, kim, apt } = await household();
+    await add(sam.token, apt.id, "Bread"); // no trip yet
+    await step(alex.token, apt.id, "start");
+    await add(sam.token, apt.id, "Eggs"); // still at home
+    expect(await shoppingAlerts(alex.user.id)).toHaveLength(0);
+
+    for (const a of ["skip_inventory", "at_store"]) await step(alex.token, apt.id, a);
+    const res = await add(sam.token, apt.id, "Tomatoes");
+    expect((await res.json()).shopperAtStore).toBe(alex.user.name);
+    await add(kim.token, apt.id, "Milk");
+    await add(sam.token, apt.id, "Rice");
+    await add(alex.token, apt.id, "Coffee"); // the shopper's own item isn't an alert
+
+    const alerts = await shoppingAlerts(alex.user.id);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]).toMatchObject({ title: "3 new items on your list", body: "Tomatoes, Milk, Rice" });
+    expect(await shoppingAlerts(sam.user.id)).toHaveLength(0);
+    expect(await prisma.notification.count({ where: { apartmentId: apt.id, type: "GROCERY_ADDED" } })).toBe(0); // household not notified
+  });
+
+  it("starts a new alert once the shopper has read the last one", async () => {
+    const { alex, sam, apt } = await household();
+    await atStore(alex.token, apt.id);
+    await add(sam.token, apt.id, "Salt");
+    await prisma.notification.updateMany({ where: { userId: alex.user.id }, data: { read: true } });
+    await add(sam.token, apt.id, "Pepper");
+    const alerts = await shoppingAlerts(alex.user.id);
+    expect(alerts.map(a => a.body).sort()).toEqual(["Pepper", "Salt"]);
+  });
+
+  it("buzzes again only after a pause, keeping the full list", async () => {
+    const { alex, apt } = await household();
+    await atStore(alex.token, apt.id);
+    const trip = (await prisma.shoppingTrip.findFirst({ where: { apartmentId: apt.id, status: "SHOPPING" } }))!;
+    const t0 = new Date();
+    await alertShopper(trip, "Apples", "Sam", t0);
+    const [first] = await shoppingAlerts(alex.user.id);
+    await alertShopper(trip, "Pears", "Sam", new Date(t0.getTime() + 1000));
+    let [alert] = await shoppingAlerts(alex.user.id);
+    expect(alert.createdAt.getTime()).toBe(first.createdAt.getTime()); // grouped silently
+    await alertShopper(trip, "Plums", "Sam", new Date(t0.getTime() + ALERT_EVERY_MS + 1000));
+    [alert] = await shoppingAlerts(alex.user.id);
+    expect(alert.body).toBe("Apples, Pears, Plums");
+    expect(alert.createdAt.getTime()).toBe(t0.getTime() + ALERT_EVERY_MS + 1000); // buzzed again
+  });
+
+  it("an item added after the shopper paid is flagged and stays for the next trip", async () => {
+    const { alex, sam, apt } = await household();
+    await atStore(alex.token, apt.id);
+    await step(alex.token, apt.id, "checkout", { total: 30, noReceipt: true });
+    const late = await (await add(sam.token, apt.id, "Butter")).json();
+    expect(late).toMatchObject({ shopperAlreadyPaid: alex.user.name, shopperAtStore: null });
+    expect(await shoppingAlerts(alex.user.id)).toHaveLength(0);
+
+    await step(alex.token, apt.id, "left_store");
+    const list = await (await listItems(request("/x", { token: sam.token }), routeParams({ id: apt.id }))).json();
+    expect(list.map((i: { name: string }) => i.name)).toContain("Butter");
   });
 });

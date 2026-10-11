@@ -21,9 +21,9 @@ const REFRESH_MS = 5000;
 type TripStatus = "PREPARING" | "READY" | "SHOPPING" | "CHECKED_OUT";
 interface Person { id: string; name: string }
 interface Member { id: string; name: string; dietaryFlags: string }
-interface GroceryItem { id: string; name: string; quantity: string; purchased: boolean; addedBy: Person }
+interface GroceryItem { id: string; name: string; quantity: string; purchased: boolean; createdAt: string; addedBy: Person }
 interface InventoryItem { id: string; name: string; quantity: number; unit: string; reorderThreshold: number }
-interface Trip { id: string; status: TripStatus; shopperId: string; homeCheck: string | null; totalAmount: number | null; receiptUrl: string | null }
+interface Trip { id: string; status: TripStatus; shopperId: string; homeCheck: string | null; atStoreAt: string | null; totalAmount: number | null; receiptUrl: string | null }
 interface ShoppingState {
   shopper: Person | null; next: Person | null; trip: Trip | null;
   order: (Person & { away: boolean })[];
@@ -109,9 +109,16 @@ export default function ShoppingPage() {
     return res.ok;
   }
 
-  async function addItem(name: string, quantity = "1") {
-    await apiFetch(`/api/apartments/${apartmentId}/grocery`, { method: "POST", body: JSON.stringify({ name, quantity }) });
+  /** Adds to the shared list; returns what to tell the person adding it, if anything (§10.4, §10.6). */
+  async function addItem(name: string, quantity = "1"): Promise<string | null> {
+    const res = await apiFetch(`/api/apartments/${apartmentId}/grocery`, { method: "POST", body: JSON.stringify({ name, quantity }) });
+    const added = res.ok ? await res.json() : null;
     load();
+    if (!added) return "Couldn't add it. Try again.";
+    if (added.alreadyOnList) return `${added.name} is already on the list.`;
+    if (added.shopperAlreadyPaid) return `${added.shopperAlreadyPaid} has already paid. This item will be on the next list.`;
+    if (added.shopperAtStore) return `${added.shopperAtStore} is at the store and will get it on their list.`;
+    return null;
   }
 
   async function setPurchased(item: GroceryItem, purchased: boolean) {
@@ -252,7 +259,7 @@ function swap<T>(list: T[], i: number, j: number): T[] {
 function ShopperCard({ trip, items, next, meId, busy, apartmentId, onAction, onAdd, onTick }: {
   trip: Trip | null; items: GroceryItem[]; next: Person | null; meId: string; busy: boolean; apartmentId: string;
   onAction: (action: string, extra?: Record<string, unknown>) => Promise<boolean>;
-  onAdd: (name: string, quantity?: string) => Promise<void>;
+  onAdd: (name: string, quantity?: string) => Promise<unknown>;
   onTick: (item: GroceryItem, purchased: boolean) => Promise<void>;
 }) {
   const step = trip ? STEP_NUMBER[trip.status] : 1;
@@ -293,7 +300,7 @@ function ShopperCard({ trip, items, next, meId, busy, apartmentId, onAction, onA
         </>
       )}
 
-      {(trip?.status === "SHOPPING" || editing) && <StoreStep trip={trip!} items={items} busy={busy} onAction={validate} onTick={onTick} />}
+      {(trip?.status === "SHOPPING" || editing) && <StoreStep trip={trip!} items={items} meId={meId} busy={busy} onAction={validate} onTick={onTick} />}
 
       {trip?.status === "CHECKED_OUT" && !editing && (
         <>
@@ -325,7 +332,7 @@ function ShopperCard({ trip, items, next, meId, busy, apartmentId, onAction, onA
 /** Step 2: what's low or out at home goes onto the list in one tap. Can be skipped. */
 function InventoryStep({ apartmentId, items, busy, onAction, onAdd }: {
   apartmentId: string; items: GroceryItem[]; busy: boolean;
-  onAction: (action: string) => Promise<boolean>; onAdd: (name: string, quantity?: string) => Promise<void>;
+  onAction: (action: string) => Promise<boolean>; onAdd: (name: string, quantity?: string) => Promise<unknown>;
 }) {
   const [stock, setStock] = useState<InventoryItem[] | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -392,8 +399,8 @@ function InventoryStep({ apartmentId, items, busy, onAction, onAdd }: {
 }
 
 /** Step 4: tick items into the cart, then the total and receipt, a review, and Validate. */
-function StoreStep({ trip, items, busy, onAction, onTick }: {
-  trip: Trip; items: GroceryItem[]; busy: boolean;
+function StoreStep({ trip, items, meId, busy, onAction, onTick }: {
+  trip: Trip; items: GroceryItem[]; meId: string; busy: boolean;
   onAction: (action: string, extra?: Record<string, unknown>) => Promise<boolean>;
   onTick: (item: GroceryItem, purchased: boolean) => Promise<void>;
 }) {
@@ -406,6 +413,8 @@ function StoreStep({ trip, items, busy, onAction, onTick }: {
 
   const inCart = items.filter(i => i.purchased);
   const toGet = items.filter(i => !i.purchased);
+  // Added by someone else after the shopper got to the store (§10.4).
+  const isNew = (i: GroceryItem) => !!trip.atStoreAt && i.addedBy.id !== meId && i.createdAt > trip.atStoreAt;
   const amount = Number(total.replace(",", "."));
   const totalOk = Number.isFinite(amount) && amount > 0;
   const ready = totalOk && (!!receiptUrl || noReceipt) && !uploading;
@@ -454,7 +463,9 @@ function StoreStep({ trip, items, busy, onAction, onTick }: {
               </span>
               <span className={`flex-1 text-base ${item.purchased ? "text-gray-400 line-through" : "font-medium"}`}>
                 {item.name}{item.quantity !== "1" && <span className="text-gray-500"> × {item.quantity}</span>}
+                {isNew(item) && <span className="block text-xs font-normal text-gray-500">Added by {item.addedBy.name} while you were out</span>}
               </span>
+              {isNew(item) && !item.purchased && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">New</span>}
             </button>
           </li>
         ))}
@@ -513,18 +524,20 @@ function StepDots({ step, light = false }: { step: number; light?: boolean }) {
   );
 }
 
-function AddItemForm({ onAdd }: { onAdd: (name: string, quantity?: string) => Promise<void> }) {
+function AddItemForm({ onAdd }: { onAdd: (name: string, quantity?: string) => Promise<string | null> }) {
   const [name, setName] = useState("");
   const [qty, setQty] = useState("1");
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    setSaving(true);
-    await onAdd(name.trim(), qty);
+    setSaving(true); setMessage(null);
+    setMessage(await onAdd(name.trim(), qty));
     setName(""); setQty("1"); setSaving(false);
   }
   return (
+    <>
     <form onSubmit={submit} className="mt-4 flex gap-2">
       <input type="text" required placeholder="Add an item…" value={name} onChange={e => setName(e.target.value)} aria-label="Item name"
         className="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
@@ -532,6 +545,8 @@ function AddItemForm({ onAdd }: { onAdd: (name: string, quantity?: string) => Pr
         className="w-16 rounded-xl border border-gray-300 px-3 py-2.5 text-center text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
       <button type="submit" disabled={saving} className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60">Add</button>
     </form>
+    {message && <p className="mt-2 rounded-lg bg-brand-soft/70 px-3 py-2 text-sm text-gray-800" role="status">{message}</p>}
+    </>
   );
 }
 

@@ -16,6 +16,7 @@
  */
 import { prisma } from "@/lib/db";
 import { syncOrder } from "@/lib/rotation";
+import { notify, pushIfEnabled } from "@/lib/notify";
 
 /** A trip in one of these states is under way; there is at most one per home. */
 export const ACTIVE_TRIP = ["PREPARING", "READY", "SHOPPING", "CHECKED_OUT"];
@@ -77,4 +78,31 @@ export async function shoppingTurn(apartmentId: string, { save = false } = {}) {
     trip,
     names: Object.fromEntries(people.map(p => [p.id, p.name])) as Record<string, string>,
   };
+}
+
+/** While items keep coming in, the shopper's phone buzzes at most this often; the notification always shows the full list. */
+export const ALERT_EVERY_MS = 2 * 60_000;
+
+/**
+ * Tells the shopper at the store that someone added to the list (§10.4).
+ * Quick additions are grouped into the shopper's unread notification for this
+ * trip ("3 new items on your list: Tomatoes, Milk, Rice") instead of one each.
+ */
+export async function alertShopper(trip: { apartmentId: string; shopperId: string; atStoreAt: Date | null }, itemName: string, addedByName: string, now = new Date()) {
+  const link = `/apartment/${trip.apartmentId}/shopping`;
+  const open = await prisma.notification.findFirst({
+    where: { userId: trip.shopperId, apartmentId: trip.apartmentId, type: "SHOPPING_ITEMS", read: false, createdAt: { gte: trip.atStoreAt ?? now } },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!open) {
+    await notify({ apartmentId: trip.apartmentId, userIds: [trip.shopperId], type: "SHOPPING_ITEMS", title: `${addedByName} added to your list`, body: itemName, link });
+    return;
+  }
+  const names = [...open.body.split(", "), itemName];
+  const title = `${names.length} new items on your list`;
+  const body = names.join(", ");
+  const buzz = now.getTime() - open.createdAt.getTime() >= ALERT_EVERY_MS;
+  // createdAt doubles as "last buzzed", so the next buzz waits another ALERT_EVERY_MS.
+  await prisma.notification.update({ where: { id: open.id }, data: { title, body, ...(buzz ? { createdAt: now } : {}) } });
+  if (buzz) await pushIfEnabled(trip.shopperId, title, body, link);
 }

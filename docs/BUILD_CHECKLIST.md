@@ -432,7 +432,7 @@ saved → next person's turn scheduled*, all automatically.
 
 ## Sprint 4 — Shopping
 
-**Status:** 4a ready for your test (round 2) · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
+**Status:** 4a approved · 4b building · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
 
 Shopping becomes one flow: whose turn it is, one shared list, and the trip
 itself. The total and receipt are saved on each trip now; splitting them into
@@ -440,7 +440,7 @@ everyone's balances comes in Sprint 6, once the Money ledger exists.
 
 ### 4a — Whose turn, one shared list, and the trip card by card
 
-**Status:** Ready for your test (round 2)
+**Status:** Approved
 
 **Owner feedback on round 1 (2026-10-09):** show one card after another:
 start preparing → do the inventory → at the store → tick the items into the
@@ -503,17 +503,49 @@ two items in Household → Inventory with a low quantity first)
 5. The card says "Paid $…". Tap **I've left the store**. The ticked items are
    gone, the others are still on the list, and it's the next person's turn.
 
+**Sign-off:** [x] Approved on 2026-10-10 (after round 2)
+
+### 4b — Alerts for the shopper, and late items
+
+**Status:** Building
+
+**What I'm building** (PRODUCT_LOGIC §10.4, §10.6)
+- **While the shopper is at the store,** items added by others reach the
+  shopper as **one** notification that keeps growing: "3 new items on your
+  list: Tomatoes, Milk, Rice". Their phone buzzes at most every 2 minutes, not
+  for every item.
+- **Nobody else gets an alert** for list changes. (Today every addition
+  notifies the whole household; that stops.)
+- **New items stand out** on the shopper's list with a "New" badge.
+- **Whoever adds an item while the shopper is at the store** sees "*Name* is at
+  the store and will get it on their list".
+- **Once the shopper has paid,** adding an item says "*Name* has already paid.
+  This item will be on the next list." It never joins the trip that's ending.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: only the shopper is alerted, only while at the store,
+      not for their own items; quick additions grouped into one notification;
+      the household isn't notified; late items are flagged and stay for next
+      time)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (two accounts in the same home)
+1. On the shopper's account, go through the trip to **I'm at the store**.
+2. On the other account, add three items quickly. It says "*Name* is at the
+   store and will get it on their list".
+3. On the shopper's account: one notification, "3 new items on your list:
+   …", and the three items show **New** on the list.
+4. On the shopper's account, enter the total and receipt and **Validate**
+   (don't leave the store yet).
+5. On the other account, add one more item. It says "*Name* has already paid.
+   This item will be on the next list."
+6. On the shopper's account, tap **I've left the store**. That late item is
+   still on the list for next time.
+
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
-
-### 4b — Live alerts for the shopper, and late items
-
-**Status:** Not started (test steps written when it starts)
-
-- While the shopper is at the store, items added by others go to the shopper as
-  a notification, grouped ("3 new items: Tomatoes, Milk, Rice"). Others don't
-  get it.
-- Once the shopper has paid, adding an item says "*Name* has already paid.
-  This item will be on the next list."
 
 ### 4c — Home Check
 

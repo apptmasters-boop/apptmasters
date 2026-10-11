@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
-import { notifyApartment } from "@/lib/notify";
+import { alertShopper } from "@/lib/shopping";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
@@ -36,21 +36,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
   if (existing) return NextResponse.json({ ...existing, alreadyOnList: true });
 
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-
   const item = await prisma.groceryItem.create({
     data: { apartmentId, addedById: userId, name, quantity },
     include: { addedBy: { select: { id: true, name: true } } },
   });
 
-  await notifyApartment(
-    apartmentId,
-    userId,
-    "GROCERY_ADDED",
-    "Grocery list updated",
-    `${user?.name} added "${name}" to the grocery list`,
-    `/apartment/${apartmentId}/shopping`,
-  );
+  // Only the shopper hears about list changes, and only while at the store (§10.4).
+  // Once they've paid, the item waits for the next trip and the person adding it is told (§10.6).
+  const trip = await prisma.shoppingTrip.findFirst({
+    where: { apartmentId, status: { in: ["SHOPPING", "CHECKED_OUT"] }, shopperId: { not: userId } },
+    include: { shopper: { select: { name: true } } },
+  });
+  if (trip?.status === "SHOPPING") await alertShopper(trip, name, item.addedBy.name);
 
-  return NextResponse.json(item, { status: 201 });
+  return NextResponse.json({
+    ...item,
+    shopperAtStore: trip?.status === "SHOPPING" ? trip.shopper.name : null,
+    shopperAlreadyPaid: trip?.status === "CHECKED_OUT" ? trip.shopper.name : null,
+  }, { status: 201 });
 }
