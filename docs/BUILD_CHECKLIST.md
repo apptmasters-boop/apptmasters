@@ -556,7 +556,7 @@ two items in Household → Inventory with a low quantity first)
 
 ## Sprint 5 — Money engine
 
-**Status:** 5a approved · 5b building · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
+**Status:** 5a approved · 5b ready for your test · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
 
 One ledger for everything that's owed: shared expenses, rent, payments and the
 shared fund. Owner's rule (2026-10-07): it is built **alongside** today's Money
@@ -615,7 +615,7 @@ anything switches over.
 
 ### 5b — The new Money page
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building** (§11; switch-over approved with 5a: every household
 matched)
@@ -636,13 +636,14 @@ matched)
   split shown underneath.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: the page's numbers include rent, split by source;
+- [x] Type check passes
+- [x] Tests pass: 181 (+4: the page's numbers include rent, split by source;
       "All settled up" never shows while rent is owed; Home's "You owe" uses
       the ledger)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (65)
+- [x] CI green on GitHub (7873c75)
+- [x] Deployed to apptmasters.com 2026-10-10 (no database change; checked
+      with a real household)
 
 **Your test on apptmasters.com**
 1. Open the **Money** tab. Overview shows what you owe and are owed, and
