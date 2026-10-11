@@ -556,7 +556,7 @@ two items in Household → Inventory with a low quantity first)
 
 ## Sprint 5 — Money engine
 
-**Status:** 5a and 5b approved · 5c building · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
+**Status:** 5a and 5b approved · 5c ready for your test · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
 
 One ledger for everything that's owed: shared expenses, rent, payments and the
 shared fund. Owner's rule (2026-10-07): it is built **alongside** today's Money
@@ -661,7 +661,7 @@ matched)
 
 ### 5c — Record a payment
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building** (§13.2: record payment → reduce what's owed → keep the
 history)
@@ -679,15 +679,17 @@ history)
 - One new database table (payments), added with targeted SQL.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: only items you really owe that person can be
+- [x] Type check passes
+- [x] Tests pass: 186 (+5: only items you really owe that person can be
       included; the total subtracts what they owe you and must be more than
       zero; waiting payments don't count yet; confirm marks expenses and rent
       paid; decline and cancel put everything back; only the receiver
       confirms; the Money check still matches)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (65)
+- [x] CI green on GitHub (c9beb6d)
+- [x] Deployed to apptmasters.com 2026-10-10 (payments table added with
+      `prisma/manual-sql/2026-10-10-sprint-5c-payments.sql`; checked with a
+      real household)
 
 **Your test on apptmasters.com** (two accounts in the same home)
 1. Make sure the first account owes the second something: an unpaid shared
