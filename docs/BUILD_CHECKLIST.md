@@ -432,7 +432,7 @@ saved → next person's turn scheduled*, all automatically.
 
 ## Sprint 4 — Shopping
 
-**Status:** 4a approved · 4b building · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
+**Status:** 4a approved · 4b ready for your test · Spec: `PRODUCT_LOGIC.md` §10.1–10.6
 
 Shopping becomes one flow: whose turn it is, one shared list, and the trip
 itself. The total and receipt are saved on each trip now; splitting them into
@@ -507,7 +507,7 @@ two items in Household → Inventory with a low quantity first)
 
 ### 4b — Alerts for the shopper, and late items
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building** (PRODUCT_LOGIC §10.4, §10.6)
 - **While the shopper is at the store,** items added by others reach the
@@ -523,14 +523,15 @@ two items in Household → Inventory with a low quantity first)
   This item will be on the next list." It never joins the trip that's ending.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: only the shopper is alerted, only while at the store,
+- [x] Type check passes
+- [x] Tests pass: 165 (+4: only the shopper is alerted, only while at the store,
       not for their own items; quick additions grouped into one notification;
       the household isn't notified; late items are flagged and stay for next
       time)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (65)
+- [x] CI green on GitHub (0aa174e)
+- [x] Deployed to apptmasters.com 2026-10-10 (no database change; checked
+      with a real household)
 
 **Your test on apptmasters.com** (two accounts in the same home)
 1. On the shopper's account, go through the trip to **I'm at the store**.
