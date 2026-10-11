@@ -24,10 +24,12 @@ once and every part of the app that's affected updates itself:
 ## Where we are (2026-10-10)
 
 - **Done and approved by the owner:** Phase S (security), Sprints 1–4
-  (navigation, Home feed, Cleaning, Shopping). See the roadmap table below.
-- **Next:** Sprint 5, the Money ledger, built alongside the current Money page
-  with a report comparing both before anything switches over.
-- **Tests:** 165 automated tests; lint errors down from 75 to 65.
+  (navigation, Home feed, Cleaning, Shopping), and Sprint 5a–5b (the Money
+  ledger, the Admin → Money check, and the new Money tab with rent included).
+- **Waiting for the owner's test:** 5c, Record a payment.
+- **Next:** Sprint 6, Shopping → Money: a trip's total and receipt become the
+  grocery expense, split between everyone.
+- **Tests:** 186 automated tests; lint errors down from 75 to 65.
 - **Not in GitHub, on purpose:** `.env.local` (passwords and keys; keep a
   copy in a password manager) and the server's own configuration.
 
