@@ -73,8 +73,23 @@ describe("buildHomeFeed", () => {
         splits: { create: [{ userId: me.user.id, amount: 30 }, { userId: roommate.user.id, amount: 30 }] },
       },
     });
-    expect((await feedFor(apt.id, me.user.id)).find(i => i.id === "expenses:owed")?.title).toBe("You owe $30.00 in shared expenses");
-    expect((await feedFor(apt.id, roommate.user.id)).find(i => i.id === "expenses:owed")).toBeUndefined();
+    expect((await feedFor(apt.id, me.user.id)).find(i => i.id === "money:owed")).toMatchObject({ title: "You owe $30.00", detail: "Shared expenses · see Money" });
+    expect((await feedFor(apt.id, roommate.user.id)).find(i => i.id === "money:owed")).toBeUndefined();
+  });
+
+  it("Sprint 5b: what I owe comes from the Money ledger, rent included", async () => {
+    const { me, roommate, apt } = await household();
+    await prisma.expense.create({
+      data: {
+        title: "Internet", amount: 40, apartmentId: apt.id, paidById: roommate.user.id,
+        splits: { create: [{ userId: me.user.id, amount: 20 }, { userId: roommate.user.id, amount: 20 }] },
+      },
+    });
+    const cycle = await prisma.rentCycle.create({ data: { month: "2026-10", totalAmount: 1300, apartmentId: apt.id, rentPayerId: roommate.user.id } });
+    await prisma.rentPayment.create({ data: { amount: 650, rentCycleId: cycle.id, userId: me.user.id, status: "PAID" } }); // not confirmed yet
+    expect((await feedFor(apt.id, me.user.id)).find(i => i.id === "money:owed")).toMatchObject({
+      title: "You owe $670.00", detail: "$650.00 rent · $20.00 shared expenses", href: `/apartment/${apt.id}/money`,
+    });
   });
 
   it("shows the cleaning turn only to the person whose turn it is", async () => {

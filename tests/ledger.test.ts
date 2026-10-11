@@ -7,6 +7,7 @@ import { ledgerEntries, netDebts, fundBalance, compareDebts, compareWithCurrent 
 import { householdDebts } from "@/lib/balances";
 import { GET as moneyCheck } from "@/app/api/admin/money-check/route";
 import { GET as getLedger } from "@/app/api/apartments/[id]/ledger/route";
+import { position, net, unpaidRent, toConfirm } from "@/lib/moneySummary";
 import { prisma } from "@/lib/db";
 import { createUser, createApartment, request, routeParams } from "./helpers";
 
@@ -163,5 +164,41 @@ describe("Money check report and ledger API", () => {
 
     const outsider = await createUser();
     expect((await getLedger(request("/x", { token: outsider.token }), routeParams({ id: apt.id }))).status).toBe(403);
+  });
+});
+
+describe("Sprint 5b: the Money tab's numbers", () => {
+  it("rent and expenses add up for Overview, split by source, and never 'settled' while rent is owed", async () => {
+    const { apt, ids, sam } = await household();
+    await expense(apt.id, ids.sam, 40, [ids.alex, ids.sam]);          // Alex owes Sam 20
+    await rentMonth(apt.id, ids.alex, "2026-10", { [ids.sam]: { amount: 650 } }); // Sam owes Alex 650
+    const body = await (await getLedger(request("/x", { token: sam.token }), routeParams({ id: apt.id }))).json();
+
+    expect(body.me).toBe(ids.sam);
+    expect(position(body.debts, ids.sam)).toEqual({ owe: 630, owed: 0 }); // netted with Alex
+    expect(net(body.bySource.rent, ids.sam)).toBe(650);
+    expect(net(body.bySource.expense, ids.sam)).toBe(-20);
+    expect(body.names[ids.alex]).toBeTruthy();
+  });
+
+  it("lists my unpaid rent, earliest first, and marks what's waiting for confirmation", async () => {
+    const { apt, ids, sam } = await household();
+    await rentMonth(apt.id, ids.alex, "2026-10", { [ids.sam]: { amount: 650, status: "PAID" } });
+    await rentMonth(apt.id, ids.alex, "2026-09", { [ids.sam]: { amount: 650 } });
+    await rentMonth(apt.id, ids.alex, "2026-08", { [ids.sam]: { amount: 650, status: "CONFIRMED" } });
+    const body = await (await getLedger(request("/x", { token: sam.token }), routeParams({ id: apt.id }))).json();
+
+    const rent = unpaidRent(body.entries, ids.sam);
+    expect(rent.map(r => [r.label, r.waiting])).toEqual([["Rent September 2026", false], ["Rent October 2026", true]]);
+    expect(toConfirm(body.entries, ids.alex).map(p => p.amount)).toEqual([650]); // Alex has Sam's October to confirm
+    expect(toConfirm(body.entries, ids.sam)).toEqual([]);
+  });
+
+  it("shows people who moved out as such", async () => {
+    const { apt, ids, sam } = await household();
+    await expense(apt.id, ids.kim, 30, [ids.sam, ids.kim]);
+    await prisma.apartmentMember.updateMany({ where: { apartmentId: apt.id, userId: ids.kim }, data: { status: "MOVED_OUT" } });
+    const body = await (await getLedger(request("/x", { token: sam.token }), routeParams({ id: apt.id }))).json();
+    expect(body.names[ids.kim].endsWith("(moved out)")).toBe(true);
   });
 });

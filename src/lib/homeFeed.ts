@@ -12,7 +12,8 @@
  * Chat messages never appear; they're on the Chat badge (§16).
  */
 import { prisma } from "@/lib/db";
-import { householdDebts, totalOwedBy } from "@/lib/balances";
+import { ledgerEntries, netDebts } from "@/lib/ledger";
+import { position, net } from "@/lib/moneySummary";
 import { shoppingTurn } from "@/lib/shopping";
 
 export type Priority = 1 | 2 | 3 | 4 | 5;
@@ -63,13 +64,13 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
   const endOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
   const isAdmin = role === "ADMIN";
 
-  const [urgentRepairs, rentConfig, myRentPayments, toConfirmRent, debts, cashToConfirm, cleaning, purchases,
+  const [urgentRepairs, rentConfig, myRentPayments, toConfirmRent, ledger, cashToConfirm, cleaning, purchases,
     myChores, editRequests, joinRequests, events, recent] = await Promise.all([
     prisma.maintenanceRequest.findMany({ where: { apartmentId, priority: "URGENT", status: { not: "RESOLVED" } }, orderBy: { createdAt: "asc" } }),
     prisma.rentConfig.findUnique({ where: { apartmentId }, select: { dueDay: true } }),
     prisma.rentPayment.findMany({ where: { userId, status: "PENDING", rentCycle: { apartmentId } }, include: { rentCycle: { select: { month: true } } } }),
     prisma.rentPayment.count({ where: { status: "PAID", userId: { not: userId }, rentCycle: { apartmentId, rentPayerId: userId } } }),
-    householdDebts(apartmentId),
+    ledgerEntries(apartmentId),
     prisma.expenseSplit.findMany({
       where: { status: "PENDING_CASH", userId: { not: userId }, expense: { apartmentId, paidById: userId } },
       include: { user: { select: { name: true } }, expense: { select: { title: true } } },
@@ -113,9 +114,16 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
   if (toConfirmRent > 0) {
     items.push({ id: "rent:confirm", priority: 2, href: `${base}/rent`, title: `Confirm ${toConfirmRent} rent ${toConfirmRent === 1 ? "payment" : "payments"}`, detail: "Roommates marked their share as paid to you" });
   }
-  const owed = totalOwedBy(debts, userId);
-  if (owed > 0) {
-    items.push({ id: "expenses:owed", priority: 2, href: `${base}/finance`, title: `You owe ${money(owed)} in shared expenses`, detail: "Settle up in Money" });
+  // What I owe from the Money ledger, rent included (§11.2). When it's only rent,
+  // the rent item above already says so with its due date.
+  const owe = position(netDebts(ledger), userId).owe;
+  const expensePart = net(netDebts(ledger.filter(e => e.source === "expense")), userId);
+  const rentPart = net(netDebts(ledger.filter(e => e.source === "rent")), userId);
+  if (owe > 0 && expensePart > 0) {
+    items.push({
+      id: "money:owed", priority: 2, href: `${base}/money`, title: `You owe ${money(owe)}`,
+      detail: rentPart > 0 ? `${money(rentPart)} rent · ${money(expensePart)} shared expenses` : "Shared expenses · see Money",
+    });
   }
   for (const c of cashToConfirm) {
     items.push({ id: `cash:${c.id}`, priority: 2, href: `${base}/finance`, title: `${c.user.name} says they paid you ${money(c.amount)} in cash`, detail: `For "${c.expense.title}" · confirm or deny` });

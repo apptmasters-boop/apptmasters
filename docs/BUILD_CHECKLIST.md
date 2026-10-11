@@ -556,7 +556,7 @@ two items in Household → Inventory with a low quantity first)
 
 ## Sprint 5 — Money engine
 
-**Status:** 5a ready for your test · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
+**Status:** 5a approved · 5b building · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
 
 One ledger for everything that's owed: shared expenses, rent, payments and the
 shared fund. Owner's rule (2026-10-07): it is built **alongside** today's Money
@@ -565,7 +565,7 @@ anything switches over.
 
 ### 5a — The ledger and the comparison report
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building** (residents see no change yet)
 - **One calculation for all money** (`src/lib/ledger.ts`). It turns every
@@ -611,16 +611,52 @@ anything switches over.
    paid long ago but never confirmed in the app, they will show here. That's
    the data to clean up before we switch over.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-10 (both rules above accepted)
 
 ### 5b — The new Money page
 
-**Status:** Not started (test steps written when it starts)
+**Status:** Building
 
-- Money becomes **Overview | Activity | Balances** (§11), built on the ledger,
-  with rent included. It never says "All settled up" while rent is unpaid.
-- Home's "You owe" uses the ledger too.
-- Switches over only after you've confirmed the Money check in 5a.
+**What I'm building** (§11; switch-over approved with 5a: every household
+matched)
+- **Money tab → Overview | Activity | Balances**, all from the ledger, so rent
+  and shared expenses are counted together.
+- **Overview:** **You owe** and **You're owed**, with "rent" and "shared
+  expenses" shown separately; **What's next** (your rent share and when it's
+  due, payments waiting for you to confirm); the shared fund's balance; and
+  short links to Rent, Shared expenses and Shared fund (where you add things,
+  unchanged). It only says **All settled up** when nothing is owed at all,
+  rent included (§11.2).
+- **Activity:** every money event in the household, newest first, grouped by
+  month: expenses, rent shares, payments, fund. Payments waiting for
+  confirmation are marked.
+- **Balances:** who owes whom in the household, each line split into rent and
+  shared expenses; your own lines stand out.
+- **Home:** "You owe" now uses the same numbers (rent included), with the
+  split shown underneath.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: the page's numbers include rent, split by source;
+      "All settled up" never shows while rent is owed; Home's "You owe" uses
+      the ledger)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com**
+1. Open the **Money** tab. Overview shows what you owe and are owed, and
+   what's next.
+2. In **Rent**, create this month's rent (or use one that isn't confirmed).
+   Back on Money, a roommate's account shows that rent under **You owe** and
+   doesn't say "All settled up".
+3. **Activity** lists the rent shares and recent expenses, newest first.
+4. **Balances** shows each pair with rent and shared expenses separately.
+5. Confirm the rent payment in **Rent**. Money updates: that rent leaves
+   "You owe", and Activity shows the payment.
+6. Home shows "You owe $…" with the same total as Money.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ### 5c — Record a payment
 
