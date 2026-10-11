@@ -67,6 +67,9 @@ GitHub runs all three plus a production build on every push and pull request
 
 The site runs on an AWS EC2 server (Ubuntu, 1 GB RAM): pm2 runs `npm start`
 on port 3000 behind nginx with Let's Encrypt, in `/var/www/apptmasters`.
+The repository is private; the server downloads it with a read-only deploy
+key (`~/.ssh/github_deploy_apptmasters`, listed under the repository's
+Settings → Deploy keys), which can't push or reach any other repository.
 
 1. Run the checks locally, push `master`, and wait for CI to pass.
 2. On the server, save the current build for rollback:
