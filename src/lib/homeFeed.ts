@@ -69,10 +69,10 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
     prisma.maintenanceRequest.findMany({ where: { apartmentId, priority: "URGENT", status: { not: "RESOLVED" } }, orderBy: { createdAt: "asc" } }),
     prisma.rentConfig.findUnique({ where: { apartmentId }, select: { dueDay: true } }),
     prisma.rentPayment.findMany({ where: { userId, status: "PENDING", rentCycle: { apartmentId } }, include: { rentCycle: { select: { month: true } } } }),
-    prisma.rentPayment.count({ where: { status: "PAID", userId: { not: userId }, rentCycle: { apartmentId, rentPayerId: userId } } }),
+    prisma.rentPayment.count({ where: { status: "PAID", paymentId: null, userId: { not: userId }, rentCycle: { apartmentId, rentPayerId: userId } } }),
     ledgerEntries(apartmentId),
     prisma.expenseSplit.findMany({
-      where: { status: "PENDING_CASH", userId: { not: userId }, expense: { apartmentId, paidById: userId } },
+      where: { status: "PENDING_CASH", paymentId: null, userId: { not: userId }, expense: { apartmentId, paidById: userId } },
       include: { user: { select: { name: true } }, expense: { select: { title: true } } },
     }),
     prisma.cleaningRotation.findMany({ where: { apartmentId } }),
@@ -124,6 +124,15 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
       id: "money:owed", priority: 2, href: `${base}/money`, title: `You owe ${money(owe)}`,
       detail: rentPart > 0 ? `${money(rentPart)} rent · ${money(expensePart)} shared expenses` : "Shared expenses · see Money",
     });
+  }
+  // Recorded payments (Sprint 5c) are confirmed as a whole, in Money.
+  const paymentsToConfirm = await prisma.payment.findMany({
+    where: { apartmentId, toUserId: userId, status: "PENDING" },
+    include: { fromUser: { select: { name: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  for (const p of paymentsToConfirm) {
+    items.push({ id: `payment:${p.id}`, priority: 2, href: `${base}/money`, title: `${p.fromUser.name} says they paid you ${money(p.amount)}`, detail: "Confirm once you've received it" });
   }
   for (const c of cashToConfirm) {
     items.push({ id: `cash:${c.id}`, priority: 2, href: `${base}/finance`, title: `${c.user.name} says they paid you ${money(c.amount)} in cash`, detail: `For "${c.expense.title}" · confirm or deny` });

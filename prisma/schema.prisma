@@ -50,6 +50,8 @@ model User {
   notifications            Notification[]
   groceryItemsAdded        GroceryItem[]
   shoppingTrips            ShoppingTrip[]
+  paymentsSent             Payment[]                 @relation("PaymentFrom")
+  paymentsReceived         Payment[]                 @relation("PaymentTo")
   fundContributions        FundTransaction[]
   feedItems                FeedItem[]
   feedReactions            FeedReaction[]
@@ -123,6 +125,7 @@ model Apartment {
   purchaseRotations PurchaseRotation[]
   shoppingRotation  ShoppingRotation?
   shoppingTrips     ShoppingTrip[]
+  payments          Payment[]
   roommateScores RoommateScore[]
   disputes       Dispute[]
   auditLogs      AuditLog[]
@@ -373,11 +376,14 @@ model ExpenseSplit {
   amount     Float
   status     String    @default("PENDING") // PENDING | PAID
   settledAt  DateTime?
+  // The recorded payment that covers this share (Sprint 5c), if any.
+  paymentId  String?
 
   expenseId String
   userId    String
-  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expense   Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
 
   @@unique([expenseId, userId])
 }
@@ -441,10 +447,14 @@ model RentPayment {
   confirmedAt DateTime?
   createdAt   DateTime  @default(now())
 
+  // The recorded payment that covers this rent share (Sprint 5c), if any.
+  paymentId   String?
+
   rentCycleId String
   userId      String
   rentCycle   RentCycle @relation(fields: [rentCycleId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment     Payment?  @relation(fields: [paymentId], references: [id], onDelete: SetNull)
 
   @@unique([rentCycleId, userId])
 }
@@ -1078,6 +1088,30 @@ model ShoppingTrip {
   apartment   Apartment     @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   shopper     User          @relation(fields: [shopperId], references: [id], onDelete: Cascade)
   items       GroceryItem[]
+
+  @@index([apartmentId, status])
+}
+
+// One payment between two members (PRODUCT_LOGIC §13.2, Sprint 5c). It covers
+// expense shares and rent shares (linked by their paymentId); confirming marks
+// them paid, declining puts them back. Never deleted, so the history stays.
+model Payment {
+  id          String    @id @default(cuid())
+  amount      Float
+  method      String // CASH | BANK | VENMO | ZELLE | CASHAPP | PAYPAL | OTHER
+  note        String?
+  status      String    @default("PENDING") // PENDING | CONFIRMED | DECLINED | CANCELLED
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  apartmentId  String
+  fromUserId   String
+  toUserId     String
+  apartment    Apartment      @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  fromUser     User           @relation("PaymentFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser       User           @relation("PaymentTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  splits       ExpenseSplit[]
+  rentPayments RentPayment[]
 
   @@index([apartmentId, status])
 }

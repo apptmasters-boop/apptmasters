@@ -556,7 +556,7 @@ two items in Household → Inventory with a low quantity first)
 
 ## Sprint 5 — Money engine
 
-**Status:** 5a approved · 5b ready for your test · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
+**Status:** 5a and 5b approved · 5c building · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
 
 One ledger for everything that's owed: shared expenses, rent, payments and the
 shared fund. Owner's rule (2026-10-07): it is built **alongside** today's Money
@@ -615,7 +615,7 @@ anything switches over.
 
 ### 5b — The new Money page
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building** (§11; switch-over approved with 5a: every household
 matched)
@@ -657,15 +657,53 @@ matched)
    "You owe", and Activity shows the payment.
 6. Home shows "You owe $…" with the same total as Money.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-10
 
 ### 5c — Record a payment
 
-**Status:** Not started (test steps written when it starts)
+**Status:** Building
 
-- One **Record payment** to a person covers what you owe them in expenses and
-  rent. They confirm it; nothing is deleted, and the history shows every
-  payment (§13.2).
+**What I'm building** (§13.2: record payment → reduce what's owed → keep the
+history)
+- **Record payment:** on Money → Balances, next to anyone you owe. It lists
+  everything you owe that person: shared-expense shares and rent months, all
+  ticked; untick what you're not paying now. If they owe you something too,
+  it's subtracted (also listed, can be unticked). Choose how you paid (cash,
+  bank transfer, Venmo, Zelle, Cash App, PayPal, other), add a note, send.
+- **The receiver confirms:** they get a notification, and their Money Overview
+  shows "*Sam* says they paid you $…" with **Confirm** and **Decline**.
+  Confirm marks every item it covers as paid. Decline puts them back as they
+  were. The sender can **Cancel** while it's waiting.
+- **Nothing is deleted:** each payment is one line in Activity, with what it
+  covered. Shared expenses and Rent show the same items as paid.
+- One new database table (payments), added with targeted SQL.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: only items you really owe that person can be
+      included; the total subtracts what they owe you and must be more than
+      zero; waiting payments don't count yet; confirm marks expenses and rent
+      paid; decline and cancel put everything back; only the receiver
+      confirms; the Money check still matches)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (two accounts in the same home)
+1. Make sure the first account owes the second something: an unpaid shared
+   expense and/or an unconfirmed rent month.
+2. First account: Money → **Balances** → **Record payment** next to the
+   second person. Everything owed is listed and ticked. Untick one item; the
+   total changes. Pick **Cash**, then **Send**.
+3. Overview now says "Waiting for *Name* to confirm".
+4. Second account: Money → Overview shows "*Name* says they paid you $…".
+   Tap **Confirm**.
+5. Both accounts: Balances no longer shows the paid items; the unticked one
+   is still owed. Activity shows one payment line.
+6. Record another payment and **Decline** it on the second account: nothing
+   changes in what's owed.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ---
 

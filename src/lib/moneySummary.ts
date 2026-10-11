@@ -10,6 +10,8 @@ export interface Debt { from: string; to: string; amount: number }
 export interface SummaryEntry {
   id: string; kind: string; source: string; label: string;
   from: string; to: string; amount: number; date: string | Date; pending?: boolean;
+  /** Part of a recorded payment (Sprint 5c); that payment is answered as a whole. */
+  paymentId?: string;
 }
 
 const round = (n: number) => Math.round(n * 100) / 100;
@@ -50,6 +52,10 @@ export function unpaidRent(entries: SummaryEntry[], me: string): RentShare[] {
     .sort((a, b) => a.due.getTime() - b.due.getTime());
 }
 
-/** Payments others reported to `me` that `me` still has to confirm. */
+/**
+ * Single items others reported paying `me` (old cash and rent confirmations)
+ * that `me` still has to confirm. Recorded payments are answered as a whole,
+ * so their items aren't listed here.
+ */
 export const toConfirm = (entries: SummaryEntry[], me: string) =>
-  entries.filter(e => e.kind === "PAYMENT" && e.pending && e.to === me);
+  entries.filter(e => e.kind === "PAYMENT" && e.pending && e.to === me && !e.paymentId);

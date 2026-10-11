@@ -37,6 +37,8 @@ export interface LedgerEntry {
   cents: number;
   /** A payment someone reported that the receiver hasn't confirmed yet: listed, but not counted. */
   pending?: boolean;
+  /** The recorded payment (Sprint 5c) this entry is part of, if any. */
+  paymentId?: string;
 }
 
 export const FUND = "FUND";
@@ -59,7 +61,7 @@ export async function ledgerEntries(apartmentId: string): Promise<LedgerEntry[]>
   for (const e of expenses) {
     for (const s of e.splits) {
       if (s.userId === e.paidById) continue; // your own share of what you paid isn't a debt
-      const pair = { source: "expense" as const, sourceId: e.id, from: s.userId, to: e.paidById, cents: toCents(s.amount) };
+      const pair = { source: "expense" as const, sourceId: e.id, from: s.userId, to: e.paidById, cents: toCents(s.amount), ...(s.paymentId ? { paymentId: s.paymentId } : {}) };
       entries.push({ ...pair, id: `expense-share:${s.id}`, kind: "EXPENSE_SHARE", label: e.title, date: e.date });
       if (s.status === "PAID") {
         entries.push({ ...pair, id: `expense-paid:${s.id}`, kind: "PAYMENT", label: `Paid for ${e.title}`, date: s.settledAt ?? e.date });
@@ -75,7 +77,7 @@ export async function ledgerEntries(apartmentId: string): Promise<LedgerEntry[]>
     const due = new Date(`${c.month}-${String(Math.min(rentConfig?.dueDay ?? 1, 28)).padStart(2, "0")}T12:00:00Z`);
     for (const p of c.payments) {
       if (p.userId === c.rentPayerId) continue;
-      const pair = { source: "rent" as const, sourceId: c.id, from: p.userId, to: c.rentPayerId, cents: toCents(p.amount) };
+      const pair = { source: "rent" as const, sourceId: c.id, from: p.userId, to: c.rentPayerId, cents: toCents(p.amount), ...(p.paymentId ? { paymentId: p.paymentId } : {}) };
       const month = monthLabel(c.month);
       entries.push({ ...pair, id: `rent-share:${p.id}`, kind: "RENT_SHARE", label: `Rent ${month}`, date: due });
       // A roommate marking their rent "paid" counts once the rent payer confirms it (same rule as cash).
