@@ -132,7 +132,7 @@ export async function advanceMaintenance(requestId: string, actor: { userId: str
     });
     const ids = members.map(m => m.userId);
     await notify({
-      apartmentId: request.apartmentId, userIds: ids, sendEmailTo: ids, type: "MAINTENANCE_SCHEDULED", link,
+      apartmentId: request.apartmentId, userIds: ids, sendEmailTo: ids, type: "MAINTENANCE_SCHEDULED", link, important: true,
       title: `Repair visit: ${request.title}`,
       body: `${visitWindow(start, end, input.timeZone)}${note ? `. ${note}` : ""}`,
     });

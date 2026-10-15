@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 import { requireApartmentMember } from "@/lib/access";
 import { z } from "zod";
 import { sendEmail, appUrl, esc } from "@/lib/email";
@@ -70,15 +71,11 @@ export async function POST(
     select: { userId: true },
   });
   if (others.length > 0) {
-    await prisma.notification.createMany({
-      data: others.map(m => ({
-        userId: m.userId,
-        apartmentId,
-        type: "MAINTENANCE_ESCALATED",
-        title: `${room.name} issue escalated to landlord`,
-        body: `${reporter?.name ?? "Someone"} emailed the landlord about the ${room.name} maintenance issue.`,
-        link: `/apartment/${apartmentId}/maintenance`,
-      })),
+    await notify({
+      apartmentId, userIds: others.map(m => m.userId), type: "MAINTENANCE_ESCALATED",
+      title: `${room.name} issue escalated to landlord`,
+      body: `${reporter?.name ?? "Someone"} emailed the landlord about the ${room.name} maintenance issue.`,
+      link: `/apartment/${apartmentId}/maintenance`,
     });
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 
 export async function POST(
   req: NextRequest,
@@ -56,15 +57,11 @@ export async function POST(
       },
     });
 
-    await prisma.notification.create({
-      data: {
-        userId,
-        apartmentId,
-        type: "CASH_PAYMENT_CONFIRMED",
-        title: `${payer?.name ?? "The payer"} confirmed your cash payment`,
-        body: `Your cash payment of $${split.amount.toFixed(2)} for "${expense.title}" has been confirmed.`,
-        link: `/apartment/${apartmentId}/finance`,
-      },
+    await notify({
+      apartmentId, userIds: [userId], type: "CASH_PAYMENT_CONFIRMED",
+      title: `${payer?.name ?? "The payer"} confirmed your cash payment`,
+      body: `Your cash payment of $${split.amount.toFixed(2)} for "${expense.title}" has been confirmed.`,
+      link: `/apartment/${apartmentId}/finance`,
     });
   } else {
     await prisma.expenseSplit.update({
@@ -72,15 +69,11 @@ export async function POST(
       data: { status: "PENDING" },
     });
 
-    await prisma.notification.create({
-      data: {
-        userId,
-        apartmentId,
-        type: "CASH_PAYMENT_DENIED",
-        title: `${payer?.name ?? "The payer"} could not confirm your cash payment`,
-        body: `Your cash payment claim of $${split.amount.toFixed(2)} for "${expense.title}" was not confirmed. Please settle again.`,
-        link: `/apartment/${apartmentId}/finance`,
-      },
+    await notify({
+      apartmentId, userIds: [userId], type: "CASH_PAYMENT_DENIED",
+      title: `${payer?.name ?? "The payer"} could not confirm your cash payment`,
+      body: `Your cash payment claim of $${split.amount.toFixed(2)} for "${expense.title}" was not confirmed. Please settle again.`,
+      link: `/apartment/${apartmentId}/finance`,
     });
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 
 export async function POST(
   req: NextRequest,
@@ -78,15 +79,11 @@ export async function POST(
     });
 
     // Notify requester
-    await prisma.notification.create({
-      data: {
-        userId: request.requesterId,
-        apartmentId,
-        type: "EXPENSE_EDIT_APPROVED",
-        title: "Edit request approved",
-        body: `Your edit to "${request.originalTitle}" has been approved and applied.`,
-        link: `/apartment/${apartmentId}/finance`,
-      },
+    await notify({
+      apartmentId, userIds: [request.requesterId], type: "EXPENSE_EDIT_APPROVED",
+      title: "Edit request approved",
+      body: `Your edit to "${request.originalTitle}" has been approved and applied.`,
+      link: `/apartment/${apartmentId}/finance`,
     });
 
     return NextResponse.json({ status: "APPROVED", approvalCount, requiredApprovals: request.requiredApprovals });

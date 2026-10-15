@@ -261,7 +261,7 @@ export async function runRentAutomation(now = new Date(), onlyHouseholds?: strin
       for (const p of cycle.payments) {
         if (await remindedRecently(p.userId, config.apartmentId, now)) continue;
         await notify({
-          apartmentId: config.apartmentId, userIds: [p.userId], type: "RENT_REMINDER", link, sendEmailTo: [p.userId], at: now,
+          apartmentId: config.apartmentId, userIds: [p.userId], type: "RENT_REMINDER", link, sendEmailTo: [p.userId], at: now, important: true,
           title: daysLate === 0 ? "Rent due today" : "Your rent share is late",
           body: `Your ${name} rent share of ${usd(p.amount)} to ${cycle.rentPayer.name} ${when}. Mark it paid in Money → Rent once you've paid.`,
         });
@@ -269,7 +269,7 @@ export async function runRentAutomation(now = new Date(), onlyHouseholds?: strin
       }
       if (!cycle.markedPaidAt && !(await remindedRecently(cycle.rentPayer.id, config.apartmentId, now))) {
         await notify({
-          apartmentId: config.apartmentId, userIds: [cycle.rentPayer.id], type: "RENT_REMINDER", link, sendEmailTo: [cycle.rentPayer.id], at: now,
+          apartmentId: config.apartmentId, userIds: [cycle.rentPayer.id], type: "RENT_REMINDER", link, sendEmailTo: [cycle.rentPayer.id], at: now, important: true,
           title: daysLate === 0 ? "Pay the landlord today" : "The landlord isn't marked paid yet",
           body: `${name}'s rent of ${usd(cycle.totalAmount)} ${when}. Tap "I paid the landlord" in Money → Rent once you have.`,
         });

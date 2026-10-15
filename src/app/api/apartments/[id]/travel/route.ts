@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 import { requireApartmentMember } from "@/lib/access";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -67,15 +68,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (others.length > 0) {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
     const until = endDate ? ` until ${new Date(endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : "";
-    await prisma.notification.createMany({
-      data: others.map(m => ({
-        userId: m.userId,
-        apartmentId,
-        type: "MEMBER_TRAVELING",
-        title: `${user?.name ?? "Someone"} is traveling`,
-        body: `They'll be away${until}. Cleaning and expenses will adjust.`,
-        link: `/apartment/${apartmentId}`,
-      })),
+    await notify({
+      apartmentId, userIds: others.map(m => m.userId), type: "MEMBER_TRAVELING",
+      title: `${user?.name ?? "Someone"} is traveling`,
+      body: `They'll be away${until}. Cleaning and expenses will adjust.`,
+      link: `/apartment/${apartmentId}`,
     });
   }
 

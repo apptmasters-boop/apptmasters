@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 
 const schema = z.object({
   title: z.string().min(1).optional(),
@@ -76,15 +77,11 @@ export async function POST(
   });
 
   if (otherMembers.length > 0) {
-    await prisma.notification.createMany({
-      data: otherMembers.map(m => ({
-        userId: m.userId,
-        apartmentId,
-        type: "EXPENSE_EDIT_REQUEST",
-        title: "Expense edit approval needed",
-        body: `${request.requester.name} wants to edit "${expense.title}" — ${requiredApprovals} approval${requiredApprovals !== 1 ? "s" : ""} needed`,
-        link: `/apartment/${apartmentId}/finance`,
-      })),
+    await notify({
+      apartmentId, userIds: otherMembers.map(m => m.userId), type: "EXPENSE_EDIT_REQUEST",
+      title: "Expense edit approval needed",
+      body: `${request.requester.name} wants to edit "${expense.title}" — ${requiredApprovals} approval${requiredApprovals !== 1 ? "s" : ""} needed`,
+      link: `/apartment/${apartmentId}/finance`,
     });
   }
 

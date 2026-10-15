@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 import { requireApartmentMember } from "@/lib/access";
 
 // PATCH = mark as returned (or extend end date)
@@ -43,15 +44,11 @@ export async function PATCH(
       select: { userId: true },
     });
     if (others.length > 0) {
-      await prisma.notification.createMany({
-        data: others.map(m => ({
-          userId: m.userId,
-          apartmentId,
-          type: "MEMBER_RETURNED",
-          title: `${updated.user.name} is back`,
-          body: "They've returned from travel — cleaning and expenses are back to normal.",
-          link: `/apartment/${apartmentId}`,
-        })),
+      await notify({
+        apartmentId, userIds: others.map(m => m.userId), type: "MEMBER_RETURNED",
+        title: `${updated.user.name} is back`,
+        body: "They've returned from travel — cleaning and expenses are back to normal.",
+        link: `/apartment/${apartmentId}`,
       });
     }
   }

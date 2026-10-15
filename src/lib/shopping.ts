@@ -104,5 +104,5 @@ export async function alertShopper(trip: { apartmentId: string; shopperId: strin
   const buzz = now.getTime() - open.createdAt.getTime() >= ALERT_EVERY_MS;
   // createdAt doubles as "last buzzed", so the next buzz waits another ALERT_EVERY_MS.
   await prisma.notification.update({ where: { id: open.id }, data: { title, body, ...(buzz ? { createdAt: now } : {}) } });
-  if (buzz) await pushIfEnabled(trip.shopperId, title, body, link);
+  if (buzz) await pushIfEnabled(trip.shopperId, "SHOPPING_ITEMS", title, body, link);
 }

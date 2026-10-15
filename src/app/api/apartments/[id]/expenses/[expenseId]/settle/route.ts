@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 
 const schema = z.object({ method: z.enum(["VENMO", "PAYPAL", "CASHAPP", "CASH", "BANK"]).default("CASH") });
 
@@ -42,15 +43,11 @@ export async function POST(
     ]);
 
     if (expense) {
-      await prisma.notification.create({
-        data: {
-          userId: expense.paidById,
-          apartmentId,
-          type: "CASH_PAYMENT_CLAIMED",
-          title: `${claimer?.name ?? "Someone"} paid you in cash`,
-          body: `${claimer?.name ?? "Someone"} says they paid $${split.amount.toFixed(2)} in cash for "${expense.title}". Please confirm or deny.`,
-          link: `/apartment/${apartmentId}/finance`,
-        },
+      await notify({
+        apartmentId, userIds: [expense.paidById], type: "CASH_PAYMENT_CLAIMED",
+        title: `${claimer?.name ?? "Someone"} paid you in cash`,
+        body: `${claimer?.name ?? "Someone"} says they paid $${split.amount.toFixed(2)} in cash for "${expense.title}". Please confirm or deny.`,
+        link: `/apartment/${apartmentId}/finance`,
       });
     }
 

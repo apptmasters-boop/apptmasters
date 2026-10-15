@@ -1032,11 +1032,51 @@ instead of forcing duplicate event entry")
 
 ### 9b — One notification service
 
-**Status:** Not started (test steps written when it starts)
+**Status:** Building on the developer PC (deployed after 8b and 9a)
 
-- Notification settings per category (Rent, Money, Cleaning, Shopping,
-  Maintenance, Household): choose push and email; in-app always stays on.
-- Quick repeats are grouped into one notification instead of many (§20).
+**What I'm building** (§20: one service, event types, channel preferences,
+importance, anti-spam)
+- **Every notification has a category:** Rent, Money, Cleaning, Shopping,
+  Maintenance, Household, Messages.
+- **Profile → Notifications:** for each category, choose **push** and
+  **email**. In-app notifications always stay on (they're the record on the
+  bell and on Home). The two switches you have today (all push, all email)
+  stay as master switches.
+- **Defaults keep today's behavior:** nothing changes until someone turns
+  something off. Emails still only go out for what already sends one (rent
+  reminders, repair visits, payments…).
+- **No buzzing in a row:** after a push or email in a category, more from
+  the same category within 2 minutes only appear in the app. Important ones
+  (a repair visit scheduled, rent due or late) always come through.
+- **Everything goes through the one service:** 9 places that wrote
+  notifications directly (cash payments, expense changes, travel,
+  room escalations…) now respect the settings too, and send a push like the
+  rest.
+
+**Decision I made (tell me if you disagree):** in-app can't be turned off,
+only push and email.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 229 (+7: each type's category; push and email follow the
+      category settings and the master switches; the 2-minute quiet period;
+      important ones still go through; in-app always created; settings saved
+      and read back with defaults)
+- [x] Lint: no new errors (63)
+- [x] CI green on GitHub
+- [ ] Deployed to apptmasters.com (after 8b and 9a)
+
+**Your test on apptmasters.com** (two accounts in the same home; account B
+has allowed notifications on its phone or browser)
+1. On account B: **Profile → Notifications** shows the categories, each with
+   **Push** and **Email**. Turn **Push** off for **Shopping**.
+2. Make B the shopper and tap through to **I'm at the store**. On account A,
+   add an item to the list. B sees it on the bell, but gets no push.
+3. On B, turn **Push** back on for **Shopping**. A adds another item: B gets
+   a push. A adds a third right away: it shows on the bell, without a second
+   buzz (2-minute quiet period).
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ---
 

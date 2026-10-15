@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 import { householdDebts } from "@/lib/balances";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -77,15 +78,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       data: { status: "PENDING_CASH" },
     });
 
-    await prisma.notification.create({
-      data: {
-        userId: toUserId,
-        apartmentId,
-        type: "CASH_PAYMENT_CLAIMED",
-        title: `${claimer?.name ?? "Someone"} paid you $${totalAmount.toFixed(2)} in cash`,
-        body: `${claimer?.name ?? "Someone"} says they paid a total of $${totalAmount.toFixed(2)} in cash across ${pendingSplits.length} expense${pendingSplits.length !== 1 ? "s" : ""}. Please confirm each one in the Finance page.`,
-        link: `/apartment/${apartmentId}/finance`,
-      },
+    await notify({
+      apartmentId, userIds: [toUserId], type: "CASH_PAYMENT_CLAIMED",
+      title: `${claimer?.name ?? "Someone"} paid you $${totalAmount.toFixed(2)} in cash`,
+      body: `${claimer?.name ?? "Someone"} says they paid a total of $${totalAmount.toFixed(2)} in cash across ${pendingSplits.length} expense${pendingSplits.length !== 1 ? "s" : ""}. Please confirm each one in the Finance page.`,
+      link: `/apartment/${apartmentId}/finance`,
     });
   } else {
     // BANK: immediate settlement

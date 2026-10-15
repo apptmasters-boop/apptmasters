@@ -31,7 +31,13 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState("");
   const [pwSaved, setPwSaved] = useState(false);
 
-  const [notifPrefs, setNotifPrefs] = useState({ pushEnabled: true, emailEnabled: true });
+  // Notification settings (Sprint 9b): master switches, plus push/email per category (in-app is always on).
+  const [notifPrefs, setNotifPrefs] = useState<{
+    pushEnabled: boolean; emailEnabled: boolean;
+    categories: Record<string, { push: boolean; email: boolean }>;
+    categoryList: { key: string; label: string; description: string }[];
+  }>({ pushEnabled: true, emailEnabled: true, categories: {}, categoryList: [] });
+  const [notifSaved, setNotifSaved] = useState(false);
   const [notifSaving, setNotifSaving] = useState(false);
   const [email, setEmail] = useState("");
   const [emailVerified, setEmailVerified] = useState(false);
@@ -403,7 +409,7 @@ export default function ProfilePage() {
             <label className="flex items-center justify-between cursor-pointer">
               <div>
                 <p className="text-sm font-medium text-gray-700">Email notifications</p>
-                <p className="text-xs text-gray-400">Expenses, disputes, messages</p>
+                <p className="text-xs text-gray-400">Rent reminders, repair visits, payments</p>
               </div>
               <button type="button" onClick={() => setNotifPrefs(p => ({ ...p, emailEnabled: !p.emailEnabled }))}
                 className={`relative w-11 h-6 rounded-full transition-colors ${notifPrefs.emailEnabled ? "bg-blue-600" : "bg-gray-300"}`}>
@@ -411,10 +417,44 @@ export default function ProfilePage() {
               </button>
             </label>
           </div>
+          {notifPrefs.categoryList.length > 0 && (
+            <div className="rounded-xl border border-gray-100">
+              <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2 text-xs font-semibold text-gray-500">
+                <span>By topic (you always see them in the app)</span>
+                <span className="flex gap-6 pr-1"><span>Push</span><span>Email</span></span>
+              </div>
+              <ul className="divide-y divide-gray-50">
+                {notifPrefs.categoryList.map(c => {
+                  const choice = notifPrefs.categories[c.key] ?? { push: true, email: true };
+                  const set = (channel: "push" | "email", value: boolean) => {
+                    setNotifSaved(false);
+                    setNotifPrefs(p => ({ ...p, categories: { ...p.categories, [c.key]: { ...choice, [channel]: value } } }));
+                  };
+                  return (
+                    <li key={c.key} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-gray-700">{c.label}</span>
+                        <span className="block text-xs text-gray-400">{c.description}</span>
+                      </span>
+                      <span className="flex shrink-0 gap-8 pr-2">
+                        <input type="checkbox" aria-label={`Push for ${c.label}`} checked={choice.push} disabled={!notifPrefs.pushEnabled}
+                          onChange={e => set("push", e.target.checked)} className="h-4 w-4 accent-brand disabled:opacity-40" />
+                        <input type="checkbox" aria-label={`Email for ${c.label}`} checked={choice.email} disabled={!notifPrefs.emailEnabled}
+                          onChange={e => set("email", e.target.checked)} className="h-4 w-4 accent-brand disabled:opacity-40" />
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+          {notifSaved && <p className="text-sm text-green-700" role="status">Saved.</p>}
           <button disabled={notifSaving} onClick={async () => {
             setNotifSaving(true);
-            await apiFetch("/api/users/notification-prefs", { method: "PATCH", body: JSON.stringify(notifPrefs) });
+            const { pushEnabled, emailEnabled, categories } = notifPrefs;
+            const res = await apiFetch("/api/users/notification-prefs", { method: "PATCH", body: JSON.stringify({ pushEnabled, emailEnabled, categories }) });
             setNotifSaving(false);
+            setNotifSaved(res.ok);
           }} className="w-full bg-gray-100 text-gray-700 rounded-lg py-2 text-sm font-medium hover:bg-gray-200 disabled:opacity-50 transition-colors">
             {notifSaving ? "Saving…" : "Save preferences"}
           </button>
