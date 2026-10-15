@@ -1,61 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
+import { advanceMaintenance, currentStep, MaintenanceError } from "@/lib/maintenance";
 
-const schema = z.object({
-  status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED"]).optional(),
-  landlordNote: z.string().max(500).optional(),
-});
-
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ requestId: string }> }
-) {
+/**
+ * Landlord portal (PRODUCT_LOGIC §14.2): the linked landlord moves a request
+ * along. Body: { status, note?, scheduledStart?, scheduledEnd?, timeZone? }.
+ * A body with only { landlordNote } (older portal) adds a note on the current step.
+ */
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ requestId: string }> }) {
   const { requestId } = await params;
   const payload = await requireManager(req);
   if (!payload) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const existing = await prisma.maintenanceRequest.findUnique({
-    where: { id: requestId },
-    include: {
-      apartment: { include: { manager: true } },
-      submittedBy: { select: { name: true, email: true } },
-    },
-  });
+  const existing = await prisma.maintenanceRequest.findUnique({ where: { id: requestId }, include: { apartment: { select: { managerId: true } } } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (existing.apartment.managerId !== payload.userId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (existing.apartment.managerId !== payload.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const body = await req.json().catch(() => ({}));
+  const note = typeof body.note === "string" ? body.note : typeof body.landlordNote === "string" ? body.landlordNote : null;
+  try {
+    const updated = await advanceMaintenance(requestId, { userId: payload.userId, role: "LANDLORD" }, {
+      status: typeof body.status === "string" ? body.status : currentStep(existing.status),
+      note, scheduledStart: body.scheduledStart ?? null, scheduledEnd: body.scheduledEnd ?? null,
+      timeZone: typeof body.timeZone === "string" ? body.timeZone : null,
+    });
+    return NextResponse.json(updated);
+  } catch (e) {
+    if (e instanceof MaintenanceError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
   }
-
-  const body = await req.json();
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-
-  const updated = await prisma.maintenanceRequest.update({
-    where: { id: requestId },
-    data: { ...parsed.data, updatedAt: new Date() },
-  });
-
-  if (parsed.data.status && parsed.data.status !== existing.status) {
-    const STATUS_LABEL: Record<string, string> = {
-      IN_PROGRESS: "In Progress",
-      RESOLVED: "Resolved",
-      OPEN: "Re-opened",
-    };
-    const portalUrl = `${appUrl}/apartment/${existing.apartmentId}/maintenance`;
-    await sendEmail(
-      existing.submittedBy.email,
-      `Maintenance update — ${existing.title}`,
-      notificationEmail(
-        `Request ${STATUS_LABEL[parsed.data.status] ?? parsed.data.status}`,
-        `Your maintenance request "${existing.title}" has been updated to ${STATUS_LABEL[parsed.data.status] ?? parsed.data.status}.${parsed.data.landlordNote ? ` Note: ${parsed.data.landlordNote}` : ""}`,
-        portalUrl,
-        "View request"
-      )
-    );
-  }
-
-  return NextResponse.json(updated);
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { currentStep, nextSteps } from "@/lib/maintenance";
 
 export async function GET(
   req: NextRequest,
@@ -39,8 +40,11 @@ export async function GET(
     units.filter(u => u.apartmentId).map(u => [u.apartmentId!, u.number])
   );
 
+  // Steps as of Sprint 8 ("OPEN" is "REPORTED"), and where the landlord can take each request next.
   const result = requests.map(r => ({
     ...r,
+    status: currentStep(r.status),
+    next: nextSteps(r.status),
     unitNumber: unitByApartment[r.apartmentId] ?? null,
   }));
 

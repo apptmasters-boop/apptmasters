@@ -28,6 +28,11 @@ interface MaintenanceRequest {
   landlordNote: string | null;
   unitNumber: string | null;
   createdAt: string;
+  location: string | null;
+  scheduledStart: string | null;
+  scheduledEnd: string | null;
+  /** Steps the landlord can move it to (src/lib/maintenance.ts). */
+  next: string[];
   submittedBy: { name: string; email: string };
 }
 
@@ -36,15 +41,26 @@ const PRIORITY_STYLES: Record<string, string> = {
   MEDIUM: "bg-blue-100 text-blue-600",
   URGENT: "bg-red-100 text-red-600",
 };
+// Maintenance steps (PRODUCT_LOGIC §14.3); the landlord moves requests along, residents confirm the fix.
 const M_STATUS_STYLES: Record<string, string> = {
-  OPEN: "bg-yellow-100 text-yellow-700",
+  REPORTED: "bg-yellow-100 text-yellow-700",
+  ACKNOWLEDGED: "bg-blue-100 text-blue-700",
+  SCHEDULED: "bg-indigo-100 text-indigo-700",
   IN_PROGRESS: "bg-blue-100 text-blue-700",
-  RESOLVED: "bg-green-100 text-green-700",
+  COMPLETED: "bg-green-100 text-green-700",
+  RESOLVED: "bg-gray-100 text-gray-600",
 };
 const M_STATUS_LABELS: Record<string, string> = {
-  OPEN: "Open",
-  IN_PROGRESS: "In Progress",
+  REPORTED: "Reported",
+  ACKNOWLEDGED: "Acknowledged",
+  SCHEDULED: "Scheduled",
+  IN_PROGRESS: "In progress",
+  COMPLETED: "Completed",
   RESOLVED: "Resolved",
+};
+const visitLabel = (start: string, end: string) => {
+  const t = (d: Date) => d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `${new Date(start).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}, ${t(new Date(start))} – ${t(new Date(end))}`;
 };
 
 interface RentPayment { userId: string; amount: number; status: string; method: string | null; paidAt: string | null; }
@@ -85,6 +101,9 @@ export default function BuildingPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [stepChoice, setStepChoice] = useState<Record<string, string>>({});
+  const [visitInputs, setVisitInputs] = useState<Record<string, { date: string; from: string; to: string }>>({});
+  const [maintError, setMaintError] = useState<string | null>(null);
 
   // Units tab state
   const [addingUnit, setAddingUnit] = useState(false);
@@ -124,17 +143,21 @@ export default function BuildingPage() {
     setMaintLoading(false);
   }
 
-  async function updateRequest(requestId: string, status?: string, landlordNote?: string) {
-    setUpdatingId(requestId);
-    const body: Record<string, string> = {};
-    if (status) body.status = status;
-    if (landlordNote !== undefined) body.landlordNote = landlordNote;
-    await apiFetch(`/api/manager/maintenance/${requestId}`, {
-      method: "PATCH",
-      body: JSON.stringify(body),
-    });
+  /** Move a request to its next step (with a note, and the visit time when scheduling). */
+  async function updateRequest(r: MaintenanceRequest) {
+    const status = stepChoice[r.id] ?? r.next[0];
+    const body: Record<string, unknown> = { status, note: noteInputs[r.id] ?? "", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+    if (status === "SCHEDULED") {
+      const v = visitInputs[r.id];
+      body.scheduledStart = v?.date ? new Date(`${v.date}T${v.from || "09:00"}`).toISOString() : null;
+      body.scheduledEnd = v?.date ? new Date(`${v.date}T${v.to || "12:00"}`).toISOString() : null;
+    }
+    setUpdatingId(r.id); setMaintError(null);
+    const res = await apiFetch(`/api/manager/maintenance/${r.id}`, { method: "PATCH", body: JSON.stringify(body) });
     setUpdatingId(null);
+    if (!res.ok) { setMaintError((await res.json().catch(() => ({}))).error ?? "Couldn't update the request."); return; }
     setExpandedId(null);
+    setNoteInputs(n => ({ ...n, [r.id]: "" }));
     loadMaintenance();
   }
 
@@ -228,7 +251,7 @@ export default function BuildingPage() {
           {(["units", "rent", "maintenance"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${tab === t ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
-              {t === "units" ? "Units & Invites" : t === "rent" ? "Rent" : `Maintenance${maintData.filter(r => r.status === "OPEN").length > 0 ? ` (${maintData.filter(r => r.status === "OPEN").length})` : ""}`}
+              {t === "units" ? "Units & Invites" : t === "rent" ? "Rent" : `Maintenance${maintData.filter(r => r.status === "REPORTED").length > 0 ? ` (${maintData.filter(r => r.status === "REPORTED").length} new)` : ""}`}
             </button>
           ))}
         </div>
@@ -435,7 +458,7 @@ export default function BuildingPage() {
                       </div>
                       <p className="font-semibold text-gray-900">{r.title}</p>
                       <p className="text-sm text-gray-500 mt-0.5">{r.description}</p>
-                      <p className="text-xs text-gray-400 mt-1">by {r.submittedBy.name} · {new Date(r.createdAt).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-400 mt-1">{r.location ? `${r.location} · ` : ""}by {r.submittedBy.name} · {new Date(r.createdAt).toLocaleDateString()}</p>
                     </div>
                     <button onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
                       className="text-xs text-blue-600 hover:text-blue-800 font-medium flex-shrink-0">
@@ -450,38 +473,50 @@ export default function BuildingPage() {
                     </div>
                   )}
 
+                  {r.status === "SCHEDULED" && r.scheduledStart && r.scheduledEnd && (
+                    <p className="mt-3 rounded-xl bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-800">Repair visit: {visitLabel(r.scheduledStart, r.scheduledEnd)}</p>
+                  )}
                   {expandedId === r.id && (
                     <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1.5">Update status</label>
-                        <div className="flex gap-2">
-                          {(["OPEN", "IN_PROGRESS", "RESOLVED"] as const).map(s => (
-                            <button key={s} type="button"
-                              onClick={() => updateRequest(r.id, s, noteInputs[r.id])}
-                              disabled={updatingId === r.id || r.status === s}
-                              className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors disabled:opacity-40 ${r.status === s ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"}`}>
-                              {M_STATUS_LABELS[s]}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1.5">Note to tenant (optional)</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text" placeholder="e.g. Plumber coming Friday…"
-                            value={noteInputs[r.id] ?? r.landlordNote ?? ""}
-                            onChange={e => setNoteInputs(n => ({ ...n, [r.id]: e.target.value }))}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <button
-                            onClick={() => updateRequest(r.id, undefined, noteInputs[r.id] ?? "")}
-                            disabled={updatingId === r.id}
-                            className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50">
-                            {updatingId === r.id ? "…" : "Save note"}
+                      {r.next.length === 0 ? (
+                        <p className="text-sm text-gray-500">Nothing more to do: the resident confirms the repair.</p>
+                      ) : (
+                        <>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1.5">Next step</label>
+                            <div className="flex flex-wrap gap-2">
+                              {r.next.map(s => (
+                                <button key={s} type="button" onClick={() => setStepChoice(c => ({ ...c, [r.id]: s }))}
+                                  className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${(stepChoice[r.id] ?? r.next[0]) === s ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500"}`}>
+                                  {s === "SCHEDULED" && r.status === "SCHEDULED" ? "New visit time" : M_STATUS_LABELS[s]}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          {(stepChoice[r.id] ?? r.next[0]) === "SCHEDULED" && (
+                            <div className="grid grid-cols-3 gap-2">
+                              {(["date", "from", "to"] as const).map(k => (
+                                <label key={k} className="text-xs text-gray-500">{k === "date" ? "Day" : k === "from" ? "From" : "To"}
+                                  <input type={k === "date" ? "date" : "time"} value={visitInputs[r.id]?.[k] ?? (k === "from" ? "09:00" : k === "to" ? "12:00" : "")}
+                                    onChange={e => setVisitInputs(v => ({ ...v, [r.id]: { ...(v[r.id] ?? { date: "", from: "09:00", to: "12:00" }), [k]: e.target.value } }))}
+                                    className="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900" />
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1.5">Note to the residents (optional)</label>
+                            <input type="text" placeholder="e.g. The plumber will call 30 minutes before" maxLength={500}
+                              value={noteInputs[r.id] ?? ""} onChange={e => setNoteInputs(n => ({ ...n, [r.id]: e.target.value }))}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          </div>
+                          {maintError && <p className="text-sm text-red-600">{maintError}</p>}
+                          <button onClick={() => updateRequest(r)} disabled={updatingId === r.id}
+                            className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                            {updatingId === r.id ? "Saving…" : "Save"}
                           </button>
-                        </div>
-                      </div>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

@@ -770,7 +770,7 @@ it by hand any more.
 
 ## Sprint 7 — Rent
 
-**Status:** 7a approved · 7b ready for your test · Spec: `PRODUCT_LOGIC.md` §12, §22
+**Status:** Approved (7a and 7b, 2026-10-15) · Spec: `PRODUCT_LOGIC.md` §12, §22
 
 Rent has two separate facts (§12.1): **was the landlord paid?** and **has each
 roommate paid back the rent payer?** Today one tap ("I paid the rent") records
@@ -827,7 +827,7 @@ both at once.
 
 ### 7b — Rent that runs by itself
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building** (§12, §22: "rent share becomes due → Money balance;
 reminder; Home priority")
@@ -875,7 +875,78 @@ recorded yet, e.g. a test household with two accounts)
 5. Reminders on the due day and when late arrive by themselves; nothing to
    tap.
 
+**Sign-off:** [x] Approved on 2026-10-15
+
+---
+
+## Sprint 8 — Maintenance
+
+**Status:** 8a building · Spec: `PRODUCT_LOGIC.md` §14
+
+A repair goes **Reported → Acknowledged → Scheduled → In progress →
+Completed**, then the resident confirms it's fixed (**Resolved**) or says it
+isn't (back to the landlord).
+
+**Owner's decision (2026-10-15):** when the home's landlord is on Apartment
+Masters (linked as its manager), they move a request along in their portal.
+When no landlord is linked (all homes today), **household admins** record the
+landlord's answers on the Maintenance page, so requests never get stuck.
+
+### 8a — The repair steps and scheduling
+
+**Status:** Building
+
+**What I'm building** (§14.1–14.4)
+- **Report a problem:** what, details, **where in the home** (suggestions
+  from your Rooms), priority, and an optional **photo**.
+- **The steps:** Reported → Acknowledged → Scheduled → In progress →
+  Completed, each with an optional note. Requests that were "Open" become
+  "Reported".
+- **Scheduling a visit** takes a date and a time window. It puts **"Repair:
+  *title*"** on the household **Calendar** (moved if it's rescheduled),
+  tells everyone at home (also by email) with the visit time, and shows under
+  **Coming up** on Home.
+- **A timeline on each request:** who did what, when, with their notes.
+- **Who moves it:** the linked landlord in their portal; otherwise household
+  admins, with an **Update** button on each request. The page says which.
+- **Telling people:** the person who reported is told at each step;
+  household admins (when no landlord is linked) see "Tell the landlord:
+  *title*" on Home for new reports; urgent repairs stay at the top of Home
+  until they're completed.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: steps only go forward, rescheduling allowed; who may
+      update with and without a landlord; scheduling creates and moves the
+      calendar event; timeline; notifications; Home items; photo uploads are
+      real images; old "Open" requests show as "Reported")
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (an admin and a non-admin in the same home)
+1. More → **Maintenance** → **Report a problem**: a title, **where**
+   (e.g. Bathroom), a priority, optionally a photo. It shows as
+   **Reported**. The admin's Home shows "Tell the landlord: …".
+2. On the admin's account, tap **Update** → **Acknowledged** with a note
+   ("Landlord will send a plumber"). The reporter gets a notification; the
+   request's timeline shows it.
+3. **Update** → **Scheduled**: tomorrow, 2 PM to 4 PM. The request shows
+   "Repair visit: …"; **Calendar** has "Repair: …"; everyone got a
+   notification; Home shows it under **Coming up**.
+4. **Update** → **In progress**, then **Completed**.
+5. On the non-admin's account there's no **Update** button.
+
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### 8b — "Is it fixed?"
+
+**Status:** Not started (test steps written when it starts)
+
+- After **Completed**, the person who reported it (or an admin, if they've
+  moved out) is asked on Home and on the request: **Yes, it's fixed** →
+  Resolved; **No, still a problem** → back to the landlord with their note,
+  and the landlord or admins are told (§14.5).
 
 ---
 
@@ -883,7 +954,6 @@ recorded yet, e.g. a test household with two accounts)
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 8 — Maintenance | 8a new statuses and landlord scheduling · 8b resident "fixed / still a problem" | Not started |
 | 9 — Calendar + Notifications | 9a calendar fed by other modules · 9b one notification service with preferences | Not started |
 | 10 — More / Issues / Insights | 10a Household Issues (was Disputes) · 10b insights from the ledger | Not started |
 | 11 — Marketplace → My Home | 11a "Have you found your new home?" · 11b Create / Join Home flow | Not started |

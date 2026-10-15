@@ -73,6 +73,7 @@ model User {
   auditLogs                AuditLog[]
   managedBuildings         Building[]               @relation("ManagedBuildings")
   maintenanceRequests      MaintenanceRequest[]     @relation("MaintenanceSubmitter")
+  maintenanceUpdates       MaintenanceUpdate[]      @relation("MaintenanceUpdates")
   apartmentDeleteCodes     ApartmentDeleteCode[]
   pendingRotationAdvances  CleaningRotation[]       @relation("PendingRotationAdvance")
   listings                 Listing[]                @relation("ListingOwner")
@@ -900,9 +901,16 @@ model MaintenanceRequest {
   title        String
   description  String
   priority     String   @default("MEDIUM") // LOW | MEDIUM | URGENT
-  status       String   @default("OPEN")   // OPEN | IN_PROGRESS | RESOLVED
+  // REPORTED | ACKNOWLEDGED | SCHEDULED | IN_PROGRESS | COMPLETED | RESOLVED (PRODUCT_LOGIC §14.3; src/lib/maintenance.ts)
+  status       String   @default("REPORTED")
   photo        String?
-  landlordNote String?
+  landlordNote String? // the latest note from the landlord's side
+  location     String? // where in the home (Sprint 8)
+  // The repair visit while it's scheduled, and its event on the household calendar.
+  scheduledStart  DateTime?
+  scheduledEnd    DateTime?
+  calendarEventId String?
+  completedAt     DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -913,6 +921,25 @@ model MaintenanceRequest {
   apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   unit        Unit?     @relation(fields: [unitId], references: [id], onDelete: SetNull)
   submittedBy User      @relation("MaintenanceSubmitter", fields: [submittedById], references: [id], onDelete: Cascade)
+  updates     MaintenanceUpdate[]
+}
+
+// One step on a repair's timeline (Sprint 8): who moved it, to which status, with what note.
+model MaintenanceUpdate {
+  id             String    @id @default(cuid())
+  status         String // the status it moved to (or kept, for a note or a new visit time)
+  note           String?
+  byRole         String // RESIDENT | HOUSEHOLD (an admin, for the landlord) | LANDLORD
+  scheduledStart DateTime?
+  scheduledEnd   DateTime?
+  createdAt      DateTime  @default(now())
+
+  requestId String
+  byUserId  String
+  request   MaintenanceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  byUser    User               @relation("MaintenanceUpdates", fields: [byUserId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
 }
 
 model LandlordInvite {

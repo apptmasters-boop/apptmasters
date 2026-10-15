@@ -16,6 +16,7 @@ import { ledgerEntries, netDebts } from "@/lib/ledger";
 import { position, net } from "@/lib/moneySummary";
 import { shoppingTurn } from "@/lib/shopping";
 import { rentDueDate, monthLabel } from "@/lib/rent";
+import { currentStep } from "@/lib/maintenance";
 
 export type Priority = 1 | 2 | 3 | 4 | 5;
 
@@ -63,7 +64,8 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
 
   const [urgentRepairs, rentConfig, myRentPayments, toConfirmRent, ledger, cashToConfirm, cleaning, purchases,
     myChores, editRequests, joinRequests, events, recent] = await Promise.all([
-    prisma.maintenanceRequest.findMany({ where: { apartmentId, priority: "URGENT", status: { not: "RESOLVED" } }, orderBy: { createdAt: "asc" } }),
+    // Urgent repairs stay at the top until the landlord side has completed them (Sprint 8).
+    prisma.maintenanceRequest.findMany({ where: { apartmentId, priority: "URGENT", status: { notIn: ["COMPLETED", "RESOLVED"] } }, orderBy: { createdAt: "asc" } }),
     prisma.rentConfig.findUnique({ where: { apartmentId }, select: { dueDay: true } }),
     prisma.rentPayment.findMany({ where: { userId, status: "PENDING", rentCycle: { apartmentId } }, include: { rentCycle: { select: { month: true } } } }),
     prisma.rentPayment.count({ where: { status: "PAID", paymentId: null, userId: { not: userId }, rentCycle: { apartmentId, rentPayerId: userId } } }),
@@ -93,7 +95,9 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
 
   // P1 — critical
   for (const r of urgentRepairs) {
-    items.push({ id: `maintenance:${r.id}`, priority: 1, title: `Urgent repair: ${r.title}`, detail: r.status === "IN_PROGRESS" ? "Being worked on" : "Not fixed yet", href: `${base}/maintenance`, when: r.createdAt.toISOString() });
+    const step = currentStep(r.status);
+    const detail = step === "SCHEDULED" ? "Repair visit scheduled" : step === "IN_PROGRESS" ? "Being worked on" : step === "ACKNOWLEDGED" ? "The landlord knows" : "Not fixed yet";
+    items.push({ id: `maintenance:${r.id}`, priority: 1, title: `Urgent repair: ${r.title}`, detail, href: `${base}/maintenance`, when: r.createdAt.toISOString() });
   }
 
   // P2 — money
@@ -183,6 +187,23 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
   }
   if (editRequests > 0) {
     items.push({ id: "expense-edits", priority: 3, href: `${base}/finance`, title: `${editRequests} expense ${editRequests === 1 ? "change" : "changes"} waiting for your vote` });
+  }
+  // No landlord on Apartment Masters: household admins pass new repair requests on (Sprint 8, owner's decision).
+  if (isAdmin) {
+    const home = await prisma.apartment.findUnique({ where: { id: apartmentId }, select: { managerId: true } });
+    if (!home?.managerId) {
+      const reported = await prisma.maintenanceRequest.findMany({
+        where: { apartmentId, status: { in: ["REPORTED", "OPEN"] } },
+        include: { submittedBy: { select: { name: true } } },
+        orderBy: { createdAt: "asc" },
+      });
+      for (const r of reported) {
+        items.push({
+          id: `maintenance-tell:${r.id}`, priority: 3, href: `${base}/maintenance`, when: r.createdAt.toISOString(),
+          title: `Tell the landlord: ${r.title}`, detail: `Reported by ${r.submittedBy.name} · then record their answer in Maintenance`,
+        });
+      }
+    }
   }
   if (joinRequests > 0) {
     items.push({ id: "join-requests", priority: 3, href: `${base}/settings`, title: `${joinRequests} ${joinRequests === 1 ? "person wants" : "people want"} to join`, detail: "Approve or decline" });
