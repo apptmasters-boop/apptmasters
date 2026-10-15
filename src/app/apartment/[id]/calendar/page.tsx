@@ -7,7 +7,15 @@ import { apiFetch } from "@/lib/api";
 import NotificationBell from "@/components/NotificationBell";
 
 const EVENT_TYPES = ["EVENT", "MAINTENANCE", "GUEST", "RENT", "TRAVEL"] as const;
+// Types people add by hand (EVENT_TYPES) plus the ones the app adds by itself (Sprint 9a, src/lib/calendarFeed.ts).
+const TYPE_LABEL: Record<string, string> = {
+  EVENT: "Event", MAINTENANCE: "Repair", GUEST: "Guest", RENT: "Rent", TRAVEL: "Away",
+  CLEANING: "Cleaning", SHOPPING: "Shopping", CHORE: "Chore",
+};
 const TYPE_COLORS: Record<string, string> = {
+  CLEANING: "bg-teal-100 text-teal-700",
+  SHOPPING: "bg-amber-100 text-amber-800",
+  CHORE: "bg-gray-100 text-gray-700",
   EVENT: "bg-blue-100 text-blue-700",
   MAINTENANCE: "bg-orange-100 text-orange-700",
   GUEST: "bg-green-100 text-green-700",
@@ -15,6 +23,9 @@ const TYPE_COLORS: Record<string, string> = {
   TRAVEL: "bg-purple-100 text-purple-700",
 };
 const TYPE_DOT: Record<string, string> = {
+  CLEANING: "bg-teal-400",
+  SHOPPING: "bg-amber-400",
+  CHORE: "bg-gray-400",
   EVENT: "bg-blue-400",
   MAINTENANCE: "bg-orange-400",
   GUEST: "bg-green-400",
@@ -26,7 +37,20 @@ interface CalendarEvent {
   id: string; title: string; type: string; startDate: string; endDate: string | null;
   allDay: boolean; notes: string | null;
   user: { id: string; name: string };
+  /** Added by the app from another module (rent, cleaning…): read-only, opens `href`. */
+  auto?: boolean;
+  href?: string;
 }
+
+/**
+ * The day (YYYY-MM-DD) an event starts and ends on. All-day entries are stored
+ * at a fixed time, so their date part is the day; timed ones (repair visits)
+ * use the viewer's own calendar day, so an evening visit isn't shown on the
+ * next day.
+ */
+const localDay = (iso: string) => new Date(iso).toLocaleDateString("en-CA");
+const startDay = (e: { startDate: string; allDay: boolean }) => (e.allDay ? e.startDate.slice(0, 10) : localDay(e.startDate));
+const endDay = (e: { endDate: string | null; allDay: boolean }) => (e.endDate ? (e.allDay ? e.endDate.slice(0, 10) : localDay(e.endDate)) : null);
 
 const BLANK_FORM = { title: "", type: "EVENT", startDate: "", endDate: "", notes: "", allDay: true };
 
@@ -132,7 +156,7 @@ export default function CalendarPage() {
 
   function eventsOnDate(day: number) {
     const iso = `${gridYear}-${String(gridMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return events.filter(e => e.startDate.slice(0, 10) <= iso && (e.endDate ? e.endDate.slice(0, 10) >= iso : e.startDate.slice(0, 10) === iso));
+    return events.filter(e => startDay(e) <= iso && (endDay(e) ? endDay(e)! >= iso : startDay(e) === iso));
   }
 
   function isoDate(day: number) {
@@ -143,11 +167,11 @@ export default function CalendarPage() {
   const grid = buildGrid();
 
   const selectedEvents = selectedDate
-    ? events.filter(e => e.startDate.slice(0, 10) <= selectedDate && (e.endDate ? e.endDate.slice(0, 10) >= selectedDate : e.startDate.slice(0, 10) === selectedDate))
+    ? events.filter(e => startDay(e) <= selectedDate && (endDay(e) ? endDay(e)! >= selectedDate : startDay(e) === selectedDate))
     : [];
 
-  const upcoming = events.filter(e => e.startDate.slice(0, 10) >= todayStr);
-  const past = events.filter(e => e.startDate.slice(0, 10) < todayStr).reverse();
+  const upcoming = events.filter(e => startDay(e) >= todayStr);
+  const past = events.filter(e => startDay(e) < todayStr).reverse();
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
 
@@ -254,12 +278,16 @@ export default function CalendarPage() {
                     <div className="flex items-center gap-2 flex-1">
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${TYPE_DOT[ev.type] ?? "bg-gray-400"}`} />
                       <div>
-                        <p className="text-sm font-medium text-gray-800">{ev.title}</p>
-                        <p className="text-xs text-gray-400">{ev.type} · {ev.user.name}</p>
+                        {ev.auto && ev.href ? (
+                          <Link href={ev.href} className="text-sm font-medium text-gray-800 hover:underline">{ev.title}</Link>
+                        ) : (
+                          <p className="text-sm font-medium text-gray-800">{ev.title}</p>
+                        )}
+                        <p className="text-xs text-gray-400">{TYPE_LABEL[ev.type] ?? ev.type} · {ev.auto ? "added by the app" : ev.user.name}</p>
                         {ev.notes && <p className="text-xs text-gray-400 italic">{ev.notes}</p>}
                       </div>
                     </div>
-                    {(ev.user.id === currentUserId || isAdmin) && (
+                    {!ev.auto && (ev.user.id === currentUserId || isAdmin) && (
                       <div className="flex gap-2 shrink-0">
                         <button onClick={() => startEdit(ev)} className="text-xs text-blue-400 hover:text-blue-600">Edit</button>
                         <button onClick={() => deleteEvent(ev.id)} className="text-xs text-gray-300 hover:text-red-400">×</button>
@@ -367,21 +395,24 @@ function EventForm({ form, setForm, saving, onSubmit, onCancel, editing = false 
 function EventCard({ event, currentUserId, isAdmin, onEdit, onDelete }: {
   event: CalendarEvent; currentUserId: string; isAdmin: boolean; onEdit: () => void; onDelete: () => void;
 }) {
-  const canAct = event.user.id === currentUserId || isAdmin;
+  const canAct = !event.auto && (event.user.id === currentUserId || isAdmin);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-start justify-between gap-3">
       <div className="flex-1">
         <div className="flex items-center gap-2 flex-wrap mb-1">
-          <p className="font-medium text-gray-900">{event.title}</p>
+          {event.auto && event.href
+            ? <Link href={event.href} className="font-medium text-gray-900 hover:underline">{event.title}</Link>
+            : <p className="font-medium text-gray-900">{event.title}</p>}
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[event.type] ?? "bg-gray-100 text-gray-600"}`}>
-            {event.type}
+            {TYPE_LABEL[event.type] ?? event.type}
           </span>
         </div>
         <p className="text-xs text-gray-500">
-          {new Date(event.startDate + "T12:00:00").toLocaleDateString()}
-          {event.endDate && ` – ${new Date(event.endDate + "T12:00:00").toLocaleDateString()}`}
-          {" · "}{event.user.name}
+          {new Date(startDay(event) + "T12:00:00").toLocaleDateString()}
+          {!event.allDay && ` ${new Date(event.startDate).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`}
+          {endDay(event) && endDay(event) !== startDay(event) && ` – ${new Date(endDay(event)! + "T12:00:00").toLocaleDateString()}`}
+          {" · "}{event.auto ? "added by the app" : event.user.name}
         </p>
         {event.notes && <p className="text-xs text-gray-400 mt-0.5 italic">{event.notes}</p>}
       </div>

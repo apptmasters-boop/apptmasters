@@ -3,19 +3,28 @@ import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
 import { createFeedItem } from "@/lib/feed";
 import { notifyApartment } from "@/lib/notify";
+import { generatedEntries } from "@/lib/calendarFeed";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
   const access = await requireApartmentMember(req, apartmentId);
   if (!access.ok) return access.response;
 
-  const events = await prisma.calendarEvent.findMany({
-    where: { apartmentId },
-    include: { user: { select: { id: true, name: true } } },
-    orderBy: { startDate: "asc" },
-  });
+  const [events, generated] = await Promise.all([
+    prisma.calendarEvent.findMany({
+      where: { apartmentId },
+      include: { user: { select: { id: true, name: true } } },
+      orderBy: { startDate: "asc" },
+    }),
+    // Dates other modules already know (PRODUCT_LOGIC §15): read-only, `auto: true`, with a link to where they're handled.
+    generatedEntries(apartmentId),
+  ]);
 
-  return NextResponse.json(events);
+  const all = [
+    ...events.map(e => ({ ...e, startDate: e.startDate.toISOString(), endDate: e.endDate?.toISOString() ?? null, auto: false })),
+    ...generated.map(g => ({ ...g, user: { id: "", name: "" } })),
+  ].sort((a, b) => a.startDate.localeCompare(b.startDate));
+  return NextResponse.json(all);
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
