@@ -770,7 +770,7 @@ it by hand any more.
 
 ## Sprint 7 — Rent
 
-**Status:** 7a approved · 7b building · Spec: `PRODUCT_LOGIC.md` §12, §22
+**Status:** 7a approved · 7b ready for your test · Spec: `PRODUCT_LOGIC.md` §12, §22
 
 Rent has two separate facts (§12.1): **was the landlord paid?** and **has each
 roommate paid back the rent payer?** Today one tap ("I paid the rent") records
@@ -827,7 +827,7 @@ both at once.
 
 ### 7b — Rent that runs by itself
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building** (§12, §22: "rent share becomes due → Money balance;
 reminder; Home priority")
@@ -849,15 +849,18 @@ reminder; Home priority")
   the landlord and collects the shares.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: a month starts in its window and only once; never
+- [x] Type check passes
+- [x] Tests pass: 207 (+9: a month starts in its window and only once; never
       before it or long after; next month's rent starts at the end of this
       month when it's due on the 1st; roommates and the rent payer are told;
       reminders on the due day and when late, only to people who haven't
       paid, at most once a day; the landlord item on Home; rotation)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (64)
+- [x] CI green on GitHub (77928f2)
+- [x] Deployed to apptmasters.com 2026-10-15 (no database change). Ran the
+      daily rent job once by hand: started 0 months, sent 0 reminders, as
+      expected (the household using rent has October recorded and paid;
+      November starts by itself on Nov 20)
 
 **Your test on apptmasters.com** (a household where this month's rent isn't
 recorded yet, e.g. a test household with two accounts)
