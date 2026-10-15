@@ -16,7 +16,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id: apartmentId } = await params;
   const access = await requireApartmentMember(req, apartmentId);
   if (!access.ok) return access.response;
-  const payload = { userId: access.userId, email: access.email };
 
   const membership = access.membership;
   if (!membership) return NextResponse.json({ error: "Not a member" }, { status: 403 });
@@ -29,7 +28,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id: apartmentId } = await params;
   const access = await requireApartmentMember(req, apartmentId);
   if (!access.ok) return access.response;
-  const payload = { userId: access.userId, email: access.email };
 
   const membership = access.membership;
   if (!membership || membership.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });

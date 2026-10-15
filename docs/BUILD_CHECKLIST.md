@@ -711,14 +711,14 @@ history)
 
 ## Sprint 6 — Shopping → Money
 
-**Status:** 6a ready for your test · Spec: `PRODUCT_LOGIC.md` §10.7, §10.8, §13.1
+**Status:** Approved (6a, 2026-10-15) · Spec: `PRODUCT_LOGIC.md` §10.7, §10.8, §13.1
 
 Finishing a shopping trip creates the grocery expense by itself: nobody adds
 it by hand any more.
 
 ### 6a — The trip's total becomes the grocery expense
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building**
 - **Review the split at checkout:** after entering the total and receipt, the
@@ -764,7 +764,75 @@ it by hand any more.
 5. **Shared expenses** shows "Groceries" with the receipt, paid by the
    shopper. Nobody had to add it.
 
+**Sign-off:** [x] Approved on 2026-10-15 (both decisions accepted)
+
+---
+
+## Sprint 7 — Rent
+
+**Status:** 7a building · Spec: `PRODUCT_LOGIC.md` §12, §22
+
+Rent has two separate facts (§12.1): **was the landlord paid?** and **has each
+roommate paid back the rent payer?** Today one tap ("I paid the rent") records
+both at once.
+
+### 7a — This month: landlord paid vs. roommates reimbursed
+
+**Status:** Building
+
+**What I'm building**
+- **A "This month" card on Rent** (§12.2): total rent; **Landlord**: "Paid
+  to *landlord* on Oct 4" or "Not paid yet"; **Collected**: "$650 of $1,300";
+  each roommate's status: **Paid**, **Says paid, waiting for *rent payer***,
+  or **Not paid** (red once it's late); and **Still to collect**.
+- **"I paid the landlord"** is its own button for the rent payer (they can
+  undo it). Starting a month's rent no longer marks the landlord paid; months
+  already recorded keep "paid to landlord".
+- **Starting this month's rent** (rent payer or admin) sets everyone's share;
+  in 7b this happens by itself.
+- **Send reminder** can be used by the rent payer as well as admins, and only
+  goes to roommates who haven't paid (not to those waiting for confirmation).
+- **History** (§12.3): one line per month, e.g. "September 2026 · Paid" or
+  "October 2026 · $650 still to collect"; tap a month to open its details
+  instead of a big card for every month.
+- **Removed:** the "Auto-rotate rent payer" checkbox, because it never did anything
+  (it comes back in 7b, working), and the Venmo / PayPal / Cash App shortcuts,
+  which used the person's name instead of their account and rarely worked.
+  Marking your share paid still asks how you paid.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: landlord paid is separate from collection; only the
+      rent payer or an admin can mark it or start a month; collected,
+      waiting and still-to-collect amounts; reminders only to people who
+      haven't paid, sent by the rent payer or an admin; history newest first)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (rent payer and a roommate)
+1. Money → **Rent**. October's card shows the total, "Landlord: paid…" (it
+   was recorded before), how much is collected, and each roommate's status.
+2. On the rent payer's account, tap **Undo** next to "Landlord: paid", then
+   **I paid the landlord** again. The landlord line changes; what roommates
+   owe doesn't.
+3. Below, **History** lists the earlier months, one line each. Tap one: its
+   details open.
+4. (When a roommate still owes for a month) on the rent payer's account, tap
+   **Send reminder**: only roommates who haven't paid get it.
+
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### 7b — Rent that runs by itself
+
+**Status:** Not started (test steps written when it starts)
+
+- Each month's rent starts automatically 3 days before its due day (never
+  filling in older months).
+- Reminders go out by themselves: roommates who haven't paid on the due day
+  and when it's late; the rent payer until the landlord is marked paid
+  (also on their Home).
+- The auto-rotate setting actually rotates the rent payer each month.
 
 ---
 
@@ -772,7 +840,6 @@ it by hand any more.
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 7 — Rent | 7a landlord paid vs. roommates reimbursed · 7b monthly history and reminders | Not started |
 | 8 — Maintenance | 8a new statuses and landlord scheduling · 8b resident "fixed / still a problem" | Not started |
 | 9 — Calendar + Notifications | 9a calendar fed by other modules · 9b one notification service with preferences | Not started |
 | 10 — More / Issues / Insights | 10a Household Issues (was Disputes) · 10b insights from the ledger | Not started |

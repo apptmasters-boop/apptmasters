@@ -15,6 +15,7 @@ import { prisma } from "@/lib/db";
 import { ledgerEntries, netDebts } from "@/lib/ledger";
 import { position, net } from "@/lib/moneySummary";
 import { shoppingTurn } from "@/lib/shopping";
+import { rentDueDate } from "@/lib/rent";
 
 export type Priority = 1 | 2 | 3 | 4 | 5;
 
@@ -42,12 +43,8 @@ export function sortFeed(items: FeedItem[]): FeedItem[] {
     (a.when ? Date.parse(a.when) : Infinity) - (b.when ? Date.parse(b.when) : Infinity));
 }
 
-/** Due date of a "YYYY-MM" rent month, given the day of the month rent is due. */
-export function rentDueDate(month: string, dueDay: number): Date {
-  const [y, m] = month.split("-").map(Number);
-  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  return new Date(Date.UTC(y, m - 1, Math.min(dueDay, lastDay)));
-}
+// Rent due dates live with the other rent rules (src/lib/rent.ts); re-exported for existing callers.
+export { rentDueDate };
 
 const currentOf = (memberOrder: string, currentIndex: number): string | undefined => {
   try {

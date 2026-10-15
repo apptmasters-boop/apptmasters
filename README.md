@@ -23,13 +23,12 @@ once and every part of the app that's affected updates itself:
 
 ## Where we are (2026-10-15)
 
-- **Done and approved by the owner:** Phase S (security), Sprints 1–5
-  (navigation, Home feed, Cleaning, Shopping, and the Money engine: one ledger
-  with rent included, the Admin → Money check, the new Money tab, Record a
-  payment).
-- **Now:** Sprint 6, Shopping → Money: a trip's total and receipt become the
-  grocery expense, split between everyone.
-- **Tests:** 186 automated tests; lint errors down from 75 to 65.
+- **Done and approved by the owner:** Phase S (security), Sprints 1–6
+  (navigation, Home feed, Cleaning, Shopping, the Money engine with rent
+  included, and Shopping → Money: a trip's total becomes the grocery expense).
+- **Now:** Sprint 7, Rent: "landlord paid" and "roommates paid back the rent
+  payer" as two separate facts, a monthly summary, history and reminders.
+- **Tests:** 192 automated tests; lint errors down from 75 to 65.
 - **Not in GitHub, on purpose:** `.env.local` (passwords and keys; keep a
   copy in a password manager) and the server's own configuration.
 
@@ -133,7 +132,7 @@ in [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md).
 | [x] | **3 — Cleaning** | Whole-home rotation with Rotation \| Schedule \| History, travel skip, "Can't clean this week?" | `CleaningRotation`, `CleaningLog`, `TravelPeriod` |
 | [x] | **4 — Shopping** | One shopping turn and one shared list; the trip one card at a time: prepare → inventory (skippable) → at the store → tick items, total + receipt → left the store; grouped alerts for the shopper | `ShoppingRotation`, `ShoppingTrip`, `GroceryItem`, `InventoryItem` |
 | [x] | **5 — Money engine** | One ledger for rent, groceries, expenses, payments and the fund, **built in parallel and compared** before switch-over | `Expense`, `ExpenseSplit`, `Settlement`, `RentPayment`, `FundTransaction` |
-| [ ] | **6 — Shopping → Money** | The trip's total (already saved with its receipt) becomes the grocery expense, split and balances; no manual Add Expense | Sprints 4 + 5 |
+| [x] | **6 — Shopping → Money** | The trip's total (already saved with its receipt) becomes the grocery expense, split and balances; no manual Add Expense | Sprints 4 + 5 |
 | [ ] | **7 — Rent** | Landlord paid vs. roommates reimbursed; outstanding per month; reminders. Rent appears in the shared balance (today it doesn't) | `RentConfig`, `RentCycle`, `RentPayment` |
 | [ ] | **8 — Maintenance** | REPORTED → ACKNOWLEDGED → SCHEDULED → IN PROGRESS → COMPLETED → RESOLVED, landlord scheduling, resident confirmation | `MaintenanceRequest`, manager portal |
 | [ ] | **9 — Calendar + Notifications** | Calendar built from other modules' events; one notification service with preferences and anti-spam grouping | `CalendarEvent`, `Notification`, push |

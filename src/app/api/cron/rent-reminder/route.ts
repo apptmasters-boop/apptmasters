@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const amount = config.totalAmount.toFixed(2);
     const title = isDueToday ? "Rent due today" : "Rent due soon";
     const body = isDueToday
-      ? `Your rent of $${amount} is due today for ${config.apartment.name}. Log it in the app once you've paid your landlord.`
+      ? `Your rent of $${amount} is due today for ${config.apartment.name}. Start this month's rent in Money → Rent, and tap "I paid the landlord" once you have.`
       : `Your rent of $${amount} is due in 3 days for ${config.apartment.name}.`;
 
     await notify({

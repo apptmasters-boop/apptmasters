@@ -6,7 +6,7 @@ import { adjustScore } from "@/lib/score";
 
 const schema = z.object({
   status: z.enum(["PAID", "CONFIRMED"]),
-  method: z.enum(["VENMO", "PAYPAL", "CASHAPP", "CASH", "BANK"]).optional(),
+  method: z.enum(["CASH", "BANK", "VENMO", "ZELLE", "CASHAPP", "PAYPAL", "OTHER"]).optional(), // same list as Record payment
 });
 
 export async function PATCH(
