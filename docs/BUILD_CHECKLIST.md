@@ -881,7 +881,7 @@ recorded yet, e.g. a test household with two accounts)
 
 ## Sprint 8 — Maintenance
 
-**Status:** 8a building · Spec: `PRODUCT_LOGIC.md` §14
+**Status:** 8a ready for your test · Spec: `PRODUCT_LOGIC.md` §14
 
 A repair goes **Reported → Acknowledged → Scheduled → In progress →
 Completed**, then the resident confirms it's fixed (**Resolved**) or says it
@@ -894,7 +894,7 @@ landlord's answers on the Maintenance page, so requests never get stuck.
 
 ### 8a — The repair steps and scheduling
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building** (§14.1–14.4)
 - **Report a problem:** what, details, **where in the home** (suggestions
@@ -915,14 +915,17 @@ landlord's answers on the Maintenance page, so requests never get stuck.
   until they're completed.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: steps only go forward, rescheduling allowed; who may
+- [x] Type check passes
+- [x] Tests pass: 215 (+8: steps only go forward, rescheduling allowed; who may
       update with and without a landlord; scheduling creates and moves the
       calendar event; timeline; notifications; Home items; photo uploads are
       real images; old "Open" requests show as "Reported")
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (64 → 63)
+- [x] CI green on GitHub (e39e420)
+- [x] Deployed to apptmasters.com 2026-10-15 (new request fields and the
+      timeline table added with
+      `prisma/manual-sql/2026-10-15-sprint-8a-maintenance.sql`; the one
+      existing request is now "Reported" with its first timeline entry)
 
 **Your test on apptmasters.com** (an admin and a non-admin in the same home)
 1. More → **Maintenance** → **Report a problem**: a title, **where**
