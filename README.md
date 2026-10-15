@@ -21,13 +21,13 @@ once and every part of the app that's affected updates itself:
 | [`prisma/manual-sql/`](prisma/manual-sql/) | Every database change applied by hand on the live server, and how to add one |
 | [`scripts/ops/verify-live.sh`](scripts/ops/verify-live.sh) | Post-deploy check run on the server |
 
-## Where we are (2026-10-10)
+## Where we are (2026-10-15)
 
-- **Done and approved by the owner:** Phase S (security), Sprints 1–4
-  (navigation, Home feed, Cleaning, Shopping), and Sprint 5a–5b (the Money
-  ledger, the Admin → Money check, and the new Money tab with rent included).
-- **Waiting for the owner's test:** 5c, Record a payment.
-- **Next:** Sprint 6, Shopping → Money: a trip's total and receipt become the
+- **Done and approved by the owner:** Phase S (security), Sprints 1–5
+  (navigation, Home feed, Cleaning, Shopping, and the Money engine: one ledger
+  with rent included, the Admin → Money check, the new Money tab, Record a
+  payment).
+- **Now:** Sprint 6, Shopping → Money: a trip's total and receipt become the
   grocery expense, split between everyone.
 - **Tests:** 186 automated tests; lint errors down from 75 to 65.
 - **Not in GitHub, on purpose:** `.env.local` (passwords and keys; keep a
@@ -132,7 +132,7 @@ in [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md).
 | [x] | **2 — Home** | Priority feed (P1 critical → P5 info): "what needs my attention now?" instead of a feature grid | notifications, rent, rotations, maintenance |
 | [x] | **3 — Cleaning** | Whole-home rotation with Rotation \| Schedule \| History, travel skip, "Can't clean this week?" | `CleaningRotation`, `CleaningLog`, `TravelPeriod` |
 | [x] | **4 — Shopping** | One shopping turn and one shared list; the trip one card at a time: prepare → inventory (skippable) → at the store → tick items, total + receipt → left the store; grouped alerts for the shopper | `ShoppingRotation`, `ShoppingTrip`, `GroceryItem`, `InventoryItem` |
-| [ ] | **5 — Money engine** | One ledger for rent, groceries, expenses, payments and the fund, **built in parallel and compared** before switch-over | `Expense`, `ExpenseSplit`, `Settlement`, `RentPayment`, `FundTransaction` |
+| [x] | **5 — Money engine** | One ledger for rent, groceries, expenses, payments and the fund, **built in parallel and compared** before switch-over | `Expense`, `ExpenseSplit`, `Settlement`, `RentPayment`, `FundTransaction` |
 | [ ] | **6 — Shopping → Money** | The trip's total (already saved with its receipt) becomes the grocery expense, split and balances; no manual Add Expense | Sprints 4 + 5 |
 | [ ] | **7 — Rent** | Landlord paid vs. roommates reimbursed; outstanding per month; reminders. Rent appears in the shared balance (today it doesn't) | `RentConfig`, `RentCycle`, `RentPayment` |
 | [ ] | **8 — Maintenance** | REPORTED → ACKNOWLEDGED → SCHEDULED → IN PROGRESS → COMPLETED → RESOLVED, landlord scheduling, resident confirmation | `MaintenanceRequest`, manager portal |

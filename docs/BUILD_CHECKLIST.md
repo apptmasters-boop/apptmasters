@@ -556,7 +556,7 @@ two items in Household → Inventory with a low quantity first)
 
 ## Sprint 5 — Money engine
 
-**Status:** 5a and 5b approved · 5c ready for your test · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
+**Status:** Approved (5a, 5b, 5c; 2026-10-15) · Spec: `PRODUCT_LOGIC.md` §11, §12, §13, §22
 
 One ledger for everything that's owed: shared expenses, rent, payments and the
 shared fund. Owner's rule (2026-10-07): it is built **alongside** today's Money
@@ -661,7 +661,7 @@ matched)
 
 ### 5c — Record a payment
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building** (§13.2: record payment → reduce what's owed → keep the
 history)
@@ -705,6 +705,62 @@ history)
 6. Record another payment and **Decline** it on the second account: nothing
    changes in what's owed.
 
+**Sign-off:** [x] Approved on 2026-10-15
+
+---
+
+## Sprint 6 — Shopping → Money
+
+**Status:** 6a building · Spec: `PRODUCT_LOGIC.md` §10.7, §10.8, §13.1
+
+Finishing a shopping trip creates the grocery expense by itself: nobody adds
+it by hand any more.
+
+### 6a — The trip's total becomes the grocery expense
+
+**Status:** Building
+
+**What I'm building**
+- **Review the split at checkout:** after entering the total and receipt, the
+  review shows **Split between**: everyone in the home (not guests), ticked,
+  except people who are away (shown as "away", unticked), with each person's
+  share ("$28.20 each"). Untick anyone who shouldn't pay (§10.8).
+- **"I've left the store" saves the grocery expense** (§10.8): paid by the
+  shopper, the total typed at checkout, the receipt attached, category
+  Groceries, split equally between the ticked people, by the same rules as
+  Add Expense. Then the turn passes on, as before.
+- **Everyone in the split is told** "*Alex* finished shopping: your share is
+  $28.20". Balances, Money and Home update straight away; the expense is on
+  the Shared expenses page like any other.
+- **The Shopping page** shows the last trip's total and how it was split.
+
+**Decisions I made (tell me if you disagree)**
+- The shopper is in the split by default, like any payer; untick them if they
+  bought only for the others.
+- Shares are rounded to the cent the same way as Add Expense.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: leaving the store creates one expense with the right
+      total, payer, receipt and shares; unticked and away people aren't
+      charged; the split must name people who live here; balances and Home
+      include it; the Money check still matches; Add Expense keeps working)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (two or three accounts in the same home)
+1. On the shopper's account, go through a trip to the checkout card. Enter a
+   total (say $30) and a receipt, tap **Review and validate**.
+2. The review shows **Split between** with everyone ticked and "$10.00 each"
+   (for three people). Untick one person: it becomes "$15.00 each". Tap
+   **Validate**, then **I've left the store**.
+3. On another account in the split: a notification "*Name* finished
+   shopping: your share is $15.00", and Money → **You owe** includes it.
+4. The unticked person owes nothing for it.
+5. **Shared expenses** shows "Groceries" with the receipt, paid by the
+   shopper. Nobody had to add it.
+
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ---
@@ -713,7 +769,6 @@ history)
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 6 — Shopping → Money | 6a finish trip: total, receipt, review split, confirm → expense created | Not started |
 | 7 — Rent | 7a landlord paid vs. roommates reimbursed · 7b monthly history and reminders | Not started |
 | 8 — Maintenance | 8a new statuses and landlord scheduling · 8b resident "fixed / still a problem" | Not started |
 | 9 — Calendar + Notifications | 9a calendar fed by other modules · 9b one notification service with preferences | Not started |

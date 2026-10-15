@@ -270,6 +270,7 @@ model Expense {
   splits      ExpenseSplit[]
   editRequests ExpenseEditRequest[]
   settlements Settlement[]
+  shoppingTrip ShoppingTrip?
 }
 
 model ExpenseEditRequest {
@@ -1080,8 +1081,12 @@ model ShoppingTrip {
   totalAmount  Float? // typed by the shopper; split into balances with the Money ledger (Sprint 6)
   receiptUrl   String?
   checkedOutAt DateTime?
+  splitWith    String? // JSON userId[] chosen at checkout (Sprint 6)
   leftStoreAt  DateTime?
   endedAt      DateTime?
+  // The grocery expense created when the shopper left the store (Sprint 6).
+  expenseId    String?   @unique
+  expense      Expense?  @relation(fields: [expenseId], references: [id], onDelete: SetNull)
 
   apartmentId String
   shopperId   String

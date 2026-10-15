@@ -23,12 +23,18 @@ interface Person { id: string; name: string }
 interface Member { id: string; name: string; dietaryFlags: string }
 interface GroceryItem { id: string; name: string; quantity: string; purchased: boolean; createdAt: string; addedBy: Person }
 interface InventoryItem { id: string; name: string; quantity: number; unit: string; reorderThreshold: number }
-interface Trip { id: string; status: TripStatus; shopperId: string; homeCheck: string | null; atStoreAt: string | null; totalAmount: number | null; receiptUrl: string | null }
+interface Trip { id: string; status: TripStatus; shopperId: string; homeCheck: string | null; atStoreAt: string | null; totalAmount: number | null; receiptUrl: string | null; splitWith: string[] | null }
 interface ShoppingState {
   shopper: Person | null; next: Person | null; trip: Trip | null;
   order: (Person & { away: boolean })[];
-  lastTrip: { endedAt: string; shopperName: string; itemCount: number; totalAmount: number | null } | null;
+  lastTrip: { endedAt: string; shopperName: string; itemCount: number; totalAmount: number | null; splitCount: number | null } | null;
+  /** Who the shopper can split the trip with at checkout (Sprint 6). */
+  splitOptions: SplitOption[];
 }
+interface SplitOption { id: string; name: string; away: boolean }
+
+/** Equal share per person, rounded to the cent like Add Expense. */
+const shareOf = (total: number, people: number) => (people > 0 ? parseFloat((total / people).toFixed(2)) : 0);
 
 const DIETARY_LABELS: Record<string, string> = {
   VEGAN: "🌱 Vegan", VEGETARIAN: "🥦 Vegetarian", GLUTEN_FREE: "🌾 Gluten-free",
@@ -154,7 +160,7 @@ export default function ShoppingPage() {
       <p className="mt-1 text-sm text-gray-500">One shared list. Everyone takes turns doing the shopping.</p>
 
       {isShopper ? (
-        <ShopperCard trip={trip} items={items} next={state?.next ?? null} meId={me.id} busy={busy} apartmentId={apartmentId}
+        <ShopperCard trip={trip} items={items} next={state?.next ?? null} meId={me.id} busy={busy} apartmentId={apartmentId} splitOptions={state?.splitOptions ?? []}
           onAction={tripAction} onAdd={addItem} onTick={setPurchased} />
       ) : (
         <section className="mt-5 rounded-2xl border border-gray-200 bg-white px-5 py-5">
@@ -167,7 +173,7 @@ export default function ShoppingPage() {
           {!trip && state?.lastTrip && (
             <p className="mt-0.5 text-xs text-gray-400">
               Last trip: {state.lastTrip.shopperName}, {new Date(state.lastTrip.endedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-              {state.lastTrip.totalAmount != null && ` · ${money(state.lastTrip.totalAmount)}`} · {state.lastTrip.itemCount} {state.lastTrip.itemCount === 1 ? "item" : "items"}
+              {state.lastTrip.totalAmount != null && ` · ${money(state.lastTrip.totalAmount)}`}{state.lastTrip.splitCount ? ` split ${state.lastTrip.splitCount} ways` : ""} · {state.lastTrip.itemCount} {state.lastTrip.itemCount === 1 ? "item" : "items"}
             </p>
           )}
         </section>
@@ -256,8 +262,8 @@ function swap<T>(list: T[], i: number, j: number): T[] {
 }
 
 /** The shopper's card: exactly one step at a time. */
-function ShopperCard({ trip, items, next, meId, busy, apartmentId, onAction, onAdd, onTick }: {
-  trip: Trip | null; items: GroceryItem[]; next: Person | null; meId: string; busy: boolean; apartmentId: string;
+function ShopperCard({ trip, items, next, meId, busy, apartmentId, splitOptions, onAction, onAdd, onTick }: {
+  trip: Trip | null; items: GroceryItem[]; next: Person | null; meId: string; busy: boolean; apartmentId: string; splitOptions: SplitOption[];
   onAction: (action: string, extra?: Record<string, unknown>) => Promise<boolean>;
   onAdd: (name: string, quantity?: string) => Promise<unknown>;
   onTick: (item: GroceryItem, purchased: boolean) => Promise<void>;
@@ -300,7 +306,7 @@ function ShopperCard({ trip, items, next, meId, busy, apartmentId, onAction, onA
         </>
       )}
 
-      {(trip?.status === "SHOPPING" || editing) && <StoreStep trip={trip!} items={items} meId={meId} busy={busy} onAction={validate} onTick={onTick} />}
+      {(trip?.status === "SHOPPING" || editing) && <StoreStep trip={trip!} items={items} meId={meId} busy={busy} splitOptions={splitOptions} onAction={validate} onTick={onTick} />}
 
       {trip?.status === "CHECKED_OUT" && !editing && (
         <>
@@ -309,13 +315,19 @@ function ShopperCard({ trip, items, next, meId, busy, apartmentId, onAction, onA
             {trip.receiptUrl ? "Receipt saved." : "No receipt."} {items.filter(i => i.purchased).length} items in the cart.
             {items.some(i => !i.purchased) && ` ${items.filter(i => !i.purchased).length} not found stay on the list for next time.`}
           </p>
+          {trip.totalAmount != null && trip.splitWith && (
+            <p className="mt-1 text-sm text-white/85">
+              Split between {trip.splitWith.length} {trip.splitWith.length === 1 ? "person" : "people"}: {money(shareOf(trip.totalAmount, trip.splitWith.length))} each.
+              Leaving the store adds it to everyone&apos;s balance.
+            </p>
+          )}
           {trip.receiptUrl && (
             // eslint-disable-next-line @next/next/no-img-element -- user upload, size unknown
             <img src={trip.receiptUrl} alt="Receipt" className="mt-3 max-h-40 rounded-lg bg-white object-contain" />
           )}
           <button onClick={() => onAction("left_store")} disabled={busy} className={`mt-4 ${primary}`}>I&apos;ve left the store</button>
           <p className="mt-2 text-center text-xs text-white/75">{nextName ? `This ends your trip. Then it's ${nextName}'s turn.` : "This ends your trip."}</p>
-          <button onClick={() => setEditingCheckout(true)} className="mt-2 w-full text-center text-xs text-white/75 hover:underline">Change the total or receipt</button>
+          <button onClick={() => setEditingCheckout(true)} className="mt-2 w-full text-center text-xs text-white/75 hover:underline">Change the total, receipt or split</button>
         </>
       )}
 
@@ -399,8 +411,8 @@ function InventoryStep({ apartmentId, items, busy, onAction, onAdd }: {
 }
 
 /** Step 4: tick items into the cart, then the total and receipt, a review, and Validate. */
-function StoreStep({ trip, items, meId, busy, onAction, onTick }: {
-  trip: Trip; items: GroceryItem[]; meId: string; busy: boolean;
+function StoreStep({ trip, items, meId, busy, splitOptions, onAction, onTick }: {
+  trip: Trip; items: GroceryItem[]; meId: string; busy: boolean; splitOptions: SplitOption[];
   onAction: (action: string, extra?: Record<string, unknown>) => Promise<boolean>;
   onTick: (item: GroceryItem, purchased: boolean) => Promise<void>;
 }) {
@@ -410,6 +422,14 @@ function StoreStep({ trip, items, meId, busy, onAction, onTick }: {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [reviewing, setReviewing] = useState(false);
+  // Everyone shares by default except people away; the shopper's earlier choice wins when correcting it.
+  const [splitWith, setSplitWith] = useState<Set<string>>(() =>
+    new Set(trip.splitWith ?? splitOptions.filter(p => !p.away).map(p => p.id)));
+  const toggleSplit = (id: string) => setSplitWith(cur => {
+    const next = new Set(cur);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
   const inCart = items.filter(i => i.purchased);
   const toGet = items.filter(i => !i.purchased);
@@ -440,9 +460,26 @@ function StoreStep({ trip, items, meId, busy, onAction, onTick }: {
           <div className="flex justify-between"><dt className="text-gray-500">In the cart</dt><dd>{inCart.length} {inCart.length === 1 ? "item" : "items"}</dd></div>
           {toGet.length > 0 && <div className="flex justify-between"><dt className="text-gray-500">Not found</dt><dd>{toGet.length} (stay on the list)</dd></div>}
         </dl>
-        <p className="mt-2 text-xs text-white/75">Splitting the total between everyone comes with the new Money page.</p>
-        <button onClick={() => onAction("checkout", { total: amount, ...(receiptUrl ? { receiptUrl } : { noReceipt: true }) })}
-          disabled={busy} className="mt-4 w-full rounded-xl bg-white py-3 text-sm font-semibold text-brand disabled:opacity-60">Validate</button>
+        <div className="mt-3 rounded-xl bg-white px-4 py-3 text-sm text-gray-900">
+          <p className="flex justify-between">
+            <span className="font-semibold">Split between</span>
+            <span className="text-gray-600">{splitWith.size > 0 ? `${money(shareOf(amount, splitWith.size))} each` : "Nobody yet"}</span>
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {splitOptions.map(p => (
+              <li key={p.id}>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={splitWith.has(p.id)} onChange={() => toggleSplit(p.id)} className="h-4 w-4 accent-brand" />
+                  <span>{p.id === meId ? "You" : p.name}</span>
+                  {p.away && <span className="text-xs text-gray-500">away</span>}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p className="mt-2 text-xs text-white/75">When you leave the store, this becomes the grocery expense in Money: you paid, and each ticked person owes their share.</p>
+        <button onClick={() => onAction("checkout", { total: amount, splitWith: [...splitWith], ...(receiptUrl ? { receiptUrl } : { noReceipt: true }) })}
+          disabled={busy || splitWith.size === 0} className="mt-4 w-full rounded-xl bg-white py-3 text-sm font-semibold text-brand disabled:opacity-60">Validate</button>
         <button onClick={() => setReviewing(false)} className="mt-2 w-full text-center text-sm font-medium text-white/85 hover:underline">Back</button>
       </>
     );

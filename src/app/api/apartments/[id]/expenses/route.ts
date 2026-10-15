@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { notify } from "@/lib/notify";
+import { defaultSplit, equalSplits } from "@/lib/expenses";
 
 const schema = z.object({
   title: z.string().min(1),
@@ -65,32 +66,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { customSplits, perPersonAmounts, date, receiptUrl, ...rest } = parsed.data;
 
-  // Determine splits
-  const activeMembers = await prisma.apartmentMember.findMany({
-    where: { apartmentId, status: "ACTIVE", role: { not: "GUEST" } },
-    select: { userId: true },
-  });
-  const allMemberIds = activeMembers.map(m => m.userId);
-
-  // Exclude currently-traveling members (except the payer) from EQUAL splits
-  const now = new Date();
-  const travelers = await prisma.travelPeriod.findMany({
-    where: {
-      apartmentId,
-      startDate: { lte: now },
-      returnedAt: null,
-      OR: [{ endDate: null }, { endDate: { gte: now } }],
-      userId: { not: payload.userId }, // never skip payer
-    },
-    select: { userId: true },
-  });
-  const travelingIds = new Set(travelers.map(t => t.userId));
-  const memberIds = allMemberIds.filter(uid => !travelingIds.has(uid));
-
+  // Equal splits leave out members who are away (never the payer); same rules as a shopping trip.
   let splits: { userId: string; amount: number }[] = [];
   if (rest.splitMethod === "EQUAL") {
-    const share = parseFloat((rest.amount / memberIds.length).toFixed(2));
-    splits = memberIds.map(userId => ({ userId, amount: userId === payload.userId ? 0 : share }));
+    splits = equalSplits(rest.amount, await defaultSplit(apartmentId, payload.userId), payload.userId);
   } else if (rest.splitMethod === "CUSTOM" && customSplits) {
     splits = Object.entries(customSplits)
       .filter(([uid]) => uid !== payload.userId)
