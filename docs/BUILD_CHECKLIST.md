@@ -961,14 +961,16 @@ landlord's answers on the Maintenance page, so requests never get stuck.
   portal shows the resident's note.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: only after Completed; only the reporter (or an admin
+- [x] Type check passes
+- [x] Tests pass: 219 (+4: only after Completed; only the reporter (or an admin
       once they've moved out) answers; fixed → resolved; still a problem
       needs a note and goes back to reported with the visit cleared; the
       landlord side is told; Home asks "Is it fixed?")
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (63)
+- [x] CI green on GitHub (0a36daf)
+- [ ] Deployed to apptmasters.com (waiting: the server stopped accepting SSH
+      from the developer PC on 2026-10-15; database file
+      `prisma/manual-sql/2026-10-15-sprint-8b-confirm-fix.sql` ready)
 
 **Your test on apptmasters.com** (the reporter's account and an admin's)
 1. Take a request to **Completed** (as in 8a).
