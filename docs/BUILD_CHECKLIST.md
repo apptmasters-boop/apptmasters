@@ -711,14 +711,14 @@ history)
 
 ## Sprint 6 — Shopping → Money
 
-**Status:** 6a building · Spec: `PRODUCT_LOGIC.md` §10.7, §10.8, §13.1
+**Status:** 6a ready for your test · Spec: `PRODUCT_LOGIC.md` §10.7, §10.8, §13.1
 
 Finishing a shopping trip creates the grocery expense by itself: nobody adds
 it by hand any more.
 
 ### 6a — The trip's total becomes the grocery expense
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building**
 - **Review the split at checkout:** after entering the total and receipt, the
@@ -740,14 +740,17 @@ it by hand any more.
 - Shares are rounded to the cent the same way as Add Expense.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: leaving the store creates one expense with the right
+- [x] Type check passes
+- [x] Tests pass: 192 (+6: leaving the store creates one expense with the right
       total, payer, receipt and shares; unticked and away people aren't
       charged; the split must name people who live here; balances and Home
       include it; the Money check still matches; Add Expense keeps working)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (65)
+- [x] CI green on GitHub (ecd078f)
+- [x] Deployed to apptmasters.com 2026-10-15 (2 trip columns added with
+      `prisma/manual-sql/2026-10-15-sprint-6a-trip-expense.sql`; checked
+      with a real household; no trips were open, so no old test totals turn
+      into expenses)
 
 **Your test on apptmasters.com** (two or three accounts in the same home)
 1. On the shopper's account, go through a trip to the checkout card. Enter a
