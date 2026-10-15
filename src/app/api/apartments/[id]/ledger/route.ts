@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { ledgerEntries, netDebts, fundBalance } from "@/lib/ledger";
+import { ensureRentMonths } from "@/lib/rent";
 
 /**
  * The household's Money ledger (Sprint 5): every entry, who owes whom with rent
@@ -12,6 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id: apartmentId } = await params;
   const access = await requireApartmentMember(req, apartmentId);
   if (!access.ok) return access.response;
+  await ensureRentMonths(apartmentId); // this month's rent counts as soon as it's coming due (Sprint 7b)
 
   const [entries, payments] = await Promise.all([
     ledgerEntries(apartmentId),

@@ -97,8 +97,10 @@ describe("Rent: landlord paid vs. roommates reimbursed", () => {
     const res = await remind(sam.token);
     expect(res.status).toBe(200);
     expect((await res.json()).reminded).toBe(1);
-    expect(await prisma.notification.count({ where: { userId: kim.user.id, type: "RENT_REMINDER" } })).toBe(1);
-    expect(await prisma.notification.count({ where: { userId: alex.user.id, type: "RENT_REMINDER" } })).toBe(0);
+    // (Starting the month also told everyone their share; that's a different notification.)
+    const manual = { type: "RENT_REMINDER", title: "Rent reminder" };
+    expect(await prisma.notification.count({ where: { userId: kim.user.id, ...manual } })).toBe(1);
+    expect(await prisma.notification.count({ where: { userId: alex.user.id, ...manual } })).toBe(0);
   });
 
   it("history lists months newest first; a month is late once its due day has passed", async () => {
@@ -106,8 +108,10 @@ describe("Rent: landlord paid vs. roommates reimbursed", () => {
     await start(sam.token, apt.id, "2026-06");
     await start(sam.token, apt.id, "2026-08");
     const s = await summary(kim.token, apt.id);
-    expect(s.months.map((m: { month: string }) => m.month)).toEqual(["2026-08", "2026-06"]);
-    expect(s.months[0].label).toBe("August 2026");
+    // (Opening Rent may also start the current month by itself when it's coming due: Sprint 7b.)
+    const recorded = s.months.filter((m: { month: string }) => m.month === "2026-08" || m.month === "2026-06");
+    expect(recorded.map((m: { month: string }) => m.month)).toEqual(["2026-08", "2026-06"]);
+    expect(recorded[0].label).toBe("August 2026");
 
     const cycle = { id: "c", month: "2026-10", totalAmount: 100, markedPaidAt: null, rentPayer: { id: "p", name: "P" }, payments: [] };
     const due = rentDueDate("2026-10", 5);

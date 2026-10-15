@@ -15,7 +15,7 @@ import { prisma } from "@/lib/db";
 import { ledgerEntries, netDebts } from "@/lib/ledger";
 import { position, net } from "@/lib/moneySummary";
 import { shoppingTurn } from "@/lib/shopping";
-import { rentDueDate } from "@/lib/rent";
+import { rentDueDate, monthLabel } from "@/lib/rent";
 
 export type Priority = 1 | 2 | 3 | 4 | 5;
 
@@ -101,11 +101,22 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
     const dueDay = rentConfig?.dueDay ?? 1;
     const total = myRentPayments.reduce((s, p) => s + p.amount, 0);
     const earliest = myRentPayments.map(p => rentDueDate(p.rentCycle.month, dueDay)).sort((a, b) => a.getTime() - b.getTime())[0];
-    const overdue = earliest < now;
+    const overdue = now.getTime() >= earliest.getTime() + 86_400_000; // late once the due day is over, as on the Rent page
     items.push({
       id: "rent:mine", priority: 2, overdue, href: `${base}/rent`, when: earliest.toISOString(),
       title: overdue ? `Your rent share is overdue: ${money(total)}` : `Your rent share is due ${shortDate(earliest)}: ${money(total)}`,
       detail: myRentPayments.length > 1 ? `${myRentPayments.length} months not paid yet` : "Mark it paid once you've paid the rent payer",
+    });
+  }
+  // The rent payer: pay the landlord (§12.1), from when the month starts until it's marked paid.
+  const landlordToPay = await prisma.rentCycle.findMany({ where: { apartmentId, rentPayerId: userId, markedPaidAt: null }, orderBy: { month: "asc" } });
+  for (const c of landlordToPay) {
+    const due = rentDueDate(c.month, rentConfig?.dueDay ?? 1);
+    const late = now.getTime() >= due.getTime() + 86_400_000;
+    items.push({
+      id: `rent:landlord:${c.id}`, priority: 2, overdue: late, href: `${base}/rent`, when: due.toISOString(),
+      title: `Pay the landlord: ${monthLabel(c.month).split(" ")[0]} rent`,
+      detail: `${money(c.totalAmount)} · ${late ? "was due" : "due"} ${shortDate(due)} · tap "I paid the landlord" once you have`,
     });
   }
   if (toConfirmRent > 0) {

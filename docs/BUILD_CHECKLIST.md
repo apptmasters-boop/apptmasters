@@ -770,7 +770,7 @@ it by hand any more.
 
 ## Sprint 7 — Rent
 
-**Status:** 7a ready for your test · Spec: `PRODUCT_LOGIC.md` §12, §22
+**Status:** 7a approved · 7b building · Spec: `PRODUCT_LOGIC.md` §12, §22
 
 Rent has two separate facts (§12.1): **was the landlord paid?** and **has each
 roommate paid back the rent payer?** Today one tap ("I paid the rent") records
@@ -778,7 +778,7 @@ both at once.
 
 ### 7a — This month: landlord paid vs. roommates reimbursed
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building**
 - **A "This month" card on Rent** (§12.2): total rent; **Landlord**: "Paid
@@ -823,18 +823,56 @@ both at once.
 4. (When a roommate still owes for a month) on the rent payer's account, tap
    **Send reminder**: only roommates who haven't paid get it.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-15
 
 ### 7b — Rent that runs by itself
 
-**Status:** Not started (test steps written when it starts)
+**Status:** Building
 
-- Each month's rent starts automatically 3 days before its due day (never
-  filling in older months).
-- Reminders go out by themselves: roommates who haven't paid on the due day
-  and when it's late; the rent payer until the landlord is marked paid
-  (also on their Home).
-- The auto-rotate setting actually rotates the rent payer each month.
+**What I'm building** (§12, §22: "rent share becomes due → Money balance;
+reminder; Home priority")
+- **Each month starts by itself** 3 days before its due day: everyone's
+  share is set and appears in Money. It happens in the daily job (9:00) and
+  whenever someone opens Rent, Money or Home. It only starts the month that is
+  coming due (up to a week after the due day). Older months are never filled
+  in.
+- **When a month starts**, roommates get "October's rent: your share of $400
+  is due Oct 23. Pay *Sam*." and the rent payer gets "October's rent has
+  started. Pay the landlord by Oct 23."
+- **Reminders by themselves:** on the due day, and again 3 and 10 days later,
+  to roommates who haven't paid; and to the rent payer while the landlord
+  isn't marked paid. At most one rent reminder per person per day.
+- **Home** shows the rent payer "Pay the landlord: October rent, due Oct 23"
+  (red once late) until they tap **I paid the landlord**.
+- **Rotate the rent payer each month** is back in the setup, and works now:
+  when a new month starts, the next person (in the order people joined) pays
+  the landlord and collects the shares.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: a month starts in its window and only once; never
+      before it or long after; next month's rent starts at the end of this
+      month when it's due on the 1st; roommates and the rent payer are told;
+      reminders on the due day and when late, only to people who haven't
+      paid, at most once a day; the landlord item on Home; rotation)
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (a household where this month's rent isn't
+recorded yet, e.g. a test household with two accounts)
+1. As a household admin: Money → **Rent** → **Set up rent** (or **Edit
+   setup**), with the due day **2 days from today**. Save.
+2. The page now shows this month's card by itself: nobody had to start it.
+   The roommate's account got "…your share of $… is due …".
+3. The rent payer's **Home** shows "Pay the landlord: … rent, due …". Tap it,
+   then **I paid the landlord**: the Home item goes away.
+4. In **Edit setup**, tick **Rotate the rent payer each month** and save.
+   (You'll see it work when next month starts.)
+5. Reminders on the due day and when late arrive by themselves; nothing to
+   tap.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ---
 

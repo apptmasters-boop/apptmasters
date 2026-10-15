@@ -21,8 +21,8 @@ interface RentMonth {
 }
 interface RentSummary {
   me: string; isAdmin: boolean;
-  config: { totalAmount: number; dueDay: number; landlordName: string | null; rentPayer: { id: string; name: string } | null; shares: Record<string, number> } | null;
-  thisMonth: string; thisMonthLabel: string; thisMonthDue?: string; canStartMonth?: boolean;
+  config: { totalAmount: number; dueDay: number; landlordName: string | null; rentPayer: { id: string; name: string } | null; shares: Record<string, number>; autoRotate: boolean } | null;
+  thisMonth: string; thisMonthLabel: string; thisMonthDue?: string; thisMonthStartsOn?: string | null; canStartMonth?: boolean;
   months: RentMonth[];
 }
 
@@ -138,13 +138,14 @@ export default function RentPage() {
           ) : (
             <div className="mt-2 rounded-2xl border border-gray-200 bg-white px-5 py-5">
               <p className="text-lg font-bold text-gray-900">{summary.thisMonthLabel}</p>
-              <p className="mt-0.5 text-sm text-gray-500">{money(summary.config.totalAmount)} due {summary.thisMonthDue ? dueDay(summary.thisMonthDue) : ""}. Not started yet.</p>
+              <p className="mt-0.5 text-sm text-gray-500">{money(summary.config.totalAmount)} due {summary.thisMonthDue ? dueDay(summary.thisMonthDue) : ""}.
+                {summary.thisMonthStartsOn && ` It starts by itself on ${dueDay(summary.thisMonthStartsOn)}, 3 days before it's due.`}</p>
               {summary.canStartMonth ? (
                 <>
                   <button onClick={startMonth} disabled={starting} className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-semibold text-white disabled:opacity-60">
                     {starting ? "Starting…" : `Start ${summary.thisMonthLabel.split(" ")[0]}'s rent`}
                   </button>
-                  <p className="mt-2 text-xs text-gray-500">This sets what each roommate owes you for the month. Paying the landlord is a separate step.</p>
+                  <p className="mt-2 text-xs text-gray-500">Start it now if you want to collect early. Paying the landlord is a separate step.</p>
                 </>
               ) : (
                 <p className="mt-2 text-sm text-gray-500">{summary.config.rentPayer ? `${summary.config.rentPayer.name} starts it.` : "Choose a rent payer in the setup."}</p>
@@ -321,6 +322,7 @@ function RentSetup({ apartmentId, summary, members, onDone, onCancel }: {
     dueDay: summary.config ? String(summary.config.dueDay) : "1",
     landlordName: summary.config?.landlordName ?? "",
     rentPayerId: summary.config?.rentPayer?.id ?? "",
+    autoRotate: summary.config?.autoRotate ?? false,
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -333,6 +335,7 @@ function RentSetup({ apartmentId, summary, members, onDone, onCancel }: {
       body: JSON.stringify({
         totalAmount: parseFloat(form.totalAmount), dueDay: parseInt(form.dueDay, 10),
         landlordName: form.landlordName || undefined, rentPayerId: form.rentPayerId,
+        autoRotate: form.autoRotate,
         shares: summary.config?.shares ?? {}, // keep any custom shares
       }),
     });
@@ -362,7 +365,14 @@ function RentSetup({ apartmentId, summary, members, onDone, onCancel }: {
           </select>
         </label>
       </div>
-      <p className="text-xs text-gray-500">Everyone else pays the rent payer back their share each month.</p>
+      <label className="flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" checked={form.autoRotate} onChange={e => setForm(f => ({ ...f, autoRotate: e.target.checked }))} className="h-4 w-4 accent-brand" />
+        Rotate the rent payer each month
+      </label>
+      <p className="text-xs text-gray-500">
+        Everyone else pays the rent payer back their share each month. Each month starts by itself 3 days before the due day.
+        {form.autoRotate && " With rotation, the next person (in the order people joined) takes over when a new month starts."}
+      </p>
       {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
       <div className="flex gap-2">
         <button type="submit" disabled={saving} className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{saving ? "Saving…" : "Save"}</button>

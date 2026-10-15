@@ -1,54 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { notify } from "@/lib/notify";
+import { runRentAutomation } from "@/lib/rent";
 
+/**
+ * Daily rent job (server crontab, 09:00): starts each month's rent 3 days
+ * before it's due and sends the due-day and late reminders. The rules are in
+ * src/lib/rent.ts (runRentAutomation).
+ */
 export async function POST(req: NextRequest) {
   const secret = req.headers.get("x-cron-secret");
   if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const now = new Date();
-  const todayDate = now.getDate();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-
-  const configs = await prisma.rentConfig.findMany({
-    where: {
-      rentPayerId: { not: null },
-      dueDay: { in: [todayDate, todayDate + 3] },
-    },
-    include: { apartment: { select: { name: true } } },
-  });
-
-  let headsUp = 0;
-  let dueToday = 0;
-
-  for (const config of configs) {
-    const existingCycle = await prisma.rentCycle.findUnique({
-      where: { apartmentId_month: { apartmentId: config.apartmentId, month: currentMonth } },
-    });
-    if (existingCycle) continue;
-
-    const isDueToday = config.dueDay === todayDate;
-    const amount = config.totalAmount.toFixed(2);
-    const title = isDueToday ? "Rent due today" : "Rent due soon";
-    const body = isDueToday
-      ? `Your rent of $${amount} is due today for ${config.apartment.name}. Start this month's rent in Money → Rent, and tap "I paid the landlord" once you have.`
-      : `Your rent of $${amount} is due in 3 days for ${config.apartment.name}.`;
-
-    await notify({
-      apartmentId: config.apartmentId,
-      userIds: [config.rentPayerId!],
-      type: "RENT_REMINDER",
-      title,
-      body,
-      link: `/apartment/${config.apartmentId}/rent`,
-      sendEmailTo: [config.rentPayerId!],
-    });
-
-    if (isDueToday) dueToday++;
-    else headsUp++;
-  }
-
-  return NextResponse.json({ headsUp, dueToday });
+  return NextResponse.json(await runRentAutomation(new Date()));
 }

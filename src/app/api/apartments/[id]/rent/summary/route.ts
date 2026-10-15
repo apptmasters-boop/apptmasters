@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
-import { currentMonth, monthLabel, rentDueDate, rentMonths } from "@/lib/rent";
+import { currentMonth, monthLabel, rentDueDate, rentMonths, ensureRentMonths, startsOn } from "@/lib/rent";
 
 /**
  * Money → Rent (PRODUCT_LOGIC §12): the setup, this month's summary (landlord
@@ -12,6 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const access = await requireApartmentMember(req, apartmentId);
   if (!access.ok) return access.response;
 
+  await ensureRentMonths(apartmentId); // the month coming due starts by itself (Sprint 7b)
   const config = await prisma.rentConfig.findUnique({ where: { apartmentId } });
   const isAdmin = access.membership.role === "ADMIN";
   const month = currentMonth();
@@ -29,12 +30,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     isAdmin,
     config: {
       totalAmount: config.totalAmount, dueDay: config.dueDay, landlordName: config.landlordName,
-      rentPayer: payer, shares: JSON.parse(config.shares || "{}"),
+      rentPayer: payer, shares: JSON.parse(config.shares || "{}"), autoRotate: config.autoRotate,
     },
     thisMonth: month,
     thisMonthLabel: monthLabel(month),
     thisMonthDue: rentDueDate(month, config.dueDay).toISOString().slice(0, 10),
-    /** The rent payer and admins start a month (until 7b starts them automatically). */
+    /** When this month starts by itself (3 days before it's due), if that's still ahead. */
+    thisMonthStartsOn: startsOn(month, config.dueDay) > new Date().toISOString().slice(0, 10) ? startsOn(month, config.dueDay) : null,
+    /** The rent payer and admins can also start this month early, before it starts by itself. */
     canStartMonth: (isRentPayer || isAdmin) && !!config.rentPayerId && !months.some(m => m.month === month),
     months,
   });

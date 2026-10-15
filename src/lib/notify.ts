@@ -10,12 +10,14 @@ interface NotifyParams {
   body: string;
   link?: string;
   sendEmailTo?: string[]; // subset of userIds to also email
+  /** When it happened, for scheduled jobs that work out "today" themselves (default: now). */
+  at?: Date;
 }
 
-export async function notify({ apartmentId, userIds, type, title, body, link, sendEmailTo }: NotifyParams) {
+export async function notify({ apartmentId, userIds, type, title, body, link, sendEmailTo, at }: NotifyParams) {
   if (userIds.length === 0) return;
   await prisma.notification.createMany({
-    data: userIds.map(userId => ({ apartmentId, userId, type, title, body, link: link ?? null })),
+    data: userIds.map(userId => ({ apartmentId, userId, type, title, body, link: link ?? null, ...(at ? { createdAt: at } : {}) })),
   });
   // Respect per-user notification preferences
   const userPrefs = await prisma.user.findMany({

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
-import { startRentMonth, RentError } from "@/lib/rent";
+import { startRentMonth, announceRentMonth, RentError } from "@/lib/rent";
 
 const schema = z.object({ month: z.string().regex(/^\d{4}-\d{2}$/) }); // YYYY-MM
 
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     const { cycle, created } = await startRentMonth(apartmentId, month);
+    if (created) await announceRentMonth(cycle.id);
     const full = await prisma.rentCycle.findUniqueOrThrow({
       where: { id: cycle.id },
       include: { rentPayer: { select: { id: true, name: true } }, payments: { include: { user: { select: { id: true, name: true } } } } },
