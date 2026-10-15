@@ -24,10 +24,10 @@ TOKEN=$(MEMBER_ID="$MEMBER_ID" MEMBER_EMAIL="$MEMBER_EMAIL" node -e 'require("do
 AUTH="Authorization: Bearer $TOKEN"
 code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 
-for path in "" /home /cleaning /grocery /shopping /balance /ledger; do
+for path in "" /home /cleaning /grocery /shopping /balance /ledger /rent/summary; do
   echo "GET /api/apartments/<apt>$path: $(code -H "$AUTH" "http://localhost:3000/api/apartments/$APT$path")"
 done
-for page in "" /household /shopping /cleaning /money; do
+for page in "" /household /shopping /cleaning /money /rent; do
   echo "page /apartment/<apt>$page: $(code "http://localhost:3000/apartment/$APT$page")"
 done
 echo "public site: $(code https://apptmasters.com/)"
