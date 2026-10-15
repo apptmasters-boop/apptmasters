@@ -16,7 +16,7 @@ import { ledgerEntries, netDebts } from "@/lib/ledger";
 import { position, net } from "@/lib/moneySummary";
 import { shoppingTurn } from "@/lib/shopping";
 import { rentDueDate, monthLabel } from "@/lib/rent";
-import { currentStep } from "@/lib/maintenance";
+import { currentStep, canConfirmFix, activeMemberIds } from "@/lib/maintenance";
 
 export type Priority = 1 | 2 | 3 | 4 | 5;
 
@@ -203,6 +203,18 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
           title: `Tell the landlord: ${r.title}`, detail: `Reported by ${r.submittedBy.name} · then record their answer in Maintenance`,
         });
       }
+    }
+  }
+  // "Is it fixed?" (Sprint 8b): for the person who reported it, or an admin once they've moved out.
+  const completedRepairs = await prisma.maintenanceRequest.findMany({ where: { apartmentId, status: "COMPLETED" }, select: { id: true, title: true, status: true, submittedById: true, completedAt: true } });
+  if (completedRepairs.length > 0) {
+    const here = await activeMemberIds(apartmentId);
+    for (const r of completedRepairs) {
+      if (!canConfirmFix(r, userId, role, here)) continue;
+      items.push({
+        id: `maintenance-fixed:${r.id}`, priority: 3, href: `${base}/maintenance`, when: r.completedAt?.toISOString(),
+        title: `Is it fixed? ${r.title}`, detail: "The repair is marked done. Say if it isn't.",
+      });
     }
   }
   if (joinRequests > 0) {

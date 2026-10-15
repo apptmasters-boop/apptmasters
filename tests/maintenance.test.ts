@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 import { GET as listRoute, POST as reportRoute } from "@/app/api/apartments/[id]/maintenance/route";
 import { POST as progressRoute } from "@/app/api/apartments/[id]/maintenance/[requestId]/progress/route";
 import { PATCH as landlordRoute } from "@/app/api/manager/maintenance/[requestId]/route";
+import { POST as confirmRoute } from "@/app/api/apartments/[id]/maintenance/[requestId]/confirm/route";
 import { POST as uploadPhoto } from "@/app/api/upload/maintenance-photo/route";
 import { buildHomeFeed } from "@/lib/homeFeed";
 import { visitWindow } from "@/lib/maintenance";
@@ -167,5 +168,80 @@ describe("visit times in messages", () => {
     const end = new Date("2026-11-20T17:00:00Z");
     expect(visitWindow(start, end, "America/New_York")).toBe("Fri, Nov 20, 10:00 AM – 12:00 PM");
     expect(visitWindow(start, end, "Not/AZone")).toBe("Fri, Nov 20, 3:00 PM – 5:00 PM UTC");
+  });
+});
+
+describe("Sprint 8b: Is it fixed?", () => {
+  const confirm = (token: string, aptId: string, requestId: string, body: object) =>
+    confirmRoute(request("/x", { method: "POST", token, body }), routeParams({ id: aptId, requestId }));
+
+  it("asks only after Completed, and only the person who reported it; fixed → Resolved", async () => {
+    const { alex, sam, apt } = await household();
+    const kim = await createUser();
+    await prisma.apartmentMember.create({ data: { apartmentId: apt.id, userId: kim.user.id } });
+    const r = await reported(sam.token, apt.id);
+    expect((await confirm(sam.token, apt.id, r.id, { fixed: true })).status).toBe(409); // not completed yet
+
+    await progress(alex.token, apt.id, r.id, { status: "COMPLETED" });
+    expect((await confirm(kim.token, apt.id, r.id, { fixed: true })).status).toBe(403); // didn't report it
+    expect((await confirm(alex.token, apt.id, r.id, { fixed: true })).status).toBe(403); // admin, but the reporter still lives here
+    expect((await list(sam.token, apt.id)).requests[0].canConfirm).toBe(true);
+    expect((await list(alex.token, apt.id)).requests[0].canConfirm).toBe(false);
+    expect((await buildHomeFeed(apt.id, sam.user.id, "MEMBER")).find(i => i.id === `maintenance-fixed:${r.id}`)?.title).toBe("Is it fixed? Leaking faucet");
+    expect((await buildHomeFeed(apt.id, kim.user.id, "MEMBER")).some(i => i.id.startsWith("maintenance-fixed:"))).toBe(false);
+
+    expect((await confirm(sam.token, apt.id, r.id, { fixed: true })).status).toBe(200);
+    const after = await prisma.maintenanceRequest.findUniqueOrThrow({ where: { id: r.id } });
+    expect(after.status).toBe("RESOLVED");
+    expect(after.resolvedAt).not.toBeNull();
+    const timeline = (await list(sam.token, apt.id)).requests[0].updates;
+    expect(timeline.at(-1)).toMatchObject({ status: "RESOLVED", byRole: "RESIDENT" });
+    expect(await prisma.notification.count({ where: { userId: alex.user.id, type: "MAINTENANCE_RESOLVED" } })).toBe(1);
+    expect((await buildHomeFeed(apt.id, sam.user.id, "MEMBER")).some(i => i.id.startsWith("maintenance-fixed:"))).toBe(false);
+    expect((await confirm(sam.token, apt.id, r.id, { fixed: true })).status).toBe(409); // already answered
+  });
+
+  it("still a problem needs a note, goes back to Reported with the old visit cleared, and the admins pass it on again", async () => {
+    const { alex, sam, apt } = await household();
+    const r = await reported(sam.token, apt.id);
+    await progress(alex.token, apt.id, r.id, { status: "SCHEDULED", scheduledStart: tomorrowAt(14), scheduledEnd: tomorrowAt(16) });
+    await progress(alex.token, apt.id, r.id, { status: "COMPLETED" });
+
+    expect((await confirm(sam.token, apt.id, r.id, { fixed: false })).status).toBe(400);
+    expect((await confirm(sam.token, apt.id, r.id, { fixed: false, note: "Still drips at night" })).status).toBe(200);
+    expect(await prisma.maintenanceRequest.findUniqueOrThrow({ where: { id: r.id } })).toMatchObject({
+      status: "REPORTED", completedAt: null, scheduledStart: null, calendarEventId: null, residentFeedback: "Still drips at night",
+    });
+    const last = (await list(alex.token, apt.id)).requests[0].updates.at(-1);
+    expect(last).toMatchObject({ status: "REOPENED", byRole: "RESIDENT", note: "Still drips at night" });
+    expect(await prisma.notification.count({ where: { userId: alex.user.id, type: "MAINTENANCE_REOPENED" } })).toBe(1);
+    expect((await buildHomeFeed(apt.id, alex.user.id, "ADMIN")).some(i => i.id === `maintenance-tell:${r.id}`)).toBe(true);
+
+    // The next visit gets its own calendar entry; the first one stays as history.
+    await progress(alex.token, apt.id, r.id, { status: "SCHEDULED", scheduledStart: tomorrowAt(9), scheduledEnd: tomorrowAt(10) });
+    expect(await prisma.calendarEvent.count({ where: { apartmentId: apt.id } })).toBe(2);
+  });
+
+  it("a household admin answers once the reporter has moved out", async () => {
+    const { alex, sam, apt } = await household();
+    const r = await reported(sam.token, apt.id);
+    await progress(alex.token, apt.id, r.id, { status: "COMPLETED" });
+    await prisma.apartmentMember.updateMany({ where: { apartmentId: apt.id, userId: sam.user.id }, data: { status: "MOVED_OUT" } });
+    expect((await list(alex.token, apt.id)).requests[0].canConfirm).toBe(true);
+    expect((await confirm(alex.token, apt.id, r.id, { fixed: true })).status).toBe(200);
+  });
+
+  it("a linked landlord is emailed the answer and sees the resident's note", async () => {
+    const { sam, apt } = await household();
+    const landlord = await createUser({ systemRole: "MANAGER" });
+    await prisma.apartment.update({ where: { id: apt.id }, data: { managerId: landlord.user.id } });
+    const r = await reported(sam.token, apt.id);
+    await landlordRoute(request("/x", { method: "PATCH", token: landlord.token, body: { status: "COMPLETED" } }), routeParams({ requestId: r.id }));
+
+    const sent = (globalThis as unknown as { sentEmails: { to: string; subject: string }[] }).sentEmails;
+    const before = sent.length;
+    expect((await confirm(sam.token, apt.id, r.id, { fixed: false, note: "Worse than before" })).status).toBe(200);
+    expect(sent.slice(before)).toContainEqual(expect.objectContaining({ to: landlord.user.email, subject: "Still a problem: Leaking faucet" }));
+    expect((await prisma.maintenanceRequest.findUniqueOrThrow({ where: { id: r.id } })).residentFeedback).toBe("Worse than before");
   });
 });

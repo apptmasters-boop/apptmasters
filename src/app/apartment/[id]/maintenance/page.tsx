@@ -22,12 +22,15 @@ interface Request {
   id: string; title: string; description: string; priority: string; status: string; location: string | null;
   photo: string | null; scheduledStart: string | null; scheduledEnd: string | null; createdAt: string;
   submittedBy: { id: string; name: string }; updates: Update[]; next: string[];
+  /** This person answers "Is it fixed?" (Sprint 8b). */
+  canConfirm: boolean;
 }
 interface MaintenanceData { me: string; canUpdate: "HOUSEHOLD" | "LANDLORD" | null; landlord: { name: string } | null; rooms: string[]; requests: Request[] }
 
 const STEPS = ["REPORTED", "ACKNOWLEDGED", "SCHEDULED", "IN_PROGRESS", "COMPLETED"];
 const LABEL: Record<string, string> = {
   REPORTED: "Reported", ACKNOWLEDGED: "Acknowledged", SCHEDULED: "Scheduled", IN_PROGRESS: "In progress", COMPLETED: "Completed", RESOLVED: "Resolved",
+  REOPENED: "Still a problem", // timeline only: back to Reported after the resident's answer
 };
 const STATUS_STYLE: Record<string, string> = {
   REPORTED: "bg-amber-50 text-amber-800", ACKNOWLEDGED: "bg-blue-50 text-blue-700", SCHEDULED: "bg-indigo-50 text-indigo-700",
@@ -182,6 +185,8 @@ function RequestCard({ request: r, data, apartmentId, onChange }: { request: Req
         </ol>
       )}
 
+      {r.canConfirm && <ConfirmFix request={r} apartmentId={apartmentId} onDone={onChange} />}
+
       {canUpdate && !updating && (
         <button onClick={() => setUpdating(true)} className="mt-4 rounded-lg border border-brand px-3 py-1.5 text-xs font-semibold text-brand">Update for the landlord</button>
       )}
@@ -189,6 +194,46 @@ function RequestCard({ request: r, data, apartmentId, onChange }: { request: Req
         <UpdateForm request={r} apartmentId={apartmentId} onDone={() => { setUpdating(false); onChange(); }} onCancel={() => setUpdating(false)} />
       )}
     </li>
+  );
+}
+
+/** "Is it fixed?" (§14.5): the person who reported it says whether the completed repair worked. */
+function ConfirmFix({ request, apartmentId, onDone }: { request: Request; apartmentId: string; onDone: () => void }) {
+  const [notFixed, setNotFixed] = useState(false);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function answer(fixed: boolean) {
+    setBusy(true); setError(null);
+    const res = await apiFetch(`/api/apartments/${apartmentId}/maintenance/${request.id}/confirm`, { method: "POST", body: JSON.stringify({ fixed, note }) });
+    setBusy(false);
+    if (res.ok) onDone();
+    else setError((await res.json().catch(() => ({}))).error ?? "Couldn't send your answer.");
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-4">
+      <p className="text-sm font-semibold text-gray-900">The repair is marked done. Is it fixed?</p>
+      {!notFixed ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={() => answer(true)} disabled={busy} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">Yes, it&apos;s fixed</button>
+          <button onClick={() => setNotFixed(true)} disabled={busy} className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800">No, still a problem</button>
+        </div>
+      ) : (
+        <div className="mt-3 space-y-2">
+          <label className="block text-xs text-gray-600">What&apos;s still wrong?
+            <textarea rows={2} maxLength={500} value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. It still drips at night."
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900" />
+          </label>
+          <div className="flex gap-2">
+            <button onClick={() => answer(false)} disabled={busy || !note.trim()} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">Send it back to the landlord</button>
+            <button onClick={() => setNotFixed(false)} className="rounded-lg px-3 py-2 text-sm text-gray-600">Back</button>
+          </div>
+        </div>
+      )}
+      {error && <p className="mt-2 text-sm text-red-600" role="alert">{error}</p>}
+    </div>
   );
 }
 

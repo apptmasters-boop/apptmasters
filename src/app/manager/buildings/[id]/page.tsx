@@ -33,6 +33,8 @@ interface MaintenanceRequest {
   scheduledEnd: string | null;
   /** Steps the landlord can move it to (src/lib/maintenance.ts). */
   next: string[];
+  /** The resident's latest "still a problem" note (Sprint 8b). */
+  residentFeedback: string | null;
   submittedBy: { name: string; email: string };
 }
 
@@ -473,13 +475,19 @@ export default function BuildingPage() {
                     </div>
                   )}
 
+                  {r.status === "REPORTED" && r.residentFeedback && (
+                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
+                      <p className="text-xs font-medium text-amber-800 mb-0.5">Still a problem, says the resident</p>
+                      <p className="text-sm text-amber-900">{r.residentFeedback}</p>
+                    </div>
+                  )}
                   {r.status === "SCHEDULED" && r.scheduledStart && r.scheduledEnd && (
                     <p className="mt-3 rounded-xl bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-800">Repair visit: {visitLabel(r.scheduledStart, r.scheduledEnd)}</p>
                   )}
                   {expandedId === r.id && (
                     <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
                       {r.next.length === 0 ? (
-                        <p className="text-sm text-gray-500">Nothing more to do: the resident confirms the repair.</p>
+                        <p className="text-sm text-gray-500">{r.status === "RESOLVED" ? "The resident confirmed it's fixed." : "Waiting for the resident to confirm it's fixed."}</p>
                       ) : (
                         <>
                           <div>

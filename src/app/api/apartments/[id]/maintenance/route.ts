@@ -4,7 +4,7 @@ import { requireApartmentMember } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { notify } from "@/lib/notify";
 import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
-import { currentStep, nextSteps, updaterRole } from "@/lib/maintenance";
+import { currentStep, nextSteps, updaterRole, canConfirmFix, activeMemberIds } from "@/lib/maintenance";
 
 const schema = z.object({
   title: z.string().trim().min(1).max(100),
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const access = await requireApartmentMember(req, apartmentId);
   if (!access.ok) return access.response;
 
-  const [requests, home, rooms, role] = await Promise.all([
+  const [requests, home, rooms, role, here] = await Promise.all([
     prisma.maintenanceRequest.findMany({
       where: { apartmentId },
       include: {
@@ -37,6 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     prisma.apartment.findUnique({ where: { id: apartmentId }, select: { manager: { select: { name: true } } } }),
     prisma.room.findMany({ where: { apartmentId }, select: { name: true }, orderBy: { name: "asc" } }),
     updaterRole(apartmentId, access.userId, access.membership.role),
+    activeMemberIds(apartmentId),
   ]);
 
   return NextResponse.json({
@@ -46,7 +47,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     landlord: home?.manager ? { name: home.manager.name } : null,
     rooms: rooms.map(r => r.name),
     // `next`: the steps this person can move each request to (none for people who can't update).
-    requests: requests.map(r => ({ ...r, status: currentStep(r.status), next: role ? nextSteps(r.status) : [] })),
+    // `canConfirm`: this person answers "Is it fixed?" for it (Sprint 8b).
+    requests: requests.map(r => ({
+      ...r, status: currentStep(r.status), next: role ? nextSteps(r.status) : [],
+      canConfirm: canConfirmFix(r, access.userId, access.membership.role, here),
+    })),
   });
 }
 

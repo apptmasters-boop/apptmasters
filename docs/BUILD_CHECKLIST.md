@@ -881,7 +881,7 @@ recorded yet, e.g. a test household with two accounts)
 
 ## Sprint 8 — Maintenance
 
-**Status:** 8a ready for your test · Spec: `PRODUCT_LOGIC.md` §14
+**Status:** 8a approved · 8b building · Spec: `PRODUCT_LOGIC.md` §14
 
 A repair goes **Reported → Acknowledged → Scheduled → In progress →
 Completed**, then the resident confirms it's fixed (**Resolved**) or says it
@@ -894,7 +894,7 @@ landlord's answers on the Maintenance page, so requests never get stuck.
 
 ### 8a — The repair steps and scheduling
 
-**Status:** Ready for your test
+**Status:** Approved
 
 **What I'm building** (§14.1–14.4)
 - **Report a problem:** what, details, **where in the home** (suggestions
@@ -940,16 +940,47 @@ landlord's answers on the Maintenance page, so requests never get stuck.
 4. **Update** → **In progress**, then **Completed**.
 5. On the non-admin's account there's no **Update** button.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-15
 
 ### 8b — "Is it fixed?"
 
-**Status:** Not started (test steps written when it starts)
+**Status:** Building
 
-- After **Completed**, the person who reported it (or an admin, if they've
-  moved out) is asked on Home and on the request: **Yes, it's fixed** →
-  Resolved; **No, still a problem** → back to the landlord with their note,
-  and the landlord or admins are told (§14.5).
+**What I'm building** (§14.5: "completed" doesn't automatically mean "fixed")
+- **After Completed**, the person who reported the problem (or a household
+  admin, if they've moved out) sees **"Is it fixed?"** on Home and on the
+  request, with two answers:
+  - **Yes, it's fixed** → **Resolved**. It moves to the Resolved list.
+  - **No, still a problem** (with a note: what's still wrong) → back to
+    **Reported**, so the landlord side starts again. The note goes on the
+    timeline as "Still a problem", and an old visit is cleared so a new one
+    gets its own calendar entry.
+- **The landlord side is told** either way: household admins in the app
+  (when no landlord is linked; "Tell the landlord" comes back on their Home
+  after "still a problem"), or the linked landlord by email, and their
+  portal shows the resident's note.
+
+**Automatic checks (developer)**
+- [ ] Type check passes
+- [ ] Tests pass (new: only after Completed; only the reporter (or an admin
+      once they've moved out) answers; fixed → resolved; still a problem
+      needs a note and goes back to reported with the visit cleared; the
+      landlord side is told; Home asks "Is it fixed?")
+- [ ] Lint: no new errors
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (the reporter's account and an admin's)
+1. Take a request to **Completed** (as in 8a).
+2. On the reporter's account, Home shows "Is it fixed? *title*". On the
+   request, tap **No, still a problem**, write what's still wrong, send. It's
+   back to **Reported**, and the timeline shows "Still a problem" with the
+   note. The admin's Home shows "Tell the landlord: …" again.
+3. Move it to **Completed** again (admin), then on the reporter's account
+   tap **Yes, it's fixed**. It moves to **Resolved**.
+4. A roommate who didn't report it isn't asked.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ---
 
