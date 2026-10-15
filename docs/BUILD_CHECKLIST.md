@@ -770,7 +770,7 @@ it by hand any more.
 
 ## Sprint 7 — Rent
 
-**Status:** 7a building · Spec: `PRODUCT_LOGIC.md` §12, §22
+**Status:** 7a ready for your test · Spec: `PRODUCT_LOGIC.md` §12, §22
 
 Rent has two separate facts (§12.1): **was the landlord paid?** and **has each
 roommate paid back the rent payer?** Today one tap ("I paid the rent") records
@@ -778,7 +778,7 @@ both at once.
 
 ### 7a — This month: landlord paid vs. roommates reimbursed
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building**
 - **A "This month" card on Rent** (§12.2): total rent; **Landlord**: "Paid
@@ -801,14 +801,16 @@ both at once.
   Marking your share paid still asks how you paid.
 
 **Automatic checks (developer)**
-- [ ] Type check passes
-- [ ] Tests pass (new: landlord paid is separate from collection; only the
+- [x] Type check passes
+- [x] Tests pass: 198 (+6: landlord paid is separate from collection; only the
       rent payer or an admin can mark it or start a month; collected,
       waiting and still-to-collect amounts; reminders only to people who
       haven't paid, sent by the rent payer or an admin; history newest first)
-- [ ] Lint: no new errors
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] Lint: no new errors (65 → 64)
+- [x] CI green on GitHub (1af0f5d)
+- [x] Deployed to apptmasters.com 2026-10-15 (no database change; checked
+      with the household that uses rent: its 4 months load, all marked
+      "landlord paid", amounts add up)
 
 **Your test on apptmasters.com** (rent payer and a roommate)
 1. Money → **Rent**. October's card shows the total, "Landlord: paid…" (it
