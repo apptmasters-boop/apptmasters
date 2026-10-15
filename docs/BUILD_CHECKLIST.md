@@ -1080,9 +1080,88 @@ has allowed notifications on its phone or browser)
 
 ---
 
+## Sprint 10 — Household Issues and Insights
+
+**Status:** Planned (2026-10-15; built after the deploy queue 8b → 9a → 9b)
+· Spec: `PRODUCT_LOGIC.md` §17, §18, §19
+
+Already done in Sprint 1: the More menu follows the blueprint's groups (§17),
+and calls live in Chat.
+
+**Owner's decisions (2026-10-15)**
+- A proposed resolution is accepted (or declined) by **the person who raised
+  the issue**; household admins can still close an issue that's stuck.
+- Issues are visible to **everyone at home**, but the person raising one can
+  mark it **private**: then only they, the person it involves and household
+  admins see it.
+
+### 10a — Household Issues (replaces Disputes)
+
+**Status:** Planned
+
+**What I'm building** (§18: "Issue created → Open → Discussion → Proposed
+resolution → Resolved")
+- **Raise an issue:** a topic (**Noise, Cleaning, Shared expenses, Rent,
+  Guests, Other**), a title, what's going on, optionally **who it involves**
+  (instead of "against"), and **Private** (see above).
+- **The steps:** **Open** → **Discussion** (as soon as anyone replies) →
+  **Proposed resolution** (anyone suggests one: "Quiet hours after 10 pm") →
+  **Resolved** when the person who raised it accepts. If they decline, it
+  goes back to Discussion with their reason. Admins can **close** a stuck
+  issue.
+- **One timeline per issue:** replies, proposals, accepted or declined.
+- **Wording everywhere:** "Household issues", never "dispute". Existing
+  disputes carry over: open ones become Open (or Discussion if they have
+  replies), resolved stay Resolved, dismissed become Closed.
+- **Telling people:** the person it involves and household admins when an
+  issue is raised (only them for private ones); the raiser when there's a
+  reply or a proposal; everyone who can see it when it's resolved. Home shows
+  the raiser "Proposed resolution: *title*. Accept or decline".
+- Database: a few new fields (topic, private, proposal) and a kind for
+  timeline entries, added with a reviewed SQL file.
+
+**Your test on apptmasters.com** (three accounts: A raises, B is involved, C is
+another roommate)
+1. A: More → **Household issues** → **Raise an issue**: topic **Noise**,
+   involves **B**. B and the admins get a notification.
+2. B replies: it's now **Discussion**. B proposes "Quiet hours after 10 pm":
+   **Proposed resolution**, and A's Home shows "Proposed resolution: …".
+3. A taps **Decline** with a reason: back to **Discussion**. B proposes again;
+   A taps **Accept**: **Resolved**, and everyone who can see it is told.
+4. A raises a second issue marked **Private** involving B: C doesn't see it;
+   B and the admins do.
+
+### 10b — Insights (one page instead of Stats and Analytics)
+
+**Status:** Planned
+
+**What I'm building** (§19: "aggregate existing source data… use the same Money
+ledger")
+- **Money** (last 6 months): household spending by month and by category;
+  **your share** each month (including your own part of what you paid); rent
+  history per month: expected, collected, landlord paid (the same numbers as
+  Money → Rent); who owes whom now, from the ledger (the same as Money →
+  Balances).
+- **Household** (last 3 months): cleanings done per person, shopping trips per
+  person (and their totals), chores done and overdue per person.
+- **One "Insights" entry in More** replaces Stats and Analytics; their old
+  links open Insights. Roommate scores stay where they are.
+- Today's Stats and Analytics each add things up their own way (no rent;
+  "owed" means "shared in"; "my share" leaves out your part of what you paid);
+  Insights fixes that by using the same sources as Money.
+
+**Your test on apptmasters.com**
+1. More → **Insights**. This month's spending and categories match Shared
+   expenses; the rent months match Money → Rent; who owes whom matches Money →
+   Balances.
+2. Household: the cleanings and shopping trips per person match Cleaning →
+   History and Shopping.
+3. Old Stats or Analytics links (if bookmarked) open Insights.
+
+---
+
 ## Later sprints (outline; detailed test steps are written when each starts)
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 10 — More / Issues / Insights | 10a Household Issues (was Disputes) · 10b insights from the ledger | Not started |
 | 11 — Marketplace → My Home | 11a "Have you found your new home?" · 11b Create / Join Home flow | Not started |
