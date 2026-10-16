@@ -75,7 +75,7 @@ function VisitorHome() {
           <Image src="/landing/hero.png" alt="Housemates talking in a bright city apartment" fill sizes="100vw"
             loading="eager" fetchPriority="high" className="object-cover object-[50%_58%] md:object-[50%_45%]" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/5" />
-          <div className="relative mx-auto max-w-7xl px-4 pt-8 text-white sm:px-6 md:pt-14 lg:px-8">
+          <div className="relative mx-auto max-w-[96rem] px-4 pt-8 text-white sm:px-6 md:pt-14 lg:px-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/85 sm:text-xs">ApptMasters</p>
             <h1 className="mt-3 max-w-[15ch] text-3xl font-bold leading-[1.1] sm:text-4xl md:text-5xl">Find a safe place with people you can trust.</h1>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-white/90 sm:text-base">
@@ -83,12 +83,12 @@ function VisitorHome() {
             </p>
           </div>
         </div>
-        <div className="relative z-10 mx-auto -mt-8 max-w-7xl px-4 sm:px-6 md:-mt-20 lg:px-8">
+        <div className="relative z-10 mx-auto -mt-8 max-w-[96rem] px-4 sm:px-6 md:-mt-20 lg:px-8">
           <SearchPanel />
         </div>
       </section>
 
-      <main className="mx-auto max-w-7xl space-y-12 px-4 py-10 sm:px-6 md:space-y-16 md:py-14 lg:px-8">
+      <main className="mx-auto max-w-[96rem] space-y-12 px-4 py-10 sm:px-6 md:space-y-16 md:py-14 lg:px-8">
         <LatestListings title="Latest listings" subtitle="Every listing is reviewed before it goes live." />
 
         <section>
@@ -122,7 +122,7 @@ function SeekerHome({ me }: { me: Me }) {
     { icon: CalendarIcon, label: "Move-in date" },
   ];
   return (
-    <main className="mx-auto max-w-7xl space-y-8 px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-10">
+    <main className="mx-auto max-w-[96rem] space-y-8 px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-10">
       <div>
         <HomeQuestionCard />
         <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Hi {me.name.split(" ")[0]},</p>

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch, getToken } from "@/lib/api";
+import { BackLink } from "@/components/market/MarketChrome";
 import ListingForm, { emptyListingForm, toPayload, detailsToForm, ListingFormData } from "../../_components/ListingForm";
 
 export default function EditListingPage() {
@@ -76,7 +77,10 @@ export default function EditListingPage() {
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Edit listing</h1>
+      <div className="mb-1 flex items-center gap-1">
+        <BackLink href="/listings/mine" label="My listings" />
+        <h1 className="text-2xl font-bold text-gray-900">Edit listing</h1>
+      </div>
       <p className="text-sm text-gray-500 mb-6">Changing most fields sends it back for another quick review.</p>
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <ListingForm form={form} setForm={setForm} onSubmit={handleSubmit} submitting={submitting}

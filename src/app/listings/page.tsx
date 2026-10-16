@@ -97,7 +97,7 @@ function FindAHome() {
   );
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-10 pt-4 sm:px-6 lg:grid lg:grid-cols-[19rem_1fr] lg:gap-8 lg:px-8 lg:pt-8">
+    <main className="mx-auto max-w-[96rem] px-4 pb-10 pt-4 sm:px-6 lg:grid lg:grid-cols-[19rem_1fr] lg:gap-8 lg:px-8 lg:pt-8">
       {/* Desktop: the filters on the left (§4). */}
       <aside className="hidden lg:block">
         <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">

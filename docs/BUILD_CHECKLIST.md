@@ -1485,3 +1485,69 @@ marketplace Messages.
 **Not in scope:** an application workflow (Contact ≠ Application), folders in
 Saved, leases and payments (outside ApptMasters), identity or phone
 "verified" badges until a real verification exists.
+
+## Sprint 13 — Look like the pictures, screen by screen
+
+**Status:** 13a being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+
+The owner asked for the screens to match the 13 pictures more closely, one
+step at a time: each step is deployed, tested by the owner and approved before
+the next one starts. Owner decisions (2026-10-16): the new font and look go on
+the **whole app**; people's **profile photos** show on listings and in
+Messages when they've added one (letter circle otherwise); **4 new listing
+details** (air conditioning, heat included, dishwasher, square feet) come with
+13d, after a second OK for the database change.
+
+| Step | What changes | Status |
+|---|---|---|
+| **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Being built |
+| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all" | Not started |
+| **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Not started |
+| **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Not started |
+| **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Not started |
+| **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Not started |
+| **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Not started |
+| **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Not started |
+
+**Left out from the pictures** (the app doesn't have them): star ratings,
+"verified" badges other than the email confirmation, online status, calls and
+video, "Schedule viewing", photos and voice in marketplace messages, folders
+and saved searches, nearby places ("8 min to subway"), household chats in
+marketplace Messages. The map, radius, Search history and the bell come with
+12f.
+
+### 13a — The look everywhere
+
+**What changes**
+- The font in the pictures (Inter) on every page, household pages included;
+  only the lettering changes there, not the layout.
+- On phones, the browser's top bar is the brand green (it was purple).
+- Softer page background, lighter borders, gentle shadows on cards.
+- Phones: the ApptMasters logo bar shows on Home only. Find a Home, Saved,
+  Messages and More get their own title bar (back arrow where it helps, the
+  page title, and its buttons), as in the pictures.
+- Desktop: the header uses the full width; a search button; your photo (or
+  initials), first name and ▾ for your menu. Visitors: search, Log in, Sign up.
+- The phone bar: the active tab in green with a line under it.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass (288; this step changes only the look)
+- [x] Lint: no new errors (51)
+- [x] Screens compared with the pictures at phone and desktop sizes; household
+      pages re-checked (Money, Cleaning, Shopping, Chat, Calendar)
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (phone and computer)
+1. Open Home, Find a Home, Saved, Messages and More: the new lettering
+   everywhere, cards softer.
+2. **Phone:** the browser's top bar is green. Only Home shows the
+   ApptMasters logo bar; the other pages show their own title (e.g. "Saved",
+   "Messages", "More"). The bottom bar shows the page you're on in green.
+3. **Computer:** the header spans the window; the search button opens Find a
+   Home; your photo or initials and first name open your menu.
+4. **Household pages** (Money, Cleaning, Chat, Calendar): same pages as
+   before, only the lettering is new; nothing is cut off.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____

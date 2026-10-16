@@ -97,7 +97,7 @@ function MessagesThread() {
   const today = day(new Date().toISOString());
 
   return (
-    <main className="mx-auto h-[calc(100dvh-8rem)] max-w-7xl lg:grid lg:h-[calc(100dvh-4rem)] lg:grid-cols-[20rem_1fr_20rem] lg:gap-5 lg:px-8 lg:py-5">
+    <main className="mx-auto h-[calc(100dvh-5rem)] max-w-[96rem] lg:grid lg:h-[calc(100dvh-4rem)] lg:grid-cols-[20rem_1fr_20rem] lg:gap-5 lg:px-8 lg:py-5">
       {/* Desktop: the other conversations */}
       <aside className="hidden overflow-y-auto rounded-2xl border border-gray-200 bg-white lg:block dark:border-gray-800 dark:bg-gray-900">
         <div className="border-b border-gray-100 px-4 py-4 dark:border-gray-800">

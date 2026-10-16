@@ -8,6 +8,9 @@
  *   Signed in         Home · Find a Home · Messages · Saved · How It Works · More · avatar
  *   Phone bar         Home · Saved · Messages · More (visitors: Home · Find a Home · Saved · More)
  *
+ * On phones the logo bar shows on Home only; every other page starts with its
+ * own title, as in the designs (Sprint 13a).
+ *
  * People who live in a home keep their household navigation here (§25).
  */
 import { useEffect, useRef, useState } from "react";
@@ -19,7 +22,7 @@ import { Logo } from "@/components/landing/SiteChrome";
 import { useMe, forgetMe, initials, type Me } from "./useMe";
 import { loadSaved, completeSaveIntent } from "./saved";
 import {
-  ChevronDownIcon, HeartIcon, HomeIcon, MessageIcon, MoreIcon, SearchIcon,
+  ArrowLeftIcon, ChevronDownIcon, HeartIcon, HomeIcon, MessageIcon, MoreIcon, SearchIcon,
 } from "@/components/landing/icons";
 
 /** The wordmark, shared with the sign-in pages and the household sidebar. */
@@ -86,7 +89,17 @@ function Dropdown({ label, children }: { label: React.ReactNode; children: React
 }
 const menuItem = "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800";
 
-export function MarketHeader({ me, unread }: { me: Me | null | undefined; unread: number }) {
+/** The round back arrow that starts a phone page without the logo bar. */
+export function BackLink({ href, label = "Back", className = "" }: { href: string; label?: string; className?: string }) {
+  return (
+    <Link href={href} aria-label={label}
+      className={`-ml-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-900 hover:bg-gray-100 lg:hidden dark:text-white dark:hover:bg-gray-800 ${className}`}>
+      <ArrowLeftIcon className="h-6 w-6" />
+    </Link>
+  );
+}
+
+export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | undefined; unread: number; onPhone?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const signedIn = !!me;
@@ -104,8 +117,8 @@ export function MarketHeader({ me, unread }: { me: Me | null | undefined; unread
       : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
+    <header className={`sticky top-0 z-30 border-b border-gray-200/80 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95 ${onPhone ? "" : "hidden lg:block"}`}>
+      <div className="mx-auto flex h-16 max-w-[96rem] items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-10">
           <MarketLogo />
           <nav className="hidden items-center gap-7 lg:flex" aria-label="Main">
@@ -136,7 +149,7 @@ export function MarketHeader({ me, unread }: { me: Me | null | undefined; unread
           </nav>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/listings" aria-label="Search" className="hidden rounded-xl border border-gray-200 p-2.5 text-gray-700 hover:bg-gray-50 sm:block lg:hidden dark:border-gray-700 dark:text-gray-200">
+          <Link href="/listings" aria-label="Search" className="hidden rounded-xl border border-gray-200 p-2.5 text-gray-700 hover:bg-gray-50 sm:block dark:border-gray-700 dark:text-gray-200">
             <SearchIcon className="h-5 w-5" />
           </Link>
           {me === undefined ? (
@@ -196,13 +209,13 @@ export function MarketBottomNav({ me, unread }: { me: Me | null | undefined; unr
         {tabs.map(({ href, label, icon: Icon, ...t }) => (
           <li key={href}>
             <Link href={href} aria-current={isActive(href) ? "page" : undefined}
-              className={`relative flex flex-col items-center gap-1 pb-2 pt-2.5 text-[11px] font-medium ${isActive(href) ? "text-brand dark:text-emerald-300" : "text-gray-500 dark:text-gray-400"}`}>
+              className={`relative flex flex-col items-center gap-1 pb-2.5 pt-2.5 text-xs font-medium ${isActive(href) ? "text-brand dark:text-emerald-300" : "text-gray-500 dark:text-gray-400"}`}>
               <span className="relative">
                 <Icon className="h-6 w-6" />
                 {"dot" in t && t.dot && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500" />}
               </span>
               {label}
-              {isActive(href) && <span className="absolute bottom-0.5 h-0.5 w-8 rounded-full bg-brand" />}
+              {isActive(href) && <span className="absolute bottom-1 h-[3px] w-10 rounded-full bg-brand" />}
             </Link>
           </li>
         ))}
@@ -226,7 +239,8 @@ export function Toast({ message }: { message: string }) {
  * navigation for people who live in a home), and finishing a save started
  * before signing in.
  */
-export function MarketShell({ children, bare = false }: { children: React.ReactNode; bare?: boolean }) {
+export function MarketShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const me = useMe();
   const unread = useMarketUnread(!!me);
   const [toast, setToast] = useState("");
@@ -245,10 +259,10 @@ export function MarketShell({ children, bare = false }: { children: React.ReactN
 
   const home = me?.homes[0];
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-white lg:bg-gray-50 dark:bg-gray-950">
       {home && <ResidentNav home={home} />}
       <div className={home ? "pb-16 md:pb-0 md:pl-64" : "pb-20 lg:pb-0"}>
-        {!bare && <MarketHeader me={me} unread={unread} />}
+        <MarketHeader me={me} unread={unread} onPhone={pathname === "/"} />
         {children}
       </div>
       {!home && <MarketBottomNav me={me} unread={unread} />}

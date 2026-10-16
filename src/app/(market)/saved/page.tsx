@@ -74,7 +74,7 @@ export default function SavedPage() {
   const kinds = [["", "All saved", counts.all], ["APARTMENT_FOR_RENT", "Whole places", counts.APARTMENT_FOR_RENT], ["ROOM_TO_SHARE", "Rooms", counts.ROOM_TO_SHARE]] as const;
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:grid lg:grid-cols-[15rem_1fr] lg:gap-8 lg:px-8 lg:pt-8">
+    <main className="mx-auto max-w-[96rem] px-4 pb-10 pt-6 sm:px-6 lg:grid lg:grid-cols-[15rem_1fr] lg:gap-8 lg:px-8 lg:pt-8">
       <aside className="hidden lg:block">
         <div className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <h2 className="px-2 text-lg font-bold text-gray-900 dark:text-white">Saved</h2>

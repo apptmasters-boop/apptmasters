@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/components/market/MarketChrome";
 import { SearchIcon, MessageIcon, HomeIcon, UsersIcon, ArrowRightIcon } from "@/components/landing/icons";
 
 export const metadata = { title: "How It Works · ApptMasters" };
@@ -14,6 +15,7 @@ const STEPS = [
 export default function HowItWorksPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 pb-12 pt-8 sm:px-6 lg:pt-12">
+      <BackLink href="/more" label="More" className="mb-2" />
       <p className="text-sm font-semibold uppercase tracking-wider text-brand">How It Works</p>
       <h1 className="mt-2 max-w-2xl text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">From finding a place to living well together</h1>
       <p className="mt-3 max-w-2xl text-gray-600 dark:text-gray-300">ApptMasters helps you find a home, then makes sharing it simple.</p>

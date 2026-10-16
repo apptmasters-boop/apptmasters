@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, getToken } from "@/lib/api";
+import { BackLink } from "@/components/market/MarketChrome";
 
 interface Listing {
   id: string; type: string; status: string; title: string; price: number; priceMax: number | null;
@@ -55,7 +56,10 @@ export default function MyListingsPage() {
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My listings</h1>
+        <div className="flex items-center gap-1">
+          <BackLink href="/more" label="More" />
+          <h1 className="text-2xl font-bold text-gray-900">My listings</h1>
+        </div>
         <Link href="/listings/new" className="text-sm bg-brand text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-dark transition-colors">
           + New listing
         </Link>

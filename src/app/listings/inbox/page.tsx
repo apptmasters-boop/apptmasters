@@ -37,7 +37,7 @@ export default function ListingsInboxPage() {
   const tabs: [Tab, string][] = [["all", "All"], ["asked", "Places I asked about"], ["mine", "My listings"]];
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-[96rem] px-4 pb-10 pt-6 sm:px-6 lg:px-8">
       <div className="lg:grid lg:grid-cols-[24rem_1fr] lg:gap-6">
         <section>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Messages</h1>

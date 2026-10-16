@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/components/market/MarketChrome";
 
 export const metadata = { title: "Help · ApptMasters" };
 
@@ -16,7 +17,10 @@ const QUESTIONS: [string, React.ReactNode][] = [
 export default function HelpPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Help</h1>
+      <div className="flex items-center gap-1">
+        <BackLink href="/more" label="More" />
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Help</h1>
+      </div>
       <p className="mt-2 text-gray-600 dark:text-gray-300">Answers to the questions people ask most.</p>
       <div className="mt-6 divide-y divide-gray-200 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
         {QUESTIONS.map(([q, a]) => (
