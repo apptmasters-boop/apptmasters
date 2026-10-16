@@ -30,6 +30,8 @@ done
 for page in "" /household /shopping /cleaning /money /rent /maintenance /issues /insights /calendar; do
   echo "page /apartment/<apt>$page: $(code "http://localhost:3000/apartment/$APT$page")"
 done
+echo "GET /api/users/home-search: $(code -H "$AUTH" http://localhost:3000/api/users/home-search)"
+echo "page /listings: $(code http://localhost:3000/listings)"
 echo "public site: $(code https://apptmasters.com/)"
 
 NEW=$(( $(wc -l < "$ERRLOG") - BEFORE ))

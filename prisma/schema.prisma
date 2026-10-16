@@ -24,6 +24,9 @@ model User {
   // `prisma db push` keeps its data instead of dropping it (docs/ROADMAP.md, schema drift).
   platformRole   PlatformRole @default(tenant) @map("platform_role")
   foundHomeAt    DateTime? // self-reported "I found a place" (PRODUCT_LOGIC §2.1, §3.3); see src/lib/housing.ts
+  // "Have you found your new home?" (Sprint 11a): when the daily job last asked, and the last "I'm still looking".
+  homeAskedAt    DateTime?
+  stillLookingAt DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

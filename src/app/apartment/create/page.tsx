@@ -55,6 +55,10 @@ export default function CreateApartmentPage() {
             {loading ? "Creating…" : "Create apartment"}
           </button>
         </form>
+        <p className="mt-5 text-center text-sm text-gray-500">
+          Moving in with roommates who already use Apartment Masters?{" "}
+          <Link href="/apartment/join" className="font-medium text-brand hover:underline">Join their home</Link>
+        </p>
       </div>
     </div>
   );

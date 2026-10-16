@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { LIFESTYLE_OPTIONS } from "@/components/landing/options";
+import HomeQuestionCard from "./_components/HomeQuestionCard";
 
 interface Listing {
   id: string; type: string; title: string; price: number; priceMax: number | null;
@@ -61,6 +62,7 @@ export default function BrowseListingsPage() {
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-8">
+      <HomeQuestionCard />
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-gray-900">Find a place, no broker fee</h1>
         <p className="text-sm text-gray-500 mt-1">Browse apartments and rooms posted directly by the people who have them.</p>

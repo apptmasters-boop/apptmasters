@@ -1217,30 +1217,61 @@ assumes a lease was signed (§1).
 
 ### 11a — "Have you found your new home?"
 
-**Status:** Building
+**Status:** Built, checks pass; deploy next
 
 **What I'm building** (§3.2–3.3)
-- **Who's asked:** signed-in people looking for a home (no home yet, haven't
-  said they found one), at the times above.
+- **Who's asked:** signed-in people looking for a home (no home yet, not
+  waiting to join one, haven't said they found one), at the times above.
+  Not asked: property managers and platform admins, and people who only post
+  listings (they're offering a place), unless they also message a listing
+  owner.
 - **Where:** a card at the top of **Listings**: "Have you found your new
-  home?" with **I'm still looking** and **Yes, I found a place**. A daily job
-  also asks once by email and phone notification (a person without a home has
-  no in-app bell yet), never more than once in 14 days.
+  home?" with **Yes, I found a place** and **I'm still looking**. A daily job
+  also asks by email and phone notification (a person without a home has no
+  in-app bell yet), never more than once in 14 days. It follows the person's
+  settings (Profile → Notifications → Household). The email's **Answer**
+  button opens Listings with the card, asking to sign in first if needed.
 - **I'm still looking:** the card goes away for 14 days.
-- **Yes, I found a place:** they become "Found a home" (§2.1) and go to Home
-  Setup (11b). After signing in, they land on Home Setup until they have a
-  home.
+- **Yes, I found a place:** they become "Found a home" (§2.1) and go to set
+  up their home. Until Home Setup exists (11b) that's **Create apartment**,
+  which now also links to **Join their home** (invite code). After signing in,
+  they land there until they have a home.
+- **Moving out:** someone who moves out of their home starts a new search; the
+  question comes 14 days later (an old "I found a place" no longer counts).
 - Database: two dates on each person (last asked, last "still looking"), added
-  with a reviewed SQL file. The daily job needs one line in the server's
-  schedule (your OK at deploy time).
+  with a reviewed SQL file (`prisma/manual-sql/2026-10-16-sprint-11a-home-question.sql`).
+  The daily job needs one line in the server's schedule: before turning it on
+  I'll tell you how many people its first run would email (a count only), for
+  your OK.
 
-**Your test on apptmasters.com** (an account without a home; I can make it
-"due" for the test)
-1. Open **Listings**: the card asks "Have you found your new home?".
-2. Tap **I'm still looking**: the card disappears and stays away.
-3. On a second account (also due), tap **Yes, I found a place**: you're taken
-   to Home Setup; signing out and in again lands there too.
-4. The email asking the question arrives once (from the daily job).
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 259 (+20: due 14 days after sign-up or 7 days after the
+      first message to someone else's listing, whichever is first; 14 days
+      after "still looking"; never for members, people waiting to join,
+      managers, or people who only post listings; moving out starts a new
+      search; the answers and where they lead; the daily job emails and pushes
+      once, not again for 14 days, follows settings, and can count without
+      sending)
+- [x] Lint: no new errors (60)
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+- [ ] Daily job in the server's schedule (after your OK)
+
+**Your test on apptmasters.com** (accounts without a home that signed up more
+than 2 weeks ago are already "due")
+1. Sign in with such an account and open **Listings**: at the top, a card asks
+   "Have you found your new home?".
+2. Tap **I'm still looking**: the card is replaced by "We'll check in again in
+   two weeks". Reload: no card.
+3. On a second such account, tap **Yes, I found a place**: you're taken to
+   Create apartment, which has a **Join their home** link. Sign out and in
+   again: you land there again.
+4. After the daily job's first run: a third such account (one that hasn't
+   answered) gets one email "Have you found your new home?"; its **Answer**
+   button opens Listings with the card. The next day, no second email.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ### 11b — Home Setup: create or join, with a move-in date
 

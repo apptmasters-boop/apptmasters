@@ -30,6 +30,9 @@ describe("landingPath", () => {
     expect(landingPath(user({ systemRole: "SUPER_ADMIN", memberships: [home("a1")] }))).toBe("/apartment/a1");
   });
   it("sends home seekers to Find a Home", () => expect(landingPath(user())).toBe("/listings"));
+  it("sends someone who found a place to set up their home", () => {
+    expect(landingPath(user({ foundHomeAt: new Date() }))).toBe("/apartment/create");
+  });
   it("sends someone waiting for approval to Your homes", () => {
     expect(landingPath(user({ memberships: [home("a1", "PENDING_APPROVAL")] }))).toBe("/dashboard");
   });

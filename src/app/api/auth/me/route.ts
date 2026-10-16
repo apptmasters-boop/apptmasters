@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { housingState } from "@/lib/housing";
+import { housingState, foundHomeHolds } from "@/lib/housing";
 
 export async function GET(req: NextRequest) {
   const payload = getTokenFromRequest(req);
@@ -20,5 +20,14 @@ export async function GET(req: NextRequest) {
   });
 
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // "I found a place" no longer holds once they've moved out of a home since saying it.
+  if (user.foundHomeAt && user.memberships.length === 0) {
+    const left = await prisma.apartmentMember.findFirst({
+      where: { userId: user.id, status: "MOVED_OUT", movedOutAt: { not: null } },
+      orderBy: { movedOutAt: "desc" },
+      select: { movedOutAt: true },
+    });
+    if (!foundHomeHolds(user.foundHomeAt, left?.movedOutAt ?? null)) user.foundHomeAt = null;
+  }
   return NextResponse.json({ ...user, housingState: housingState(user) });
 }

@@ -34,7 +34,64 @@ export function landingPath(me: MeForLanding): string {
   if (homes.length > 0) return `/apartment/${homes[0].apartment.id}`;
   // Waiting for a household admin to approve a join request: "Your homes" shows it as pending.
   if (me.memberships.some(m => m.status === "PENDING_APPROVAL")) return "/dashboard";
+  // Said "I found a place" (Sprint 11a): set up the home next. 11b turns this into the Home Setup flow.
+  if (me.foundHomeAt) return "/apartment/create";
   if (me.systemRole === "MANAGER") return "/manager";
   if (me.systemRole === "SUPER_ADMIN") return "/admin";
   return "/listings";
+}
+
+// ---------------------------------------------------------------------------
+// "Have you found your new home?" (PRODUCT_LOGIC §3.3; owner's timing,
+// 2026-10-16): 14 days after signing up, or 7 days after first messaging a
+// listing owner, whichever comes first; after "I'm still looking", again 14
+// days later. Signals help decide when to ask; they never prove a tenancy (§3.2).
+
+const DAY = 86_400_000;
+export const ASK_AFTER_SIGNUP_DAYS = 14;
+export const ASK_AFTER_CONTACT_DAYS = 7;
+export const ASK_AGAIN_AFTER_DAYS = 14;
+/** The daily job runs at about the same time each day; this keeps "14 days later" from slipping a day. */
+const JOB_SLACK_MS = 60 * 60_000;
+
+export interface HomeSearchFacts {
+  createdAt: Date;
+  foundHomeAt: Date | null;
+  stillLookingAt: Date | null;
+  /** Lives in a home, or is waiting to be approved into one. */
+  hasHome: boolean;
+  /** When they last moved out of a home, if ever: a new search starts then. */
+  leftHomeAt: Date | null;
+  /** Their first message to a listing owner since the search started (searchStartedAt). */
+  firstContactAt: Date | null;
+  /** Has posted a listing: offering a place rather than looking, unless they also message an owner. */
+  postsListings: boolean;
+}
+
+/** When the current search started: signing up, or moving out of their last home. */
+export function searchStartedAt(createdAt: Date, leftHomeAt: Date | null): Date {
+  return leftHomeAt && leftHomeAt > createdAt ? leftHomeAt : createdAt;
+}
+
+/** "I found a place" holds until they next move out of a home; then they're looking again. */
+export function foundHomeHolds(foundHomeAt: Date | null, leftHomeAt: Date | null): boolean {
+  return !!foundHomeAt && !(leftHomeAt && leftHomeAt > foundHomeAt);
+}
+
+/** When the question is due, or null when it doesn't apply (they have a home, found one, or only offer one). */
+export function homeQuestionDueAt(f: HomeSearchFacts): Date | null {
+  if (f.hasHome || foundHomeHolds(f.foundHomeAt, f.leftHomeAt)) return null;
+  if (f.postsListings && !f.firstContactAt) return null;
+  const start = searchStartedAt(f.createdAt, f.leftHomeAt);
+  let due = start.getTime() + ASK_AFTER_SIGNUP_DAYS * DAY;
+  if (f.firstContactAt && f.firstContactAt >= start) due = Math.min(due, f.firstContactAt.getTime() + ASK_AFTER_CONTACT_DAYS * DAY);
+  if (f.stillLookingAt) due = Math.max(due, f.stillLookingAt.getTime() + ASK_AGAIN_AFTER_DAYS * DAY);
+  return new Date(due);
+}
+
+/** Does the daily job ask today (email and push)? Never more than once in 14 days. */
+export function homeQuestionEmailDue(f: HomeSearchFacts & { homeAskedAt: Date | null }, now: Date): boolean {
+  const due = homeQuestionDueAt(f);
+  if (!due || now < due) return false;
+  return !f.homeAskedAt || now.getTime() - f.homeAskedAt.getTime() >= ASK_AGAIN_AFTER_DAYS * DAY - JOB_SLACK_MS;
 }
