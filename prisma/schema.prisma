@@ -1033,6 +1033,10 @@ model Listing {
   petsAllowed       Boolean?
   smokingAllowed    Boolean?
   accessible        Boolean?
+  airConditioning   Boolean? // Sprint 13d (owner's OK 2026-10-16)
+  heatIncluded      Boolean?
+  dishwasher        Boolean?
+  squareFeet        Int?
   brokerFee         Float?   // 0 = no broker fee
   applicationFee    Float?   // 0 = none
 

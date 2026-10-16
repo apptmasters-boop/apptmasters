@@ -36,6 +36,7 @@ export interface ListingFormData {
   photoUrls: string[];
   // Details people search for (Sprint 12; MARKETPLACE_FLOW.md §4–§5). Empty = not stated.
   maxOccupants: string;
+  squareFeet: string;
   neighborhood: string;
   zipCode: string;
   propertyType: string;
@@ -71,6 +72,7 @@ export const emptyListingForm: ListingFormData = {
   roommateCulturalNotes: "",
   photoUrls: [],
   maxOccupants: "",
+  squareFeet: "",
   neighborhood: "",
   zipCode: "",
   propertyType: "",
@@ -87,7 +89,7 @@ export const emptyListingForm: ListingFormData = {
 export function detailsToForm(l: Record<string, unknown>): Partial<ListingFormData> {
   const s = (v: unknown) => (v === null || v === undefined ? "" : String(v));
   return {
-    maxOccupants: s(l.maxOccupants), neighborhood: s(l.neighborhood), zipCode: s(l.zipCode),
+    maxOccupants: s(l.maxOccupants), squareFeet: s(l.squareFeet), neighborhood: s(l.neighborhood), zipCode: s(l.zipCode),
     propertyType: s(l.propertyType), roomType: s(l.roomType), leaseMonths: s(l.leaseMonths), laundry: s(l.laundry),
     smoking: l.smokingAllowed === true ? "yes" : l.smokingAllowed === false ? "no" : "",
     amenities: AMENITIES.filter(a => l[a.key] === true).map(a => a.key),
@@ -119,6 +121,7 @@ export function toPayload(form: ListingFormData) {
     roommateCulturalNotes: form.roommateCulturalNotes || undefined,
     photoUrls: form.photoUrls,
     maxOccupants: form.maxOccupants ? parseInt(form.maxOccupants, 10) : undefined,
+    squareFeet: form.squareFeet ? parseInt(form.squareFeet, 10) : undefined,
     neighborhood: form.neighborhood.trim() || undefined,
     zipCode: form.zipCode.trim() || undefined,
     propertyType: form.propertyType || undefined,
@@ -316,6 +319,14 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">ZIP code</label>
             <input type="text" inputMode="numeric" maxLength={5} placeholder="11216" value={form.zipCode} onChange={e => setForm(f => ({ ...f, zipCode: e.target.value.replace(/\D/g, "") }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Size (square feet)</label>
+            <input type="number" inputMode="numeric" min="50" max="20000" step="1" placeholder="e.g. 850" value={form.squareFeet}
+              onChange={e => setForm(f => ({ ...f, squareFeet: e.target.value.replace(/\D/g, "") }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand" />
           </div>
         </div>
         <div>

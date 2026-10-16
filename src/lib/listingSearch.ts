@@ -37,6 +37,9 @@ export const LEASE_FILTERS = [
   { value: "12", label: "12 months or more" },
 ] as const;
 
+/** Smallest size, in square feet (Sprint 13d). */
+export const SIZES = [500, 750, 1000, 1500] as const;
+
 export const LISTED_WITHIN = [
   { value: 1, label: "Last 24 hours" },
   { value: 7, label: "Last 7 days" },
@@ -60,6 +63,8 @@ export interface SearchFilters {
   bedrooms: string;
   /** At least this many. */
   bathrooms: number | null;
+  /** At least this many square feet. */
+  minSqft: number | null;
   /** YYYY-MM-DD: available by then. */
   moveIn: string;
   /** "0" month-to-month, "6" six months or less, "12" twelve months or more. */
@@ -78,7 +83,7 @@ export interface SearchFilters {
 
 export const EMPTY_FILTERS: SearchFilters = {
   q: "", type: "", kind: "", propertyType: "", roomType: "", minPrice: null, maxPrice: null, occupants: null,
-  bedrooms: "", bathrooms: null, moveIn: "", lease: "", amenities: [], laundry: false, smoking: "",
+  bedrooms: "", bathrooms: null, minSqft: null, moveIn: "", lease: "", amenities: [], laundry: false, smoking: "",
   noBrokerFee: false, noApplicationFee: false, listedWithin: null, sort: "newest", roommateLifestyleTag: "",
 };
 
@@ -94,6 +99,7 @@ const AMENITY_KEYS = AMENITIES.map(a => a.key);
 export function parseFilters(p: URLSearchParams): SearchFilters {
   const occupants = num(p.get("occupants"));
   const bathrooms = num(p.get("bathrooms"));
+  const minSqft = num(p.get("minSqft"));
   const listedWithin = num(p.get("listedWithin"));
   return {
     q: (p.get("q") ?? p.get("city") ?? "").trim().slice(0, 80),
@@ -106,6 +112,7 @@ export function parseFilters(p: URLSearchParams): SearchFilters {
     occupants: occupants !== null && occupants >= 1 ? Math.min(Math.floor(occupants), 20) : null,
     bedrooms: oneOf(p.get("bedrooms"), ["0", "1", "2", "3+"] as const) || (num(p.get("bedrooms")) !== null && num(p.get("bedrooms"))! >= 3 ? "3+" : ""),
     bathrooms: bathrooms !== null && bathrooms >= 1 ? bathrooms : null,
+    minSqft: minSqft !== null && minSqft >= 1 ? Math.min(Math.floor(minSqft), 20_000) : null,
     moveIn: /^\d{4}-\d{2}-\d{2}$/.test(p.get("moveIn") ?? "") ? p.get("moveIn")! : "",
     lease: oneOf(p.get("lease"), ["0", "6", "12"] as const),
     amenities: (p.get("amenities") ?? "").split(",").filter((a): a is AmenityKey => (AMENITY_KEYS as readonly string[]).includes(a)),
@@ -136,6 +143,7 @@ export function filtersToParams(f: SearchFilters): URLSearchParams {
   set("occupants", f.occupants);
   set("bedrooms", f.bedrooms);
   set("bathrooms", f.bathrooms);
+  set("minSqft", f.minSqft);
   set("moveIn", f.moveIn);
   set("lease", f.lease);
   set("amenities", f.amenities.join(","));
@@ -168,6 +176,7 @@ export function activeChips(f: SearchFilters): FilterChip[] {
   else if (f.minPrice !== null) add("price", `From ${money(f.minPrice)}`, { minPrice: null });
   if (f.occupants) add("occupants", `${f.occupants} ${f.occupants === 1 ? "person" : "people"}`, { occupants: null });
   if (f.bedrooms) add("bedrooms", f.bedrooms === "0" ? "Studio" : f.bedrooms === "3+" ? "3+ bedrooms" : `${f.bedrooms} bedroom${f.bedrooms === "1" ? "" : "s"}`, { bedrooms: "" });
+  if (f.minSqft) add("minSqft", `${f.minSqft.toLocaleString("en-US")}+ sq ft`, { minSqft: null });
   if (f.bathrooms) add("bathrooms", `${f.bathrooms}+ bath${f.bathrooms === 1 ? "" : "s"}`, { bathrooms: null });
   if (f.moveIn) add("moveIn", `Move in by ${new Date(`${f.moveIn}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}`, { moveIn: "" });
   if (f.lease) add("lease", LEASE_FILTERS.find(l => l.value === f.lease)!.label, { lease: "" });
@@ -204,6 +213,7 @@ export function searchWhere(f: SearchFilters, now = new Date()): Prisma.ListingW
   if (f.occupants) and.push({ maxOccupants: { gte: f.occupants } });
   if (f.bedrooms) and.push({ bedrooms: f.bedrooms === "3+" ? { gte: 3 } : Number(f.bedrooms) });
   if (f.bathrooms) and.push({ bathrooms: { gte: f.bathrooms } });
+  if (f.minSqft) and.push({ squareFeet: { gte: f.minSqft } });
   if (f.moveIn) and.push({ OR: [{ availableFrom: null }, { availableFrom: { lte: new Date(`${f.moveIn}T23:59:59.999Z`) } }] });
   if (f.lease === "0") and.push({ leaseMonths: 0 });
   if (f.lease === "6") and.push({ leaseMonths: { lte: 6 } });

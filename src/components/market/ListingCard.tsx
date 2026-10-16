@@ -97,6 +97,7 @@ function Photo({ l, className, showNew = true, showPrice = true }: { l: MarketLi
 /** Short names for the row of details on cards. */
 const SHORT: Record<string, string> = {
   "Wi-Fi included": "Wi-Fi", "Utilities included": "Utilities", "Private bathroom": "Private bath", "Pets allowed": "Pet friendly",
+  "Air conditioning": "A/C", "Heat included": "Heat",
 };
 
 /** One row of details; the ones that don't fit are hidden rather than wrapped onto a second row. */

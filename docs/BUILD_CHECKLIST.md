@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a and 13b approved; 13c live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a, 13b and 13c approved; 13d being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1508,8 +1508,8 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 |---|---|---|
 | **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Approved 2026-10-16 |
 | **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Approved 2026-10-16 |
-| **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Ready for your test |
-| **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Not started |
+| **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Approved 2026-10-16 |
+| **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Being built |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Not started |
 | **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Not started |
 | **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Not started |
@@ -1657,5 +1657,55 @@ e.g. A; phone and computer)
    Switch to **List**, then back to **Grid**.
 5. Signed in as an account the question is due for (A or B): the "Have you
    found your new home?" card is on **Home**, no longer on Find a Home.
+
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
+
+### 13d — Filters + 4 new listing details
+
+**What changes** (pictures: `docs/mockups/filters-mobile.jpg`, the left panel of
+`find-a-home-desktop.jpg`)
+- **Phone Filters screen** as in the picture: it slides up as a sheet with a
+  handle; every section has its icon and its own **Clear**; Reset all at the
+  top; "Show N listings" stays at the bottom.
+  - **Property type: All · Apartment · Room · House** (the same as the tabs;
+    for Room you can then pick a private or shared room).
+  - **Price range: a slider with two handles**, the amounts above them, and
+    Min / Max boxes to type an exact amount ($5,000+ means no top limit).
+  - Bedrooms, Number of occupants, Bathrooms, Move-in date, as in the picture.
+  - **Additional options with an icon each**: Furnished, Pet friendly,
+    Parking, Laundry, Wi-Fi, Air conditioning, Elevator, Heat included,
+    Dishwasher, Utilities included, Private bathroom, Accessible.
+  - **Size**: Any, 500+, 750+, 1,000+, 1,500+ square feet.
+  - Then the filters from your document that the picture doesn't show: lease,
+    smoking, fees, how recently it was listed.
+- **Computer filter panel** as in the picture: property type and the options
+  as tick boxes, the price slider with Min / Max, and **Apply filters**.
+- **4 new listing details** on the listing form: air conditioning, heat
+  included, dishwasher (in "What's included") and the size in square feet.
+  They're filters right away; the listing page shows the size from 13e.
+- **Database change:** 4 empty columns on listings (nothing existing changes).
+  I ask your OK before applying it on the live site.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 292 (new: the 4 details are saved and found by their filters; a
+      size that makes no sense is refused)
+- [x] Lint: no new errors (51)
+- [x] Screens compared with the pictures at phone and desktop sizes
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com with the SQL file (after the owner's OK)
+
+**Your test on apptmasters.com** (phone and computer)
+1. **Phone:** in Find a Home tap **Filters**: the sheet slides up with a
+   handle. Drag the two price handles: the amounts above them change; type a
+   Max instead. Choose Property type **Room**, then **Private room**. Tap
+   **Show N listings**: the results match.
+2. Open Filters again: each section you set has **Clear**; **Reset all** clears
+   everything.
+3. **Computer:** the panel on the left has tick boxes for the property type
+   and the options, the price slider, and **Apply filters** at the bottom.
+4. **Your listing:** edit it, tick **Air conditioning** and **Dishwasher**,
+   enter a size (e.g. 850 square feet), save. Once it's live again, the
+   **Air conditioning** option and **Size 750+** both find it.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

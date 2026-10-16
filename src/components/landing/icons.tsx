@@ -85,3 +85,8 @@ export const ShowerIcon = (p: P) => <Svg {...p}><path d="M4 20V7a3 3 0 0 1 6 0" 
 export const TagIcon = (p: P) => <Svg {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><circle cx="7.5" cy="7.5" r="1.5" /></Svg>;
 export const ReceiptIcon = (p: P) => <Svg {...p}><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" /><path d="M9 8h6M9 12h6" /></Svg>;
 export const GridIcon = (p: P) => <Svg {...p}><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></Svg>;
+/** Sprint 13d: the options in the owner's filter picture. */
+export const SnowflakeIcon = (p: P) => <Svg {...p}><path d="M12 2v20M4.9 6.5l14.2 11M4.9 17.5l14.2-11" /><path d="m9.5 3.5 2.5 2 2.5-2M9.5 20.5l2.5-2 2.5 2M3.5 9.5l2.8.6.3 2.9M20.5 14.5l-2.8-.6-.3-2.9M3.5 14.5l2.8-.6.3-2.9M20.5 9.5l-2.8.6-.3 2.9" /></Svg>;
+export const FlameIcon = (p: P) => <Svg {...p}><path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.4 2.4-5.4 3.6-8.3.5 1.6 1.4 2.7 2.6 3.3C12 6.6 13.5 4.4 15 3c.3 3.1 3.5 5.6 3.5 10.6 0 4.6-2.7 7.4-6.5 7.4Z" /><path d="M12 21c-1.6 0-2.8-1.2-2.8-2.9 0-1.9 1.6-2.8 2.2-4.3.9 1 2.5 2 2.5 4.1 0 1.8-.9 3.1-1.9 3.1Z" /></Svg>;
+export const DishwasherIcon = (p: P) => <Svg {...p}><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M4 7.5h16M7.5 5.25h.01M10.5 5.25h.01" /><circle cx="12" cy="14" r="4" /><path d="M10.5 13.5a1.8 1.8 0 0 1 2.5-.9" /></Svg>;
+export const RulerIcon = (p: P) => <Svg {...p}><path d="M3.5 16.5 16.5 3.5l4 4-13 13-4-4Z" /><path d="m7 13 1.5 1.5M9.5 10.5 12 13M12 8l1.5 1.5M14.5 5.5 17 8" /></Svg>;

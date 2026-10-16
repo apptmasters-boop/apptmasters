@@ -43,6 +43,9 @@ export const AMENITIES = [
   { key: "elevator", label: "Elevator" },
   { key: "petsAllowed", label: "Pets allowed" },
   { key: "accessible", label: "Accessible" },
+  { key: "airConditioning", label: "Air conditioning" },
+  { key: "heatIncluded", label: "Heat included" },
+  { key: "dishwasher", label: "Dishwasher" },
 ] as const;
 export type AmenityKey = (typeof AMENITIES)[number]["key"];
 
@@ -63,6 +66,10 @@ export interface ListingDetails {
   petsAllowed: boolean | null;
   smokingAllowed: boolean | null;
   accessible: boolean | null;
+  airConditioning: boolean | null;
+  heatIncluded: boolean | null;
+  dishwasher: boolean | null;
+  squareFeet: number | null;
   brokerFee: number | null;
   applicationFee: number | null;
 }
@@ -113,6 +120,10 @@ export const detailsSchema = z.object({
   petsAllowed: z.boolean().optional(),
   smokingAllowed: z.boolean().optional(),
   accessible: z.boolean().optional(),
+  airConditioning: z.boolean().optional(),
+  heatIncluded: z.boolean().optional(),
+  dishwasher: z.boolean().optional(),
+  squareFeet: z.number().int("Square feet: a whole number").min(50, "At least 50 square feet").max(20_000, "20,000 square feet at most").optional(),
   brokerFee: z.number().min(0, "Enter 0 for no fee").max(100_000).optional(),
   applicationFee: z.number().min(0, "Enter 0 for no fee").max(10_000).optional(),
 });
@@ -137,6 +148,10 @@ export function detailsData(d: DetailsInput, type: string): ListingDetails {
     petsAllowed: d.petsAllowed ?? null,
     smokingAllowed: d.smokingAllowed ?? null,
     accessible: d.accessible ?? null,
+    airConditioning: d.airConditioning ?? null,
+    heatIncluded: d.heatIncluded ?? null,
+    dishwasher: d.dishwasher ?? null,
+    squareFeet: d.squareFeet ?? null,
     brokerFee: d.brokerFee ?? null,
     applicationFee: d.applicationFee ?? null,
   };

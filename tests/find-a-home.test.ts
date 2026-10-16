@@ -152,6 +152,38 @@ describe("the listing details", () => {
     expect((await post({ ...body, maxOccupants: 2, zipCode: "1121" })).status).toBe(400);
   });
 
+  it("air conditioning, heat, dishwasher and the size are saved and found by their filters (13d)", async () => {
+    const { token } = await createUser();
+    const post = (b: unknown) => createListing(request("/api/listings", { method: "POST", token, body: b }));
+    const city = `City-${randomUUID()}`;
+    const res = await post({ ...body, city, maxOccupants: 2, airConditioning: true, heatIncluded: true, dishwasher: true, squareFeet: 850 });
+    expect(res.status).toBe(201);
+    const { id } = await res.json();
+    const saved = await prisma.listing.update({ where: { id }, data: { status: "APPROVED" } });
+    expect(saved).toMatchObject({ airConditioning: true, heatIncluded: true, dishwasher: true, squareFeet: 850 });
+    const other = await place({ city, squareFeet: 600 });
+    const ids = async (q: string) => (await find(`q=${city}&${q}`)).listings.map((l: { id: string }) => l.id).sort();
+    expect(await ids("amenities=airConditioning,dishwasher")).toEqual([id]);
+    expect(await ids("amenities=heatIncluded")).toEqual([id]);
+    expect(await ids("minSqft=750")).toEqual([id]);
+    expect(await ids("minSqft=500")).toEqual([id, other.id].sort());
+    expect(await ids("minSqft=1000")).toEqual([]);
+    expect(amenityLabels(saved)).toEqual(expect.arrayContaining(["Air conditioning", "Heat included", "Dishwasher"]));
+    const f = parseFilters(new URLSearchParams("minSqft=750"));
+    expect(f.minSqft).toBe(750);
+    expect(activeChips(f)).toEqual([{ key: "minSqft", label: "750+ sq ft", clear: { minSqft: null } }]);
+    expect(parseFilters(filtersToParams(f))).toEqual(f);
+  });
+
+  it("a size that makes no sense is refused (13d)", async () => {
+    const { token } = await createUser();
+    const post = (b: unknown) => createListing(request("/api/listings", { method: "POST", token, body: b }));
+    expect((await post({ ...body, maxOccupants: 2, squareFeet: 10 })).status).toBe(400);
+    expect((await post({ ...body, maxOccupants: 2, squareFeet: 30_000 })).status).toBe(400);
+    expect((await post({ ...body, maxOccupants: 2, squareFeet: 850.5 })).status).toBe(400);
+    expect(parseFilters(new URLSearchParams("minSqft=-3")).minSqft).toBe(null);
+  });
+
   it("read as people say them", () => {
     expect(amenityLabels({ furnished: true, internetIncluded: true, laundry: "IN_BUILDING", parking: false, smokingAllowed: false }))
       .toEqual(["Furnished", "Wi-Fi included", "Laundry", "Smoke-free"]);

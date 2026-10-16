@@ -242,10 +242,14 @@ function FindAHome() {
         </p>
       </div>
 
-      {/* Phones: the Filters screen. */}
+      {/* Phones: the Filters sheet (docs/mockups/filters-mobile.jpg). */}
       {sheet && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white px-4 pt-4 lg:hidden dark:bg-gray-900" role="dialog" aria-modal="true" aria-label="Filters">
-          <FilterPanel value={filters} sticky onClose={() => setSheet(false)} onApply={f => { setSheet(false); go(f); }} />
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setSheet(false)} aria-hidden />
+          <div className="absolute inset-x-0 bottom-0 top-4 flex flex-col rounded-t-3xl bg-white px-4 pt-2.5 shadow-2xl motion-safe:animate-[sheet-up_0.25s_ease-out] dark:bg-gray-900">
+            <span className="mx-auto mb-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 dark:bg-gray-700" aria-hidden />
+            <FilterPanel value={filters} sticky onClose={() => setSheet(false)} onApply={f => { setSheet(false); go(f); }} />
+          </div>
         </div>
       )}
     </main>
