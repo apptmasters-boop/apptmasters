@@ -27,10 +27,11 @@ once and every part of the app that's affected updates itself:
   (navigation, Home feed, Cleaning, Shopping, the Money engine, Shopping →
   Money, Rent, Maintenance, Calendar + Notifications, Household issues +
   Insights).
-- **Next:** Sprint 11, Marketplace → My Home ("Have you found your new home?",
-  Create / Join Home). Then the "Before public launch" items in
-  [`docs/ROADMAP.md`](docs/ROADMAP.md), nightly backups first.
-- **Tests:** 239 automated tests; lint errors down from 75 to 60.
+- **Now:** Sprint 11, Marketplace → My Home. 11a ("Have you found your new
+  home?") is live and waiting for the owner's test; 11b (Home Setup: create or
+  join, with a move-in date) comes next. Then the "Before public launch" items
+  in [`docs/ROADMAP.md`](docs/ROADMAP.md), nightly backups first.
+- **Tests:** 259 automated tests; lint errors down from 75 to 60.
 - **Not in GitHub, on purpose:** `.env.local` (passwords and keys; keep a
   copy in a password manager) and the server's own configuration.
 

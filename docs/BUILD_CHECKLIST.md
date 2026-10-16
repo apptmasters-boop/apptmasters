@@ -1199,7 +1199,7 @@ ledger")
 
 ## Sprint 11 — Marketplace → My Home
 
-**Status:** 11a building · Spec: `PRODUCT_LOGIC.md` §1, §2.1, §3.2–3.3, §4
+**Status:** 11a ready for your test · Spec: `PRODUCT_LOGIC.md` §1, §2.1, §3.2–3.3, §4
 
 The last step of the journey: **Find a Home → Create / Join My Home → Live &
 Manage Together**. Finding a place is self-reported: the app asks, it never
@@ -1217,7 +1217,7 @@ assumes a lease was signed (§1).
 
 ### 11a — "Have you found your new home?"
 
-**Status:** Built, checks pass; deploy next
+**Status:** Ready for your test (the daily email waits for your OK)
 
 **What I'm building** (§3.2–3.3)
 - **Who's asked:** signed-in people looking for a home (no home yet, not
@@ -1254,22 +1254,34 @@ assumes a lease was signed (§1).
       once, not again for 14 days, follows settings, and can count without
       sending)
 - [x] Lint: no new errors (60)
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
-- [ ] Daily job in the server's schedule (after your OK)
+- [x] CI green on GitHub (934a4ab)
+- [x] Deployed to apptmasters.com 2026-10-16 with the SQL file (11 accounts,
+      the two new dates empty; all pages and APIs answer)
+- [x] Email fix (1c5d932, +2 tests, 261): our email service (Resend) refuses
+      more than about 2 emails a second without raising an error, so the job
+      now sends one at a time with a pause; when email was the only way to
+      reach someone and it failed, the next day's run tries again
+- [x] Dry run on the live data: nobody is due today. The 4 accounts without a
+      home signed up 8 and 11 days ago and haven't messaged a listing owner:
+      2 become due in 3 days, 2 in 6 days
+- [ ] Daily job in the server's schedule (after your OK): every day at 14:00
+      UTC (10 am New York)
 
-**Your test on apptmasters.com** (accounts without a home that signed up more
-than 2 weeks ago are already "due")
-1. Sign in with such an account and open **Listings**: at the top, a card asks
-   "Have you found your new home?".
-2. Tap **I'm still looking**: the card is replaced by "We'll check in again in
-   two weeks". Reload: no card.
-3. On a second such account, tap **Yes, I found a place**: you're taken to
+**Your test on apptmasters.com** (an account without a home is "due" 14 days
+after signing up; none is yet, so name two accounts without a home, A and B,
+and I'll move their sign-up dates back two weeks, then put them back after
+the test)
+1. Sign in as A and open **Listings**: at the top, a card asks "Have you found
+   your new home?". Don't answer yet.
+2. The email (once the daily job is on; I can run it once right away): A gets
+   one email "Have you found your new home?". Its **Answer** button opens
+   Listings with the card (asking you to sign in first if you're signed out).
+   The next day, no second email.
+3. As A, tap **I'm still looking**: the card is replaced by "We'll check in
+   again in two weeks". Reload: no card.
+4. As B, open Listings and tap **Yes, I found a place**: you're taken to
    Create apartment, which has a **Join their home** link. Sign out and in
    again: you land there again.
-4. After the daily job's first run: a third such account (one that hasn't
-   answered) gets one email "Have you found your new home?"; its **Answer**
-   button opens Listings with the card. The next day, no second email.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
