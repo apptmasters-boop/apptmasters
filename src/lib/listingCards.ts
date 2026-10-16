@@ -12,5 +12,6 @@ export const listingCardQuery = {
   include: {
     photos: { orderBy: { position: "asc" as const }, take: 5, select: { url: true } },
     owner: { select: { id: true, name: true, createdAt: true, photo: true } },
+    _count: { select: { photos: true } }, // "8 photos" on Saved cards (Sprint 13f)
   },
 };

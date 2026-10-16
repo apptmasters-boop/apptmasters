@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a–13d approved; 13e live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a–13e approved; 13f being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1510,8 +1510,8 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Approved 2026-10-16 |
 | **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Approved 2026-10-16 |
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Approved 2026-10-16 |
-| **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Ready for your test |
-| **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Not started |
+| **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Approved 2026-10-16 |
+| **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Being built |
 | **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Not started |
 | **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Not started |
 
@@ -1754,5 +1754,47 @@ e.g. A; phone and computer)
    photo to your account to see yours), "Email confirmed" and "Member since".
 5. **Computer:** photos on the left, and on the right a card with the price,
    Save and Contact that stays in view as you scroll.
+
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
+
+### 13f — Saved
+
+**What changes** (pictures: `docs/mockups/saved-mobile.jpg`, `saved-desktop.jpg`)
+- **Phone:** "Saved · Your saved listings (N)" with a **search** button (opens
+  the search box) and a **"…"** button (sort: recently saved, price low to
+  high, high to low). Tabs **All · Apartments · Rooms · Houses** with counts,
+  like Find a Home.
+- **Phone cards** as in the picture: the photo with the red heart and the
+  price, the title with a **"…" menu** (View details, Share, Remove from
+  Saved), the place, the facts, when it's available, and **View details** /
+  **Message** buttons.
+- **Computer:** on the left, **All saved · Apartments · Rooms · Houses** with
+  an icon and a count each. On the right, "Saved listings", the search box,
+  Sort by and **Grid / List**. Grid cards: "**N photos**" on the photo, the
+  price with the "…" menu, and at the bottom the advertiser and "**Saved 2
+  days ago**".
+- A listing that's no longer available stays, labeled, with **Remove from
+  Saved** (as before).
+- Left out (the app doesn't have them): saved searches, folders.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 292 (no new ones: the page only changes how it looks)
+- [x] Lint: no new errors (51)
+- [x] Screens compared with the pictures at phone and desktop sizes
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (save 2 or 3 listings first; phone and computer)
+1. **Phone:** Saved shows "Your saved listings (N)". Tap the **search**
+   button and type part of a title: only matching cards stay. Tap **"…"**
+   and sort by price.
+2. Tabs All · Apartments · Rooms · Houses show how many each; tap one.
+3. On a card, tap **"…"**: **Share** copies or shares the link; **Remove from
+   Saved** takes the card away. **View details** and **Message** open the
+   listing and the conversation.
+4. **Computer:** the left panel switches between the kinds; **Grid / List**
+   switches the layout; grid cards show "N photos", the advertiser and "Saved
+   … ago".
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

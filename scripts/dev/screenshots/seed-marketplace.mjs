@@ -34,7 +34,7 @@ for (const l of listings) {
 }
 // The details added in Sprint 13d.
 await db.query(`UPDATE "Listing" SET "squareFeet" = 850, "airConditioning" = true, "heatIncluded" = true, dishwasher = true WHERE id = 'shot-l1'`);
-await db.query(`INSERT INTO "SavedListing" (id, "userId", "listingId") VALUES ('shot-s1','shot-me','shot-l1'), ('shot-s2','shot-me','shot-l3')`);
+await db.query(`INSERT INTO "SavedListing" (id, "userId", "listingId") VALUES ('shot-s1','shot-me','shot-l1'), ('shot-s2','shot-me','shot-l3'), ('shot-s3','shot-me','shot-l2'), ('shot-s4','shot-me','shot-l5')`);
 const msgs = [
   ["shot-me", "shot-owner", "Hi Sarah! Is the apartment still available for November?", 50],
   ["shot-owner", "shot-me", "Hi! Yes, the apartment is still available. Would you like to visit this week?", 46],

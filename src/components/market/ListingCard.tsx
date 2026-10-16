@@ -28,6 +28,7 @@ export interface MarketListing extends Partial<ListingDetails> {
   availableFrom: string | null;
   createdAt: string;
   photos: { url: string }[];
+  _count?: { photos: number };
   owner?: { id: string; name: string; since?: string; photo?: string | null };
 }
 
@@ -73,7 +74,10 @@ export function SaveButton({ listingId, className = "", onImage = true, large = 
   );
 }
 
-function Photo({ l, className, showNew = true, showPrice = true }: { l: MarketListing; className: string; showNew?: boolean; showPrice?: boolean }) {
+function Photo({ l, className, showNew = true, showPrice = true, showCount = false }: {
+  l: MarketListing; className: string; showNew?: boolean; showPrice?: boolean; showCount?: boolean;
+}) {
+  const count = l._count?.photos ?? l.photos.length;
   return (
     <div className={`relative overflow-hidden bg-gray-100 dark:bg-gray-800 ${className}`}>
       {l.photos[0] ? (
@@ -85,6 +89,7 @@ function Photo({ l, className, showNew = true, showPrice = true }: { l: MarketLi
       )}
       {showNew && isNew(l.createdAt) && <span className="absolute left-2.5 top-2.5 rounded-lg bg-brand-soft px-2 py-1 text-xs font-semibold text-brand">New</span>}
       {showPrice && <span className="absolute bottom-2.5 left-2.5 rounded-lg bg-black/75 px-2.5 py-1 text-sm font-bold text-white">{priceText(l)}</span>}
+      {showCount && count > 0 && <span className="absolute bottom-2.5 left-2.5 rounded-lg bg-black/65 px-2.5 py-1 text-xs font-medium text-white">{count} photo{count === 1 ? "" : "s"}</span>}
       {l.photos.length > 1 && (
         <span className="absolute bottom-3.5 right-3 flex gap-1" aria-hidden>
           {l.photos.slice(0, 3).map((_, i) => <span key={i} className={`h-1.5 w-1.5 rounded-full ${i === 0 ? "bg-white" : "bg-white/60"}`} />)}
@@ -130,10 +135,12 @@ const fact = "inline-flex items-center gap-1";
 
 /**
  * `row`: photo on the left, as on phones and in the desktop list. `grid`: the
- * desktop card, price first. `tile`: Home's small card.
+ * desktop card, price first. `tile`: Home's small card. Saved adds a "…" menu
+ * (`menu`), "Saved 2 days ago" (`ago`) and the number of photos (`photoCount`).
  */
-export default function ListingCard({ listing: l, layout = "row", footer }: {
+export default function ListingCard({ listing: l, layout = "row", footer, menu, ago, photoCount = false }: {
   listing: MarketListing; layout?: "row" | "grid" | "tile"; footer?: React.ReactNode;
+  menu?: React.ReactNode; ago?: string; photoCount?: boolean;
 }) {
   const gone = !!l.status && l.status !== "APPROVED";
   const available = availableText(l.availableFrom);
@@ -163,10 +170,10 @@ export default function ListingCard({ listing: l, layout = "row", footer }: {
     return (
       <article className={`group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-shadow hover:shadow-lg hover:shadow-black/5 dark:border-gray-800 dark:bg-gray-900 ${gone ? "opacity-70" : ""}`}>
         <Link href={`/listings/${l.id}`} className="flex flex-1 flex-col">
-          <Photo l={l} className="aspect-[2/1]" showPrice={false} />
+          <Photo l={l} className="aspect-[2/1]" showPrice={false} showCount={photoCount} />
           <div className="flex flex-1 flex-col gap-1.5 p-4">
             <Unavailable status={l.status} />
-            <p className="text-lg font-bold leading-tight text-gray-900 dark:text-white">{priceMonthText(l)}</p>
+            <p className={`text-lg font-bold leading-tight text-gray-900 dark:text-white ${menu ? "pr-9" : ""}`}>{priceMonthText(l)}</p>
             <h3 className="truncate text-[15px] font-semibold text-gray-900 group-hover:text-brand dark:text-white">{l.title}</h3>
             <p className="flex items-center gap-1.5 truncate text-[13px] text-gray-600 dark:text-gray-300"><PinIcon className="h-4 w-4 shrink-0" />{placeText(l)}</p>
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-gray-600 dark:text-gray-300">
@@ -176,17 +183,20 @@ export default function ListingCard({ listing: l, layout = "row", footer }: {
             </p>
             {available && <p className="flex items-center gap-1.5 text-[13px] text-gray-600 dark:text-gray-300"><CalendarIcon className="h-4 w-4" />{available}</p>}
             <div className="mt-1"><Chips l={l} max={3} /></div>
+            {!l.owner && ago && <p className="mt-auto pt-3 text-[13px] text-gray-500 dark:text-gray-400">{ago}</p>}
             {l.owner && (
               <p className="mt-auto flex items-center justify-between gap-3 pt-3 text-[13px]">
                 <span className="flex min-w-0 items-center gap-2 font-medium text-gray-800 dark:text-gray-100">
                   <OwnerAvatar owner={l.owner} /><span className="truncate">{l.owner.name}</span>
                 </span>
-                <span className="shrink-0 text-gray-500 dark:text-gray-400">{postedAgo(l.createdAt)}</span>
+                <span className="shrink-0 text-gray-500 dark:text-gray-400">{ago ?? postedAgo(l.createdAt)}</span>
               </p>
             )}
           </div>
         </Link>
         {!gone && <SaveButton listingId={l.id} className="absolute right-3 top-3" />}
+        {/* Same size as the photo, so the menu lines up with the price under it. */}
+        {menu && <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[2/1]"><div className="pointer-events-auto absolute right-2.5 top-full mt-3">{menu}</div></div>}
         {footer}
       </article>
     );
@@ -198,7 +208,7 @@ export default function ListingCard({ listing: l, layout = "row", footer }: {
         <Photo l={l} className="min-h-[9.5rem] rounded-xl sm:min-h-[11rem]" />
         <div className="min-w-0 space-y-1.5 py-0.5 sm:py-1.5">
           <Unavailable status={l.status} />
-          <h3 className="truncate text-[15px] font-semibold text-gray-900 sm:text-base dark:text-white">{l.title}</h3>
+          <h3 className={`truncate text-[15px] font-semibold text-gray-900 sm:text-base dark:text-white ${menu ? "pr-8" : ""}`}>{l.title}</h3>
           <p className="flex items-center gap-1 truncate text-[13px] text-gray-600 dark:text-gray-300">
             <PinIcon className="h-4 w-4 shrink-0" /><span className="truncate"><span className="sm:hidden">{cityText(l)}</span><span className="hidden sm:inline">{placeText(l)}</span></span>
           </p>
@@ -213,6 +223,7 @@ export default function ListingCard({ listing: l, layout = "row", footer }: {
         </div>
       </Link>
       {!gone && <SaveButton listingId={l.id} className="absolute left-[calc(44%-2.75rem)] top-4 sm:left-[15rem] sm:top-[1.25rem]" />}
+      {menu && <div className="absolute right-1.5 top-2 sm:right-2.5 sm:top-3">{menu}</div>}
       {footer}
     </article>
   );
