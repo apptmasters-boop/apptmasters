@@ -8,13 +8,16 @@ from there."
 
 ## Right now
 
-- **Live on apptmasters.com:** Sprint **13a** (the pictures' font and frame
-  everywhere), plus a quick fix the owner asked for: the signed-out Home shows
-  "Looking for" once (the dropdown in the search box). Commit `0b2d0fa`.
-- **Next step:** the owner tests 13a (steps in
-  [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "13a — The look everywhere")
-  and replies **"13a approved"** (or lists what's wrong). Then build
-  **13b — Home**, following [`SPRINT_13_PLAN.md`](SPRINT_13_PLAN.md).
+- **Approved:** 13a (the pictures' font and frame everywhere), on 2026-10-16.
+  The owner's reply was "13b approved", read as 13a approved and the go-ahead
+  for 13b.
+- **Live on apptmasters.com:** Sprint **13b — Home** (quick pickers Price /
+  Bedrooms / Move-in date, "Already have a place?", tiles under "Based on your
+  last search"). Commit `fdd674b`.
+- **Next step:** the owner tests 13b (steps in
+  [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "13b — Home") and replies
+  **"13b approved"** (or lists what's wrong). Then build **13c — Search
+  results**, following [`SPRINT_13_PLAN.md`](SPRINT_13_PLAN.md).
 - **The rule for Sprint 13:** one step at a time. Each step is built,
   compared with the owner's picture in [`mockups/`](mockups/) at phone and
   desktop size, checked, deployed, and tested by the owner. The next step
@@ -24,8 +27,8 @@ from there."
 
 | Step | What | Status |
 |---|---|---|
-| 13a | The look everywhere: font, green phone bar, phone logo bar on Home only, full-width desktop header | Live, waiting for the owner's test |
-| 13b | Home: headline, search, quick pickers (Price, Bedrooms, Move-in date), "Already have a place?", listing tiles | Next |
+| 13a | The look everywhere: font, green phone bar, phone logo bar on Home only, full-width desktop header | Approved 2026-10-16 |
+| 13b | Home: headline, search, quick pickers (Price, Bedrooms, Move-in date), "Already have a place?", listing tiles | Live, waiting for the owner's test |
 | 13c | Search results: phone title bar, chip row, All/Apartments/Rooms/Houses tabs, cards as in the picture; desktop cards with the advertiser's photo; move the "Have you found your new home?" card to Home only | |
 | 13d | Filters as in the picture + 4 new listing details (air conditioning, heat included, dishwasher, square feet). **Needs a database change: ask the owner's OK before applying it on the live site** | |
 | 13e | Listing page | |
@@ -42,7 +45,8 @@ marketplace messages, folders, saved searches, nearby places.
 ## Waiting for the owner
 
 - **Tests / sign-offs:** 11a ("Have you found your new home?"), 11b (Create /
-  Join a Home), 12a–12e (Find a Home), 13a. Sprints 1–10 are approved.
+  Join a Home), 12a–12e (Find a Home), 13b. Sprints 1–10 and 13a are
+  approved.
 - **Daily "Have you found your new home?" email:** needs the owner's OK to add
   the server's daily job (`0 14 * * *`, 10 am New York, calling
   `/api/cron/home-search`). It's a server configuration change, so ask first.

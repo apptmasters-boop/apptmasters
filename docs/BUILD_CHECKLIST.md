@@ -1492,7 +1492,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a approved; 13b being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a approved; 13b live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1505,7 +1505,7 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | Step | What changes | Status |
 |---|---|---|
 | **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Approved 2026-10-16 |
-| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Being built |
+| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Ready for your test |
 | **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Not started |
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Not started |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Not started |
@@ -1588,8 +1588,8 @@ as 13a approved and the go-ahead for 13b) · Issues found: none reported
 - [x] Tests pass (288; Home only changes how it looks and links)
 - [x] Lint: no new errors (51)
 - [x] Screens compared with the picture at phone and desktop sizes
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (fdd674b)
+- [x] Deployed to apptmasters.com 2026-10-16 (fdd674b); live checks all 200
 
 **Your test on apptmasters.com** (signed in with an account without a home,
 e.g. A; phone and computer)
