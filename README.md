@@ -23,12 +23,10 @@ once and every part of the app that's affected updates itself:
 
 ## Where we are (2026-10-16)
 
-- **Done and approved by the owner:** Phase S (security) and Sprints 1–7
+- **Done and approved by the owner:** Phase S (security) and Sprints 1–10
   (navigation, Home feed, Cleaning, Shopping, the Money engine, Shopping →
-  Money, Rent), plus 8a (maintenance steps and scheduling).
-- **Live and waiting for the owner's test:** 8b ("Is it fixed?"), 9a (a
-  calendar that builds itself), 9b (one notification service), 10a (Household
-  issues) and 10b (Insights).
+  Money, Rent, Maintenance, Calendar + Notifications, Household issues +
+  Insights).
 - **Next:** Sprint 11, Marketplace → My Home ("Have you found your new home?",
   Create / Join Home). Then the "Before public launch" items in
   [`docs/ROADMAP.md`](docs/ROADMAP.md), nightly backups first.
@@ -138,9 +136,9 @@ in [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md).
 | [x] | **5 — Money engine** | One ledger for rent, groceries, expenses, payments and the fund, **built in parallel and compared** before switch-over | `Expense`, `ExpenseSplit`, `Settlement`, `RentPayment`, `FundTransaction` |
 | [x] | **6 — Shopping → Money** | The trip's total (already saved with its receipt) becomes the grocery expense, split and balances; no manual Add Expense | Sprints 4 + 5 |
 | [x] | **7 — Rent** | Landlord paid vs. roommates reimbursed; outstanding per month; reminders. Rent appears in the shared balance (today it doesn't) | `RentConfig`, `RentCycle`, `RentPayment` |
-| [ ] | **8 — Maintenance** | REPORTED → ACKNOWLEDGED → SCHEDULED → IN PROGRESS → COMPLETED → RESOLVED, landlord scheduling, resident confirmation | `MaintenanceRequest`, manager portal |
-| [ ] | **9 — Calendar + Notifications** | Calendar built from other modules' events; one notification service with preferences and anti-spam grouping | `CalendarEvent`, `Notification`, push |
-| [ ] | **10 — More / Issues / Insights** | Secondary menu (incl. scores, rules, agreements, activity, stats, audit), Disputes → Household Issues, Calls → Chat, insights from the ledger | existing pages |
+| [x] | **8 — Maintenance** | REPORTED → ACKNOWLEDGED → SCHEDULED → IN PROGRESS → COMPLETED → RESOLVED, landlord scheduling, resident confirmation | `MaintenanceRequest`, manager portal |
+| [x] | **9 — Calendar + Notifications** | Calendar built from other modules' events; one notification service with preferences and anti-spam grouping | `CalendarEvent`, `Notification`, push |
+| [x] | **10 — More / Issues / Insights** | Secondary menu (incl. scores, rules, agreements, activity, stats, audit), Disputes → Household Issues, Calls → Chat, insights from the ledger | existing pages |
 | [ ] | **11 — Marketplace → My Home** | "Have you found your new home?" follow-up and Create / Join Home flow | listings, invites |
 
 ## Security & engineering
