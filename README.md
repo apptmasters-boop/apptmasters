@@ -15,6 +15,7 @@ once and every part of the app that's affected updates itself:
 | Document | What it's for |
 |---|---|
 | [`docs/PRODUCT_LOGIC.md`](docs/PRODUCT_LOGIC.md) | Product & functional blueprint, the source of truth for how the product behaves |
+| [`docs/MARKETPLACE_FLOW.md`](docs/MARKETPLACE_FLOW.md) | The "Find a Home" flow in detail (search, filters, Save, Contact, Messages), the owner's document for Sprint 12 |
 | [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md) | Phase-by-phase build checklist with owner test steps and sign-offs |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Security & engineering roadmap (what's fixed, what's open) |
 | [`tests/README.md`](tests/README.md) | How the automated tests work, and the developer PC's test database |
@@ -29,9 +30,12 @@ once and every part of the app that's affected updates itself:
   Insights).
 - **Now:** Sprint 11, Marketplace → My Home. 11a ("Have you found your new
   home?") is live and waiting for the owner's test; 11b (Home Setup: create or
-  join, with a move-in date) comes next. Then the "Before public launch" items
-  in [`docs/ROADMAP.md`](docs/ROADMAP.md), nightly backups first.
-- **Tests:** 259 automated tests; lint errors down from 75 to 60.
+  join, with a move-in date) comes next.
+- **Then:** Sprint 12, Find a Home, from the owner's document
+  [`docs/MARKETPLACE_FLOW.md`](docs/MARKETPLACE_FLOW.md), and the "Before
+  public launch" items in [`docs/ROADMAP.md`](docs/ROADMAP.md), nightly
+  backups first.
+- **Tests:** 261 automated tests; lint errors down from 75 to 60.
 - **Not in GitHub, on purpose:** `.env.local` (passwords and keys; keep a
   copy in a password manager) and the server's own configuration.
 
@@ -142,6 +146,7 @@ in [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md).
 | [x] | **9 — Calendar + Notifications** | Calendar built from other modules' events; one notification service with preferences and anti-spam grouping | `CalendarEvent`, `Notification`, push |
 | [x] | **10 — More / Issues / Insights** | Secondary menu (incl. scores, rules, agreements, activity, stats, audit), Disputes → Household Issues, Calls → Chat, insights from the ledger | existing pages |
 | [ ] | **11 — Marketplace → My Home** | "Have you found your new home?" follow-up and Create / Join Home flow | listings, invites |
+| [ ] | **12 — Find a Home** | The owner's marketplace flow ([`docs/MARKETPLACE_FLOW.md`](docs/MARKETPLACE_FLOW.md)): one header, every search filter with occupants, Save / Saved, Messages beside the listing, notifications without a home, then map and radius | `Listing`, `ListingMessage`, `/listings` pages |
 
 ## Security & engineering
 

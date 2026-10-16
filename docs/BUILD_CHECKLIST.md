@@ -1293,8 +1293,9 @@ the test)
 Masters? → Select/enter home → Move-in date → Create My Home → Invite
 roommates")
 - **Step 1, where:** "Did you find it on Apartment Masters?" If yes, pick the
-  listing you were talking to its owner about; its name and address fill in.
-  If not, type them.
+  listing you messaged its owner about; its title and city fill in (the
+  street address stays private to the advertiser, who shares it in Messages,
+  so you type it). If not, type them.
 - **Step 2, move-in date.**
 - **Step 3, create or join:** **Create My Home** (you become its household
   admin) or **Join a roommate's home** with their invite code (they approve
@@ -1305,20 +1306,80 @@ roommates")
   if they were away); after it, they're counted. Their profile shows "Moving
   in on …".
 - The old Create apartment and Join pages open Home Setup.
+- **Two quick fixes from the Sprint 12 review** (live problems today):
+  - A listing's exact street address is visible only to its poster and
+    admins, on the page and in its data; everyone else sees the city (owner's
+    decision: the address is shared in the conversation). 1 of the 3 live
+    listings shows one today.
+  - On phones, the Listings header gets a menu (Browse, Post a listing, My
+    listings, Messages); today those links are hidden on small screens.
 
 **Your test on apptmasters.com**
-1. On the "found a place" account: Home Setup → **Yes** (found on Apartment
-   Masters) → pick a listing: name and address fill in. Move-in date: two
-   weeks from today. **Create My Home**: you're the admin of a new home; invite
-   a roommate by email.
+1. On the "found a place" account (first message the owner of a listing):
+   Home Setup → **Yes** (found on Apartment Masters) → pick that listing: its
+   title and city fill in; type the street address. Move-in date: two weeks
+   from today. **Create My Home**: you're the admin of a new home; invite a
+   roommate by email.
 2. In that home, set up rent with the rent payer being someone already moved
    in: this month's rent gives the new person no share.
 3. A second account joins with the invite code and a move-in date in the
    past; once approved, they're in the cleaning and shopping turns.
+4. Open the listing that has a street address, signed out and as another
+   account: only the city shows. As its poster, you still see the address
+   (and can edit it).
+5. On a phone, signed in without a home: the Listings header has a menu with
+   Browse, Post a listing, My listings and Messages.
 
 ---
 
-## Later sprints (outline; detailed test steps are written when each starts)
+## Sprint 12 — Find a Home (Marketplace / Pre-Household)
 
-| Sprint | Planned slices | Status |
+**Status:** Planned (starts after 11b) · Spec:
+[`MARKETPLACE_FLOW.md`](MARKETPLACE_FLOW.md) (the owner's document,
+2026-10-16), `PRODUCT_LOGIC.md` §1–§4
+
+The first service of the journey: **Search → Register → Save / Contact →
+Create or Join Home**. Public browsing first; an account only for personal
+actions. Detailed test steps are written when each slice starts.
+
+**Owner's decisions (2026-10-16)**
+- **Order:** after 11b (which already covers Create / Join a Home, §22–24).
+- **Fees:** listings may state a broker fee and an application fee; both are
+  shown and filterable, and the "Find a place, no broker fee" headline
+  changes.
+- **Exact address:** shared only in the conversation, when the advertiser
+  chooses. Public pages show city, neighborhood and an approximate map area.
+- **Map and radius:** the last slice, once the owner picks a map service
+  (account and key needed).
+
+**My proposals in the review (owner can change them at each slice):**
+- "Found a home" and the "Have you found your new home?" question (11a) stay,
+  as a moment inside "Registered / No Home" that leads to Create or Join.
+- The listing form collects what the filters need: max occupants (required),
+  neighborhood, ZIP, room type, furnished, lease duration, utilities,
+  internet, private bathroom, laundry, parking, elevator, pets, smoking,
+  accessibility, broker fee, application fee. Older listings are asked to
+  fill them in; until then they don't match those filters (an occupants
+  search leaves out listings that don't state their capacity, as §5 says).
+- Posters can **mark a listing as rented / unavailable**: hidden from search,
+  still shown (labeled) in Saved and in conversations.
+- For people without a household, **Home** is the landing page (hero and
+  quick search) and **Find a Home** is the full search.
+- People without a household get the **notification bell** (new messages,
+  listing approved or rejected, a saved listing no longer available, "Have
+  you found your new home?"), which needs one small database change.
+- **Search History:** the last 10 searches, clearable; optional, last slice.
+- Later: "report conversation" and "block user" in Messages.
+
+| Slice | What it adds | Status |
 |---|---|---|
+| **12a — One header, More, How It Works** | One header everywhere: visitor (Home, Find a Home, How It Works, More, Log in, Sign up) and signed in (Home, Find a Home, Messages, Saved, How It Works, More, Notifications, avatar), with a phone menu; More for people without a home (Profile, My Listings, Create a Home, Join a Home, Notifications, Settings, Help, Sign out); How It Works and Help pages | Not started |
+| **12b — What a listing says** | The new listing fields (max occupants required), broker and application fee, Active / Unavailable status, the new headline; database change by reviewed SQL | Not started |
+| **12c — Search that matches** | Every filter except radius, kept in the page address (survives sign-in and Back); removable filter chips and Clear all; sort and listing age; result count, honest empty state, more than 60 results; side panel on desktop, Filters screen on phones; occupants in the landing search | Not started |
+| **12d — Save and Saved** | Save on cards and details; a visitor who taps Save signs up or in and comes back with the save done; Saved page (search, sort, unavailable listings labeled); Saved and Contacted markers | Not started |
+| **12e — Messages and notifications** | Desktop: conversations, chat and the listing side by side; phones: inbox, then conversation, listing one tap away; Contact reopens the existing conversation; the bell for people without a household | Not started |
+| **12f — Map, radius, Search History** | After the owner picks a map service: map tied to the results, approximate markers, radius around a place; Search History | Not started |
+
+**Not in scope:** an application workflow (Contact ≠ Application), folders in
+Saved, leases and payments (outside ApptMasters), identity or phone
+"verified" badges until a real verification exists.

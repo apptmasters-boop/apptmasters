@@ -52,6 +52,10 @@ A regular Home Member must never receive the Super Admin dashboard simply becaus
 
 ## 3. Marketplace & Home-Seeker Journey
 
+> **Detailed flow (owner, 2026-10-16):** [`MARKETPLACE_FLOW.md`](MARKETPLACE_FLOW.md):
+> search and filters, Save, Contact and Messages, the header and More for
+> people without a home, Create / Join a Home. Built in Sprint 12.
+
 ### 3.1 Public flow
 
 **Landing → Search / Listings → Listing Details → Sign In / Sign Up when needed**
