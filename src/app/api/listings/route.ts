@@ -67,6 +67,9 @@ export async function GET(req: NextRequest) {
     where,
     orderBy: { createdAt: "desc" },
     take: 60,
+    // The street address is shared in the conversation, not publicly (owner's decision, 2026-10-16);
+    // the review fields are for the poster and admins.
+    omit: { address: true, rejectionReason: true, reviewedById: true, reviewedAt: true },
     include: {
       photos: { orderBy: { position: "asc" }, take: 1 },
       owner: { select: { id: true, name: true } },

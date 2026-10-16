@@ -10,6 +10,8 @@ import { apiFetch } from "@/lib/api";
 
 export interface Member {
   id: string; role: string; status: string; joinedAt: string; expiresAt: string | null;
+  /** Home Setup (Sprint 11b): until this day they count like someone away. */
+  moveInDate: string | null;
   user: { id: string; name: string; email: string; photo: string | null; roomAssignment: string | null; dietaryFlags: string };
 }
 export interface HouseRule {

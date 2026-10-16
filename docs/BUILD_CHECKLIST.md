@@ -1287,7 +1287,7 @@ the test)
 
 ### 11b — Home Setup: Create a Home / Join a Home, with a move-in date
 
-**Status:** Building (the owner's designs, 2026-10-16)
+**Status:** Built, checks pass; deploy next (the owner's designs, 2026-10-16)
 
 **Design:** [`docs/mockups/create-home-mobile.jpg`](mockups/create-home-mobile.jpg),
 [`docs/mockups/join-home-mobile.jpg`](mockups/join-home-mobile.jpg). Left out
@@ -1326,6 +1326,22 @@ roommates"; `MARKETPLACE_FLOW.md` §22–24)
   - On phones, the Listings header gets a menu (Browse, Post a listing, My
     listings, Messages); today those links are hidden on small screens.
 - Database: a move-in date on each membership, added with a reviewed SQL file.
+- Also fixed: someone whose join request is still waiting no longer gets the
+  household navigation (Listings, Profile, Admin counted a waiting request as
+  a home); a refused request now sends the person an email; the public
+  listings list no longer returns internal review fields.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 275 (+14: create with a move-in date; join preview, request,
+      limits on tries, Join status, refusal email; rent counts people moved in
+      by the due day; default splits, shopping and cleaning turns skip people
+      not moved in; the calendar's move-in day; the street address hidden from
+      everyone but the poster and admins)
+- [x] Lint: no new errors (59, one fewer)
+- [x] Screens checked on phone and desktop sizes on a local copy
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
 
 **Your test on apptmasters.com**
 1. **Create:** signed in without a home (e.g. A), open **Create a Home** (from

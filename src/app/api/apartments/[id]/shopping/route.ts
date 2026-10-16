@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
 import { shoppingTurn } from "@/lib/shopping";
 import { isAwayOn, nextMemberIndex } from "@/lib/rotation";
+import { awaySpans } from "@/lib/away";
 import { splitMembers, awayNow } from "@/lib/expenses";
 
 /** Household → Shopping: whose turn it is, who's next, and the trip under way (PRODUCT_LOGIC §10). */
@@ -13,10 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const turn = await shoppingTurn(apartmentId, { save: true });
   const now = new Date();
-  const travels = await prisma.travelPeriod.findMany({
-    where: { apartmentId, returnedAt: null, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }] },
-    select: { userId: true, startDate: true, endDate: true, returnedAt: true },
-  });
+  const travels = await awaySpans(apartmentId, now);
   const away = (uid: string) => isAwayOn(travels, uid, now);
   const person = (id: string | null | undefined) => (id ? { id, name: turn.names[id] ?? "Someone" } : null);
 

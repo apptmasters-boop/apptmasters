@@ -3,7 +3,8 @@ import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
 import { sendEmail, notificationEmail, appUrl } from "@/lib/email";
 import { notify } from "@/lib/notify";
-import { nextDueDate, nextMemberIndex } from "@/lib/rotation";
+import { nextDueDate, nextMemberIndex, isAwayOn } from "@/lib/rotation";
+import { awaySpans } from "@/lib/away";
 
 // POST = admin approves a pending out-of-turn advance request
 export async function POST(
@@ -29,16 +30,8 @@ export async function POST(
   }
 
   const now = new Date();
-  const travelers = await prisma.travelPeriod.findMany({
-    where: {
-      apartmentId,
-      startDate: { lte: now },
-      returnedAt: null,
-      OR: [{ endDate: null }, { endDate: { gte: now } }],
-    },
-    select: { userId: true },
-  });
-  const travelingIds = new Set(travelers.map(t => t.userId));
+  // Away today: travelling, or not moved in yet.
+  const travelingIds = new Set((await awaySpans(apartmentId, now)).filter(t => isAwayOn([t], t.userId, now)).map(t => t.userId));
 
   const order: string[] = JSON.parse(rotation.memberOrder);
   const nextIndex = nextMemberIndex(order, rotation.currentIndex, uid => travelingIds.has(uid));

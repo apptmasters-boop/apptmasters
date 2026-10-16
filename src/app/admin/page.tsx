@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
+import { activeMemberships } from "@/lib/housing";
 
 interface User {
   id: string; name: string; email: string; systemRole: string; createdAt: string;
@@ -81,7 +82,7 @@ export default function AdminPage() {
     if (rlRes.ok) setReportedListings(await rlRes.json());
     if (meRes.ok) {
       const me = await meRes.json();
-      const apt = me.memberships?.[0]?.apartment?.id ?? null;
+      const apt = activeMemberships({ systemRole: me.systemRole, memberships: me.memberships ?? [] })[0]?.apartment?.id ?? null;
       setMyApartmentId(apt);
     }
     setLoading(false);

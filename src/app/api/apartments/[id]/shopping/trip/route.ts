@@ -4,6 +4,7 @@ import { requireApartmentMember } from "@/lib/access";
 import { notify } from "@/lib/notify";
 import { shoppingTurn, TRIP_STEPS, MAX_TRIP_TOTAL, isReceiptUrl, type TripStep } from "@/lib/shopping";
 import { isAwayOn, nextMemberIndex } from "@/lib/rotation";
+import { awaySpans } from "@/lib/away";
 import { splitMembers, defaultSplit, equalSplits } from "@/lib/expenses";
 
 /**
@@ -93,10 +94,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // Ticked items were bought on this trip and leave the list; the rest wait for next time.
     await tx.groceryItem.updateMany({ where: { apartmentId, tripId: null, purchased: true }, data: { tripId: trip.id } });
 
-    const travels = await tx.travelPeriod.findMany({
-      where: { apartmentId, returnedAt: null, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }] },
-      select: { userId: true, startDate: true, endDate: true, returnedAt: true },
-    });
+    const travels = await awaySpans(apartmentId, now, tx);
     if (turn.order.length > 0) {
       const from = turn.order.indexOf(trip.shopperId);
       const nextIndex = nextMemberIndex(turn.order, from >= 0 ? from : turn.currentIndex, uid => isAwayOn(travels, uid, now));

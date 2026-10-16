@@ -212,6 +212,9 @@ model ApartmentMember {
   status     String    @default("ACTIVE") // ACTIVE | VACATION | MOVED_OUT | PENDING_APPROVAL
   joinedAt   DateTime  @default(now())
   movedOutAt DateTime?
+  // Home Setup (Sprint 11b): until this day they count like someone away (no rent share,
+  // turns or default splits); null = living there already. See src/lib/away.ts.
+  moveInDate DateTime?
   expiresAt  DateTime? // null = no expiry; used for GUEST members
 
   userId      String

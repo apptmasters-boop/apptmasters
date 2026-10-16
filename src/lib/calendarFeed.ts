@@ -8,6 +8,7 @@
  *   Cleaning        upcoming turns and recent cleanings (src/lib/rotation.ts)
  *   Shopping        trips done, and whose turn it is now (src/lib/shopping.ts)
  *   Away            members' travel
+ *   Moving in       a new member's move-in day (Home Setup)
  *   Chores          pending chores with a due date
  *
  * Household events and repair visits are stored CalendarEvent rows and are
@@ -16,11 +17,12 @@
 import { prisma } from "@/lib/db";
 import { rentDueDate, rentMonths, monthLabel, currentMonth } from "@/lib/rent";
 import { upcomingTurns, type TravelSpan } from "@/lib/rotation";
+import { notMovedInSpan } from "@/lib/away";
 import { shoppingTurn } from "@/lib/shopping";
 
 export interface GeneratedEntry {
   id: string;
-  type: "RENT" | "CLEANING" | "SHOPPING" | "TRAVEL" | "CHORE";
+  type: "RENT" | "CLEANING" | "SHOPPING" | "TRAVEL" | "CHORE" | "EVENT";
   title: string;
   /** All-day entries sit at noon UTC so every time zone shows the same day. */
   startDate: string;
@@ -50,7 +52,7 @@ export async function generatedEntries(apartmentId: string, now = new Date()): P
   const entry = (e: Omit<GeneratedEntry, "allDay" | "auto">) => entries.push({ ...e, allDay: true, auto: true });
 
   const [members, rentConfig, rotations, logs, trips, travels, chores] = await Promise.all([
-    prisma.apartmentMember.findMany({ where: { apartmentId }, select: { user: { select: { id: true, name: true } } } }),
+    prisma.apartmentMember.findMany({ where: { apartmentId }, select: { status: true, moveInDate: true, user: { select: { id: true, name: true } } } }),
     prisma.rentConfig.findUnique({ where: { apartmentId } }),
     prisma.cleaningRotation.findMany({ where: { apartmentId, isActive: true } }),
     prisma.cleaningLog.findMany({ where: { apartmentId, cleanedAt: { gte: from, lte: to } }, include: { cleanedBy: { select: { name: true } } } }),
@@ -79,8 +81,12 @@ export async function generatedEntries(apartmentId: string, now = new Date()): P
     }
   }
 
-  // Cleaning: the next turns of each rotation (people away are skipped, as on the Schedule), and recent cleanings.
-  const spans: TravelSpan[] = travels.map(t => ({ userId: t.userId, startDate: t.startDate, endDate: t.endDate, returnedAt: t.returnedAt }));
+  // Cleaning: the next turns of each rotation (people away or not moved in yet are skipped, as on the Schedule), and recent cleanings.
+  const arriving = members.filter(m => m.status !== "MOVED_OUT" && m.moveInDate && m.moveInDate > now);
+  const spans: TravelSpan[] = [
+    ...travels.map(t => ({ userId: t.userId, startDate: t.startDate, endDate: t.endDate, returnedAt: t.returnedAt })),
+    ...arriving.map(m => notMovedInSpan(m.user.id, m.moveInDate!)),
+  ];
   for (const r of rotations) {
     const order: string[] = JSON.parse(r.memberOrder);
     if (!r.nextDue || order.length === 0) continue;
@@ -100,7 +106,7 @@ export async function generatedEntries(apartmentId: string, now = new Date()): P
       startDate: noon(t.endedAt ?? t.startedAt), endDate: null, notes: null, href: `${base}/shopping`,
     });
   }
-  const turn = await shoppingTurn(apartmentId);
+  const turn = await shoppingTurn(apartmentId, { now });
   if (turn.shopperId) {
     entry({
       id: "auto:shopping-turn", type: "SHOPPING", title: turn.trip ? `${name(turn.shopperId)} is shopping` : `${name(turn.shopperId)}'s turn to shop`,
@@ -116,6 +122,12 @@ export async function generatedEntries(apartmentId: string, now = new Date()): P
       id: `auto:away:${t.id}`, type: "TRAVEL", title: `${t.user.name} away`, startDate: noon(t.startDate), endDate: end ? noon(end) : null,
       notes: end ? null : "Until further notice", href: `${base}/members`,
     });
+  }
+
+  // Moving in (Home Setup, Sprint 11b): the day a new member arrives.
+  for (const m of members) {
+    if (!m.moveInDate || m.status === "MOVED_OUT" || !inRange(m.moveInDate)) continue;
+    entry({ id: `auto:move-in:${m.user.id}`, type: "EVENT", title: `${m.user.name} moves in`, startDate: noon(m.moveInDate), endDate: null, notes: null, href: `${base}/members` });
   }
 
   // Chores with a due date.

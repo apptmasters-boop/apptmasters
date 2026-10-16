@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireApartmentMember } from "@/lib/access";
 import { notify } from "@/lib/notify";
 import { isAwayOn, nextMemberIndex } from "@/lib/rotation";
+import { awaySpans } from "@/lib/away";
 
 // "Can't clean this week?" (PRODUCT_LOGIC §8.2): the person whose turn it is
 // asks the next person to swap. Nothing changes until that person accepts
@@ -29,10 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   // The person who would clean next (skipping anyone away today)
   const now = new Date();
-  const travels = await prisma.travelPeriod.findMany({
-    where: { apartmentId, returnedAt: null, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }] },
-    select: { userId: true, startDate: true, endDate: true, returnedAt: true },
-  });
+  const travels = await awaySpans(apartmentId, now);
   const targetId = order[nextMemberIndex(order, rotation.currentIndex, uid => isAwayOn(travels, uid, now))];
   if (!targetId || targetId === access.userId) {
     return NextResponse.json({ error: "There's nobody available to swap with right now" }, { status: 409 });

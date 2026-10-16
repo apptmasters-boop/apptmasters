@@ -3,6 +3,8 @@
  * trip (docs/PRODUCT_LOGIC.md §10.8, §13.1), so both split money the same way.
  */
 import { prisma } from "@/lib/db";
+import { awaySpans } from "@/lib/away";
+import { isAwayOn } from "@/lib/rotation";
 
 /** Everyone who shares household costs: active members, not guests. */
 export async function splitMembers(apartmentId: string) {
@@ -14,13 +16,10 @@ export async function splitMembers(apartmentId: string) {
   return members.map(m => m.user);
 }
 
-/** Ids of members travelling right now. The payer is never counted as away. */
+/** Ids of members away right now (travelling, or not moved in yet). The payer is never counted as away. */
 export async function awayNow(apartmentId: string, payerId: string, now = new Date()) {
-  const travels = await prisma.travelPeriod.findMany({
-    where: { apartmentId, startDate: { lte: now }, returnedAt: null, OR: [{ endDate: null }, { endDate: { gte: now } }], userId: { not: payerId } },
-    select: { userId: true },
-  });
-  return new Set(travels.map(t => t.userId));
+  const spans = await awaySpans(apartmentId, now);
+  return new Set(spans.filter(s => s.userId !== payerId && isAwayOn([s], s.userId, now)).map(s => s.userId));
 }
 
 /** Who an equal split includes by default: everyone who shares costs, minus people away. */

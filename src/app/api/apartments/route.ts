@@ -3,10 +3,14 @@ import { z } from "zod";
 import { getTokenFromRequest } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { generateInviteCode } from "@/lib/invite";
+import { moveInDaySchema, moveInDay } from "@/lib/away";
 
+// Create a Home (Home Setup, Sprint 11b). The creator becomes its household admin.
 const schema = z.object({
-  name: z.string().min(1),
-  address: z.string().min(1),
+  name: z.string().trim().min(1).max(80),
+  address: z.string().trim().min(1).max(200),
+  /** The creator's move-in day; until then they count like someone away. */
+  moveInDate: moveInDaySchema.optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -28,7 +32,7 @@ export async function POST(req: NextRequest) {
       address: parsed.data.address,
       inviteCode,
       members: {
-        create: { userId: payload.userId, role: "ADMIN" },
+        create: { userId: payload.userId, role: "ADMIN", moveInDate: parsed.data.moveInDate ? moveInDay(parsed.data.moveInDate) : null },
       },
     },
     include: { members: { include: { user: { select: { id: true, name: true, email: true, photo: true } } } } },

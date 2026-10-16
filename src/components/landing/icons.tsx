@@ -58,3 +58,9 @@ export const SettingsIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="3" 
 export const StarIcon = (p: P) => <Svg {...p}><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3Z" /></Svg>;
 export const ScaleIcon = (p: P) => <Svg {...p}><path d="M12 3v18M5 21h14M6 7h12M6 7l-3 7a3 3 0 0 0 6 0L6 7ZM18 7l-3 7a3 3 0 0 0 6 0l-3-7Z" /></Svg>;
 export const SearchDocIcon = (p: P) => <Svg {...p}><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5M14 3l5 5v3M14 3v5h5" /><circle cx="17" cy="17" r="3" /><path d="m21 21-1.8-1.8" /></Svg>;
+// Home Setup (Sprint 11b)
+export const LinkIcon = (p: P) => <Svg {...p}><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4l-1 1" /><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1-1" /></Svg>;
+export const SendIcon = (p: P) => <Svg {...p}><path d="M21 3 10 14" /><path d="M21 3l-7 18-4-7-7-4 18-7Z" /></Svg>;
+export const InfoIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5v.5" /></Svg>;
+export const XIcon = (p: P) => <Svg {...p}><path d="M6 6l12 12M18 6 6 18" /></Svg>;
+export const KeyHouseIcon = (p: P) => <Svg {...p}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9v11h6M19 9v4" /><circle cx="16.5" cy="17" r="2.5" /><path d="m18.3 18.8 2.7 2.7M20 20.5l-1 1" /></Svg>;

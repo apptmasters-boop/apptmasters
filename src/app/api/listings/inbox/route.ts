@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: 500,
     include: {
-      listing: { select: { id: true, title: true, photos: { orderBy: { position: "asc" }, take: 1 } } },
+      listing: { select: { id: true, title: true, city: true, state: true, ownerId: true, photos: { orderBy: { position: "asc" }, take: 1 } } },
       sender: { select: { id: true, name: true } },
       receiver: { select: { id: true, name: true } },
     },
@@ -28,6 +28,9 @@ export async function GET(req: NextRequest) {
       listingId: m.listingId,
       listingTitle: m.listing.title,
       listingPhoto: m.listing.photos[0]?.url ?? null,
+      // Home Setup (Sprint 11b) offers the listings you asked about, with their city (never the street address).
+      listingCity: [m.listing.city, m.listing.state].filter(Boolean).join(", "),
+      myListing: m.listing.ownerId === payload.userId,
       otherUserId: other.id,
       otherUserName: other.name,
       lastMessage: m.content,

@@ -15,7 +15,7 @@
  * expense and balances is Sprint 6, on the new Money ledger.
  */
 import { prisma } from "@/lib/db";
-import { syncOrder } from "@/lib/rotation";
+import { syncOrder, nextMemberIndex } from "@/lib/rotation";
 import { notify, pushIfEnabled } from "@/lib/notify";
 
 /** A trip in one of these states is under way; there is at most one per home. */
@@ -56,13 +56,19 @@ export async function shoppers(apartmentId: string) {
  * shopper, and the trip under way if there is one. During a trip the shopper is
  * whoever started it. `save` stores the order when it changed (or the first time).
  */
-export async function shoppingTurn(apartmentId: string, { save = false } = {}) {
-  const [people, saved, trip] = await Promise.all([
+export async function shoppingTurn(apartmentId: string, { save = false, now = new Date() } = {}) {
+  const [people, saved, trip, arriving] = await Promise.all([
     shoppers(apartmentId),
     prisma.shoppingRotation.findUnique({ where: { apartmentId } }),
     prisma.shoppingTrip.findFirst({ where: { apartmentId, status: { in: ACTIVE_TRIP } }, orderBy: { startedAt: "desc" } }),
+    prisma.apartmentMember.findMany({ where: { apartmentId, status: "ACTIVE", moveInDate: { gt: now } }, select: { userId: true } }),
   ]);
-  const synced = syncOrder(saved ? JSON.parse(saved.memberOrder) : [], saved?.currentIndex ?? 0, people.map(p => p.id));
+  let synced = syncOrder(saved ? JSON.parse(saved.memberOrder) : [], saved?.currentIndex ?? 0, people.map(p => p.id));
+  // Someone who hasn't moved in yet never holds the turn (Home Setup, Sprint 11b): it goes to the next person who has.
+  const notHome = new Set(arriving.map(m => m.userId));
+  if (!trip && synced.order.length > 0 && notHome.has(synced.order[synced.currentIndex])) {
+    synced = { ...synced, currentIndex: nextMemberIndex(synced.order, synced.currentIndex, uid => notHome.has(uid)) };
+  }
   const memberOrder = JSON.stringify(synced.order);
   if (save && synced.order.length > 0 && (!saved || saved.memberOrder !== memberOrder || saved.currentIndex !== synced.currentIndex)) {
     await prisma.shoppingRotation.upsert({

@@ -27,6 +27,9 @@ const editSchema = z.object({
   photoUrls: z.array(z.string()).min(1, "At least one photo is required").max(8, "Maximum 8 photos"),
 });
 
+/** Only for the poster and admins. */
+const PRIVATE_FIELDS = ["address", "rejectionReason", "reviewedById", "reviewedAt"] as const;
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -41,13 +44,18 @@ export async function GET(
   });
   if (!listing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (listing.status !== "APPROVED") {
-    const payload = getTokenFromRequest(req);
-    const isOwner = payload?.userId === listing.ownerId;
-    const isAdmin = payload ? await requireSuperAdmin(req) : null;
-    if (!isOwner && !isAdmin) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const payload = getTokenFromRequest(req);
+  const isOwner = payload?.userId === listing.ownerId;
+  const isAdmin = !isOwner && payload ? await requireSuperAdmin(req) : null;
+  if (listing.status !== "APPROVED" && !isOwner && !isAdmin) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // The street address is shared in the conversation, not publicly (owner's decision, 2026-10-16);
+  // the review fields are for the poster and admins.
+  if (!isOwner && !isAdmin) {
+    const shown: Record<string, unknown> = { ...listing };
+    for (const key of PRIVATE_FIELDS) delete shown[key];
+    return NextResponse.json(shown);
+  }
   return NextResponse.json(listing);
 }
 

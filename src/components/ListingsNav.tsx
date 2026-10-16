@@ -8,6 +8,8 @@ export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void })
   const pathname = usePathname();
   const router = useRouter();
   const [name, setName] = useState<string | null>(null);
+  // Phones: the links live in a menu (Sprint 11b quick fix; Sprint 12 brings one header for everything).
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!getToken()) { setName(null); return; }
@@ -16,17 +18,29 @@ export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void })
     });
   }, [pathname]);
 
+  const links = [
+    { href: "/listings", label: "Browse" },
+    { href: "/listings/new", label: "Post a listing" },
+    ...(name ? [{ href: "/listings/mine", label: "My listings" }, { href: "/listings/inbox", label: "Messages" }] : []),
+  ];
   const linkClass = (href: string) =>
     `text-sm font-medium transition-colors ${pathname === href ? "text-blue-600" : "text-gray-500 hover:text-gray-800"}`;
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between">
+    <header className="relative bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3 sm:gap-6">
-        {onOpenMenu && (
+        {onOpenMenu ? (
           <button onClick={onOpenMenu} aria-label="Open menu"
             className="md:hidden p-1.5 -ml-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors flex-shrink-0">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        ) : (
+          <button onClick={() => setMenuOpen(o => !o)} aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="listings-menu"
+            className="sm:hidden p-1.5 -ml-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors flex-shrink-0">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={menuOpen ? "M6 6l12 12M18 6 6 18" : "M4 6h16M4 12h16M4 18h16"} />
             </svg>
           </button>
         )}
@@ -34,10 +48,7 @@ export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void })
           ApptMasters <span className="text-blue-600">Listings</span>
         </Link>
         <nav className="hidden sm:flex items-center gap-5">
-          <Link href="/listings" className={linkClass("/listings")}>Browse</Link>
-          <Link href="/listings/new" className={linkClass("/listings/new")}>Post a listing</Link>
-          {name && <Link href="/listings/mine" className={linkClass("/listings/mine")}>My listings</Link>}
-          {name && <Link href="/listings/inbox" className={linkClass("/listings/inbox")}>Messages</Link>}
+          {links.map(l => <Link key={l.href} href={l.href} className={linkClass(l.href)}>{l.label}</Link>)}
         </nav>
       </div>
       <div className="flex items-center gap-3">
@@ -59,6 +70,16 @@ export default function ListingsNav({ onOpenMenu }: { onOpenMenu?: () => void })
           </>
         )}
       </div>
+      {menuOpen && !onOpenMenu && (
+        <nav id="listings-menu" className="sm:hidden absolute inset-x-0 top-full z-40 border-b border-gray-200 bg-white px-4 py-2 shadow-md">
+          {links.map(l => (
+            <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)}
+              className={`block rounded-lg px-2 py-2.5 ${linkClass(l.href)}`}>
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

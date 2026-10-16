@@ -9,6 +9,7 @@
  */
 import { prisma } from "@/lib/db";
 import { notify } from "@/lib/notify";
+import { movedInBy } from "@/lib/away";
 
 /** The due date of a month's rent (YYYY-MM), at UTC midnight; a due day past the month's end falls on its last day. */
 export function rentDueDate(month: string, dueDay: number): Date {
@@ -47,9 +48,11 @@ export async function startRentMonth(apartmentId: string, month: string) {
   const members = await prisma.apartmentMember.findMany({
     where: { apartmentId, status: "ACTIVE", role: { not: "GUEST" } },
     orderBy: { joinedAt: "asc" },
-    select: { userId: true },
+    select: { userId: true, moveInDate: true },
   });
-  const order = members.map(m => m.userId);
+  // A month counts the people who have moved in by its due day (Home Setup, Sprint 11b).
+  const due = rentDueDate(month, config.dueDay);
+  const order = members.filter(m => movedInBy(m.moveInDate, due)).map(m => m.userId);
 
   let rentPayerId = config.rentPayerId;
   if (config.autoRotate) {

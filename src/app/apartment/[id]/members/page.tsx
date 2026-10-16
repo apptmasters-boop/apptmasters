@@ -137,6 +137,11 @@ export default function MembersPage() {
                     <span className="font-medium text-gray-900">{m.user.name}{isMe && " (you)"}</span>
                     {m.role === "ADMIN" && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">Household admin</span>}
                     {m.role === "GUEST" && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">Guest</span>}
+                    {m.moveInDate && new Date(m.moveInDate) > new Date() && (
+                      <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand dark:bg-brand/30 dark:text-emerald-200">
+                        Moving in on {new Date(m.moveInDate).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}
+                      </span>
+                    )}
                     {travel && (
                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">
                         ✈ Traveling{travel.endDate ? ` until ${new Date(travel.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}

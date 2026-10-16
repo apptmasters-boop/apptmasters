@@ -81,7 +81,8 @@ export default function ProfilePage() {
       setEmail(data.email ?? "");
       setEmailVerified(data.emailVerified ?? false);
       setTwoFAEnabled(data.twoFactorEnabled ?? false);
-      setMemberships(data.memberships ?? []);
+      // Only homes you're in: a join request still waiting is shown on Join status (Sprint 11b).
+      setMemberships((data.memberships ?? []).filter((m: { status: string }) => m.status === "ACTIVE" || m.status === "VACATION"));
       if (data.createdAt) setMemberSince(data.createdAt);
       setLoading(false);
     });

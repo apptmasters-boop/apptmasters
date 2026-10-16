@@ -33,8 +33,8 @@ describe("landingPath", () => {
   it("sends someone who found a place to set up their home", () => {
     expect(landingPath(user({ foundHomeAt: new Date() }))).toBe("/apartment/create");
   });
-  it("sends someone waiting for approval to Your homes", () => {
-    expect(landingPath(user({ memberships: [home("a1", "PENDING_APPROVAL")] }))).toBe("/dashboard");
+  it("sends someone waiting for approval to Join status", () => {
+    expect(landingPath(user({ memberships: [home("a1", "PENDING_APPROVAL")] }))).toBe("/apartment/join/status");
   });
   it("sends managers and admins without a home to their portals", () => {
     expect(landingPath(user({ systemRole: "MANAGER" }))).toBe("/manager");

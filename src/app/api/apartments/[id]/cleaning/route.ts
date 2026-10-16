@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApartmentMember, requireApartmentAdmin } from "@/lib/access";
 import { nextDueDate, nextWeekdayDate, nextMemberIndex, upcomingTurns, isAwayOn } from "@/lib/rotation";
+import { awaySpans } from "@/lib/away";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: apartmentId } = await params;
@@ -25,11 +26,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
 
   const now = new Date();
-  // Current and future trips: today's travelers are skipped now, later ones in the Schedule
-  const travels = await prisma.travelPeriod.findMany({
-    where: { apartmentId, returnedAt: null, OR: [{ endDate: null }, { endDate: { gte: now } }] },
-    select: { userId: true, startDate: true, endDate: true, returnedAt: true },
-  });
+  // Current and future trips, and people not moved in yet: away today is skipped now, later in the Schedule
+  const travels = await awaySpans(apartmentId, now);
   const travelingIds = new Set(travels.filter(t => isAwayOn([t], t.userId, now)).map(t => t.userId));
 
   const members = await prisma.apartmentMember.findMany({
@@ -81,6 +79,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const freq = frequency ?? "WEEKLY";
   const hasWeekday = freq === "WEEKLY" && Number.isInteger(dueWeekday) && dueWeekday >= 0 && dueWeekday <= 6;
+  const firstDue = hasWeekday ? nextWeekdayDate(dueWeekday) : nextDueDate(freq);
+  // The first turn goes to the first person in the order who isn't away then (travelling or not moved in yet).
+  const away = await awaySpans(apartmentId);
+  const order: string[] = memberIds;
+  const start = nextMemberIndex(order, order.length - 1, uid => isAwayOn(away, uid, firstDue));
 
   const rotation = await prisma.cleaningRotation.create({
     data: {
@@ -88,9 +91,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       name: "Apartment Cleaning",
       frequency: freq,
       memberOrder: JSON.stringify(memberIds),
-      currentIndex: 0,
+      currentIndex: start,
       dueWeekday: hasWeekday ? dueWeekday : null,
-      nextDue: hasWeekday ? nextWeekdayDate(dueWeekday) : nextDueDate(freq),
+      nextDue: firstDue,
     },
   });
 

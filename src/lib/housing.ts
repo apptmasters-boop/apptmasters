@@ -32,8 +32,8 @@ export function housingState(me: MeForLanding): HousingState {
 export function landingPath(me: MeForLanding): string {
   const homes = activeMemberships(me);
   if (homes.length > 0) return `/apartment/${homes[0].apartment.id}`;
-  // Waiting for a household admin to approve a join request: "Your homes" shows it as pending.
-  if (me.memberships.some(m => m.status === "PENDING_APPROVAL")) return "/dashboard";
+  // Waiting for a household admin to approve a join request: Join status shows where it stands (Sprint 11b).
+  if (me.memberships.some(m => m.status === "PENDING_APPROVAL")) return "/apartment/join/status";
   // Said "I found a place" (Sprint 11a): set up the home next. 11b turns this into the Home Setup flow.
   if (me.foundHomeAt) return "/apartment/create";
   if (me.systemRole === "MANAGER") return "/manager";

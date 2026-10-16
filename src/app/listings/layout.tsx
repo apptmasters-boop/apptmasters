@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ListingsNav from "@/components/ListingsNav";
 import { HomeSidebar, HomeBottomBar, useChatUnread } from "@/components/home/HomeNav";
 import { apiFetch, getToken } from "@/lib/api";
+import { activeMemberships } from "@/lib/housing";
 
 /** Home navigation for people who belong to an apartment (they reach listings from More). */
 function MemberNav({ apartment }: { apartment: { id: string; name: string } }) {
@@ -23,8 +24,9 @@ export default function ListingsLayout({ children }: { children: React.ReactNode
     apiFetch("/api/auth/me").then(async res => {
       if (!res.ok) return;
       const me = await res.json();
-      const memberships: { apartment: { id: string; name: string } }[] = me.memberships ?? [];
-      setApartment(memberships.length > 0 ? memberships[0].apartment : null);
+      // Only homes you're in: a join request still waiting doesn't open the household (Sprint 11b).
+      const homes = activeMemberships({ systemRole: me.systemRole, memberships: me.memberships ?? [] });
+      setApartment(homes.length > 0 ? (homes[0].apartment as { id: string; name: string }) : null);
     });
   }, []);
 
