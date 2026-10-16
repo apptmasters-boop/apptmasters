@@ -32,6 +32,8 @@ for (const l of listings) {
       l.broker ?? null, l.app ?? null, l.lease ?? null, l.avail ? new Date(`${l.avail}T00:00:00Z`) : null, ago(l.age)]);
   for (let i = 0; i < 3; i++) await db.query(`INSERT INTO "ListingPhoto" (id, url, position, "listingId") VALUES ($1, '/landing/hero.png', $2, $3)`, [`${l.id}-p${i}`, i, l.id]);
 }
+// The details added in Sprint 13d.
+await db.query(`UPDATE "Listing" SET "squareFeet" = 850, "airConditioning" = true, "heatIncluded" = true, dishwasher = true WHERE id = 'shot-l1'`);
 await db.query(`INSERT INTO "SavedListing" (id, "userId", "listingId") VALUES ('shot-s1','shot-me','shot-l1'), ('shot-s2','shot-me','shot-l3')`);
 const msgs = [
   ["shot-me", "shot-owner", "Hi Sarah! Is the apartment still available for November?", 50],

@@ -40,7 +40,8 @@ export async function GET(
     where: { id },
     include: {
       photos: { orderBy: { position: "asc" } },
-      owner: { select: { id: true, name: true, createdAt: true } }, // "Member since" on the listing page
+      // "Member since" and the profile photo on the listing page (photo: Sprint 13e, owner's decision); never the email.
+      owner: { select: { id: true, name: true, createdAt: true, photo: true } },
     },
   });
   if (!listing) return NextResponse.json({ error: "Not found" }, { status: 404 });

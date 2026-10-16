@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a, 13b and 13c approved; 13d live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a–13d approved; 13e being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1509,8 +1509,8 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Approved 2026-10-16 |
 | **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Approved 2026-10-16 |
 | **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Approved 2026-10-16 |
-| **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Ready for your test |
-| **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Not started |
+| **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Approved 2026-10-16 |
+| **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Being built |
 | **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Not started |
 | **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Not started |
 | **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Not started |
@@ -1709,5 +1709,50 @@ e.g. A; phone and computer)
 4. **Your listing:** edit it, tick **Air conditioning** and **Dishwasher**,
    enter a size (e.g. 850 square feet), save. Once it's live again, the
    **Air conditioning** option and **Size 750+** both find it.
+
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
+
+### 13e — Listing page
+
+**What changes** (picture: `docs/mockups/listing-details-mobile.jpg`)
+- **Phone:** the photo across the top with round back, heart and share
+  buttons and "1 / N", the thumbnails under it; the title, the **price in
+  green**, the place.
+- **Facts in 3 columns** with lines between them: bedrooms · bathrooms · how
+  many people / the kind of place · **size in square feet** (from 13d) · when
+  it's available.
+- **Amenities** with an icon each (Wi-Fi, Laundry, Heat, Elevator…); "See
+  all" when there are more than 8.
+- The description with "Show more"; Lease and fees; the roommate they're
+  looking for (rooms).
+- **Neighborhood** as a card: the neighborhood and city, and "the exact
+  address is shared by the advertiser in Messages" (the map comes with 12f).
+- **The advertiser** with their **profile photo** (or initial), "Email
+  confirmed" and "Member since".
+- Save and Contact stay at the bottom on phones.
+- **Computer:** the photos on the left with everything under them; on the
+  right a card that stays in view: the price, the kind of place, bedrooms ·
+  bathrooms · people, Save and Contact, then the advertiser.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 292 (extended: the listing sends the advertiser's photo, never their
+      email)
+- [x] Lint: no new errors (51)
+- [x] Screens compared with the picture at phone and desktop sizes
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (phone and computer)
+1. Open a listing on the phone: the photo is at the very top with back,
+   heart and share; tap a thumbnail to change the photo.
+2. Under the title and the green price: the facts in 3 columns. Your listing
+   (with the size you entered in 13d) shows "850 sq ft".
+3. **Amenities** show with icons; the neighborhood card says the exact address
+   is shared in Messages.
+4. The advertiser card shows their photo if they added one (add a profile
+   photo to your account to see yours), "Email confirmed" and "Member since".
+5. **Computer:** photos on the left, and on the right a card with the price,
+   Save and Contact that stays in view as you scroll.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

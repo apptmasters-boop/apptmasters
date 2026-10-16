@@ -6,6 +6,7 @@
 import { describe, it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { GET as search } from "@/app/api/listings/search/route";
+import { GET as getListing } from "@/app/api/listings/[id]/route";
 import { POST as createListing } from "@/app/api/listings/route";
 import { GET as getSaved, POST as save } from "@/app/api/saved/route";
 import { DELETE as unsave } from "@/app/api/saved/[listingId]/route";
@@ -135,6 +136,10 @@ describe("search finds only real matches", () => {
     const res = await find(`q=${city}`);
     expect(res.listings[0].owner.photo).toBe("/uploads/avatars/owner.jpg");
     expect(JSON.stringify(res)).not.toContain(owner.email);
+    // The listing page too (13e).
+    const page = await (await getListing(request(`/api/listings/${listing.id}`), routeParams({ id: listing.id }))).json();
+    expect(page.owner).toMatchObject({ name: owner.name, photo: "/uploads/avatars/owner.jpg" });
+    expect(JSON.stringify(page)).not.toContain(owner.email);
   });
 });
 
