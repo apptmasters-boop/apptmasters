@@ -11,18 +11,16 @@ from there."
 - **Approved:** 13a (the pictures' font and frame everywhere), on 2026-10-16.
   The owner's reply was "13b approved", read as 13a approved and the go-ahead
   for 13b.
-- **Approved:** 13b (Home) and 13c (Search results), on 2026-10-16.
-- **Live on apptmasters.com:** Sprint **13d — Filters + 4 new details** (the
-  phone Filters sheet and the desktop panel as in the pictures, a two-handle
-  price slider, Size; air conditioning, heat included, dishwasher and square
-  feet on the listing form and as filters). Commit `28eec7e`. Its database
-  change (`prisma/manual-sql/2026-10-16-sprint-13d-listing-extras.sql`) was
-  applied on the live site after the owner's OK.
-- **Next step:** the owner tests 13d (steps in
-  [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "13d — Filters + 4 new listing
-  details") and replies **"13d approved"** (or lists what's wrong). Then build
-  **13e — Listing page**, following [`SPRINT_13_PLAN.md`](SPRINT_13_PLAN.md)
-  (it also shows the size in square feet).
+- **Approved:** 13b (Home), 13c (Search results) and 13d (Filters + 4 new
+  details, with its database change applied), on 2026-10-16.
+- **Live on apptmasters.com:** Sprint **13e — Listing page** (photo across the
+  top, green price, facts in 3 columns with the size, amenities with icons, the
+  neighborhood card, the advertiser's photo; on desktop a card that stays in
+  view). Commit `667bf78`.
+- **Next step:** the owner tests 13e (steps in
+  [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "13e — Listing page") and
+  replies **"13e approved"** (or lists what's wrong). Then build **13f —
+  Saved**, following [`SPRINT_13_PLAN.md`](SPRINT_13_PLAN.md).
 - **The rule for Sprint 13:** one step at a time. Each step is built,
   compared with the owner's picture in [`mockups/`](mockups/) at phone and
   desktop size, checked, deployed, and tested by the owner. The next step
@@ -35,8 +33,8 @@ from there."
 | 13a | The look everywhere: font, green phone bar, phone logo bar on Home only, full-width desktop header | Approved 2026-10-16 |
 | 13b | Home: headline, search, quick pickers (Price, Bedrooms, Move-in date), "Already have a place?", listing tiles | Approved 2026-10-16 |
 | 13c | Search results: phone title bar, chip row, All/Apartments/Rooms/Houses tabs, cards as in the picture; desktop cards with the advertiser's photo; move the "Have you found your new home?" card to Home only | Approved 2026-10-16 |
-| 13d | Filters as in the picture + 4 new listing details (air conditioning, heat included, dishwasher, square feet). **Needs a database change: ask the owner's OK before applying it on the live site** | Live, waiting for the owner's test (database change applied) |
-| 13e | Listing page | |
+| 13d | Filters as in the picture + 4 new listing details (air conditioning, heat included, dishwasher, square feet). **Needs a database change: ask the owner's OK before applying it on the live site** | Approved 2026-10-16 (database change applied) |
+| 13e | Listing page | Live, waiting for the owner's test |
 | 13f | Saved | |
 | 13g | Messages (photos, conversation without the phone bar, desktop three panels) | |
 | 13h | More, How It Works, Help, Create / Join a Home | |
@@ -50,7 +48,7 @@ marketplace messages, folders, saved searches, nearby places.
 ## Waiting for the owner
 
 - **Tests / sign-offs:** 11a ("Have you found your new home?"), 11b (Create /
-  Join a Home), 12a–12e (Find a Home), 13d. Sprints 1–10 and 13a–13c are
+  Join a Home), 12a–12e (Find a Home), 13e. Sprints 1–10 and 13a–13d are
   approved.
 - **Daily "Have you found your new home?" email:** needs the owner's OK to add
   the server's daily job (`0 14 * * *`, 10 am New York, calling
