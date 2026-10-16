@@ -10,8 +10,9 @@ import { useRouter } from "next/navigation";
 import { apiFetch, clearToken } from "@/lib/api";
 import { useMe, forgetMe, initials } from "@/components/market/useMe";
 import { useSavedIds } from "@/components/market/saved";
+import { SearchHomeArt } from "@/components/market/Illustrations";
 import {
-  BellIcon, ChevronRightIcon, HeartIcon, HelpCircleIcon, HomeIcon, ListIcon, LogOutIcon, MessageIcon, PlusCircleIcon,
+  BellIcon, CameraIcon, ChevronRightIcon, HeartIcon, HelpCircleIcon, HomeIcon, ListIcon, LogOutIcon, MessageIcon, PlusCircleIcon,
   SearchIcon, SettingsIcon, ShieldCheckIcon, UserIcon, UsersIcon, InfoIcon,
 } from "@/components/landing/icons";
 
@@ -118,12 +119,18 @@ export default function MorePage() {
       </div>
 
       <Link href="/profile" className="mt-5 flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:border-brand/40 dark:border-gray-800 dark:bg-gray-900">
-        {me.photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={me.photo} alt="" className="h-16 w-16 rounded-full object-cover" />
-        ) : (
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-xl font-semibold text-brand dark:bg-brand/30 dark:text-emerald-200">{initials(me.name)}</span>
-        )}
+        {/* The camera badge: the profile is where the photo is added or changed (docs/mockups/more-mobile.jpg). */}
+        <span className="relative shrink-0">
+          {me.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={me.photo} alt="" className="h-[4.5rem] w-[4.5rem] rounded-full object-cover" />
+          ) : (
+            <span className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-brand-soft text-2xl font-semibold text-brand dark:bg-brand/30 dark:text-emerald-200">{initials(me.name)}</span>
+          )}
+          <span className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200" aria-label="Change photo">
+            <CameraIcon className="h-4 w-4" />
+          </span>
+        </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-lg font-semibold text-gray-900 dark:text-white">{me.name}</span>
           <span className="block truncate text-sm text-gray-500">{me.email}</span>
@@ -135,7 +142,7 @@ export default function MorePage() {
         <BigCard href="/apartment/join/status" icon={<HomeIcon className="h-6 w-6" />} title="Your join request is waiting" text="See where it stands on Join status." />
       ) : seeking && (
         <Link href="/listings" className="mt-4 flex items-center gap-4 rounded-2xl border border-brand/20 bg-brand-soft/60 p-4 dark:bg-brand/15">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-brand dark:bg-brand/30"><SearchIcon className="h-6 w-6" /></span>
+          <SearchHomeArt className="h-16 w-24 shrink-0" />
           <span className="min-w-0 flex-1">
             <span className="block font-semibold text-gray-900 dark:text-white">Still looking for a place?</span>
             <span className="block text-sm text-gray-600 dark:text-gray-300">Keep searching and save your favorite listings.</span>

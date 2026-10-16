@@ -10,7 +10,7 @@ import { ArrowLeftIcon, CheckIcon } from "@/components/landing/icons";
 
 export function SetupPage({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-gray-50 pb-16 dark:bg-gray-950">
+    <main className="min-h-screen bg-white pb-16 sm:bg-gray-50 dark:bg-gray-950">
       <div className="mx-auto w-full max-w-lg px-4 pt-6 sm:pt-10">{children}</div>
     </main>
   );

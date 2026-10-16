@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a–13f approved; 13g live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a–13g approved; 13h being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1512,8 +1512,8 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Approved 2026-10-16 |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Approved 2026-10-16 |
 | **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Approved 2026-10-16 |
-| **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Ready for your test |
-| **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Not started |
+| **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Approved 2026-10-16 |
+| **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Being built |
 
 **Left out from the pictures** (the app doesn't have them): star ratings,
 "verified" badges other than the email confirmation, online status, calls and
@@ -1848,5 +1848,42 @@ of yours)
 4. **Computer:** Messages opens three panels; on the right, **Contact
    information** and **Quick actions**: Save listing saves it, Share listing
    copies the link, Report this listing opens the report form.
+
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
+
+### 13h — More, How It Works, Help, Create / Join a Home
+
+**What changes** (pictures: `docs/mockups/more-mobile.jpg`,
+`create-home-mobile.jpg`, `join-home-mobile.jpg`)
+- **More:** your profile card with your photo (or initials) and a **camera
+  badge** that opens your profile to change the photo; "Still looking for a
+  place?" with the picture's **house-and-magnifier drawing**; the Housing,
+  Search & listings, Messages and Account sections as in the picture.
+- **Join a Home:** the first screen gets a **drawing of a home with
+  roommates** like the picture, instead of the icons.
+- **Create a Home, Join a Home, How It Works, Help:** on phones a white page
+  like the rest of Find a Home; the same cards and spacing as the other
+  screens. The steps themselves don't change.
+- Left out (the app doesn't have them): Search history (comes with 12f),
+  "Request to join" a home you search for, the extra Create a Home settings
+  (apartment type, bedrooms, residents, expense and task switches) and
+  sharing a phone number.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 293 (no new ones: these pages only change how they look)
+- [x] Lint: no new errors (51)
+- [x] Screens compared with the pictures at phone and desktop sizes
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (phone; signed in without a home)
+1. **More:** your photo (or initials) has a small camera badge: tapping it
+   opens your profile, where you can add a photo. "Still looking for a
+   place?" shows the house-and-magnifier drawing and opens Find a Home.
+2. **Join a Home:** the first screen shows the drawing of a home with
+   roommates; "Join with an invite code" still works as before.
+3. **Create a Home**, **How It Works** and **Help** look like the rest of the
+   app (white page on phones, same cards).
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

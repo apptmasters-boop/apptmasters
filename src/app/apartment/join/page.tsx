@@ -9,6 +9,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch, getToken } from "@/lib/api";
+import { HomeTogetherArt } from "@/components/market/Illustrations";
 import {
   SetupPage, SetupHeader, Stepper, SetupCard, Field, ErrorNote, RequestTimeline, inputClass, primaryButton, textButton,
 } from "@/components/homeSetup/SetupShell";
@@ -145,8 +146,9 @@ function JoinFlow() {
     return (
       <SetupPage>
         <SetupHeader title="Join a Home" subtitle="Become a member of a household." backHref="/listings" />
-        <div className="mt-6 flex h-36 items-center justify-center gap-4 rounded-2xl bg-gradient-to-br from-brand-soft to-emerald-50 text-brand dark:from-brand/30 dark:to-brand/10 dark:text-emerald-300">
-          <UsersIcon className="h-12 w-12" /><HomeIcon className="h-16 w-16" /><UsersIcon className="h-12 w-12" />
+        {/* A home with roommates, like the picture (docs/mockups/join-home-mobile.jpg). */}
+        <div className="mt-6 overflow-hidden rounded-2xl">
+          <HomeTogetherArt className="h-40 w-full" />
         </div>
         <button type="button" onClick={() => setStage("code")}
           className="mt-5 flex w-full items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-brand/40 dark:border-gray-800 dark:bg-gray-900">
