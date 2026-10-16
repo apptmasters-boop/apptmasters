@@ -1997,36 +1997,42 @@ the server were lost, the site could only be rebuilt, and the backups opened,
 with a copy of it. The SSH key `appmasters.pem` (the only way into the server)
 belongs next to it.
 
+**Owner's setup (2026-10-16):** the owner already keeps `appmasters.pem`, and
+uses **Google Password Manager**, protected by the Google sign-in key on the
+owner's personal phone. So the settings go there: they sync to the phone. The
+key file (1,674 characters) stays as the owner keeps it, with at least one
+copy off this PC; it only works from the internet addresses listed in AWS.
+
 **What the owner does once** (5 minutes). Nothing is shown on screen or sent
-to anyone, Claude included:
-1. Open your password manager (if you don't have one: **Bitwarden**, free, or
-   the one built into your phone or Google account; it must allow a long
-   note).
-2. Create a **secure note** named **"apptmasters server settings"**.
-3. On this PC, open a **separate PowerShell window** (Start menu → type
-   *PowerShell*), not this chat, and paste:
+to anyone, Claude included. The settings file is 790 characters, so it fits
+in one note.
+1. In Chrome on this PC (signed in to the same Google account), open
+   `chrome://password-manager/passwords` and click **Add**.
+2. **Site:** `https://apptmasters.com` · **Username:** `server settings`.
+3. **Password** = the backup password alone. In a **separate PowerShell
+   window** (Start menu → *PowerShell*; not this chat), paste:
+   ```powershell
+   ssh -i $HOME\.ssh\appmasters.pem ubuntu@ec2-44-192-72-84.compute-1.amazonaws.com "grep ^BACKUP_PASSPHRASE= /var/www/apptmasters/.env.local | cut -d= -f2-" | Set-Clipboard
+   ```
+   then paste (Ctrl+V) into **Password**.
+4. **Note** = the whole settings file. In the same window:
    ```powershell
    ssh -i $HOME\.ssh\appmasters.pem ubuntu@ec2-44-192-72-84.compute-1.amazonaws.com "cat /var/www/apptmasters/.env.local" | Set-Clipboard
    ```
-   It copies the settings straight to the clipboard without showing them.
-   Paste them into the note (Ctrl+V) and save.
-4. Then, in the same window, copy the SSH key the same way and paste it into
-   a second secure note named **"apptmasters SSH key (appmasters.pem)"**:
-   ```powershell
-   Get-Content $HOME\.ssh\appmasters.pem -Raw | Set-Clipboard
-   ```
+   then paste (Ctrl+V) into **Note**, and **Save**. (If Google says the note
+   is too long, save the first 7 lines in this entry and the rest in a second
+   entry with the username `server settings 2`.)
 5. Clear the clipboard: `Set-Clipboard -Value " "`, and close the window.
 
 **Your test** (without sending any value to anyone)
-1. The note **"apptmasters server settings"** has **13 lines**, starting with
-   these names: `DATABASE_URL`, `APP_URL`, `NODE_ENV`, `JWT_SECRET`,
-   `SUPER_ADMIN_EMAIL`, `RESEND_API_KEY`, `RESEND_FROM`, `VAPID_SUBJECT`,
-   `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET`, `BACKUP_REPO`,
-   `BACKUP_PASSPHRASE`.
-2. The note **"apptmasters SSH key"** starts with `-----BEGIN` and ends with
-   `-----END … KEY-----`.
-3. You can open both notes from your phone too (so they survive losing this
-   PC).
+1. On your **phone**, Google Password Manager (Settings → Google → Passwords,
+   or passwords.google.com) shows **apptmasters.com · server settings**.
+2. Its note has **13 lines**, starting with these names: `DATABASE_URL`,
+   `APP_URL`, `NODE_ENV`, `JWT_SECRET`, `SUPER_ADMIN_EMAIL`, `RESEND_API_KEY`,
+   `RESEND_FROM`, `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`,
+   `CRON_SECRET`, `BACKUP_REPO`, `BACKUP_PASSPHRASE`; its password is the same
+   as the text after `BACKUP_PASSPHRASE=`.
+3. `appmasters.pem` has a copy somewhere other than this PC.
 
 Whenever a setting changes on the server, the developer says so and the note
 is updated the same way.
