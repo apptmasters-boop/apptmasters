@@ -1285,27 +1285,39 @@ the test)
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
-### 11b — Home Setup: create or join, with a move-in date
+### 11b — Home Setup: Create a Home / Join a Home, with a move-in date
 
-**Status:** Not started (built after 11a)
+**Status:** Building (the owner's designs, 2026-10-16)
+
+**Design:** [`docs/mockups/create-home-mobile.jpg`](mockups/create-home-mobile.jpg),
+[`docs/mockups/join-home-mobile.jpg`](mockups/join-home-mobile.jpg). Left out
+because the app doesn't have them (owner: "everything we don't have, don't
+take into account"): apartment type, bedrooms and total residents of a home,
+the "initial settings" switches, invites by phone, finding a home to ask to
+join without a code, and the message and phone number in a join request.
 
 **What I'm building** (§4: "I found a place → Found through Apartment
 Masters? → Select/enter home → Move-in date → Create My Home → Invite
-roommates")
-- **Step 1, where:** "Did you find it on Apartment Masters?" If yes, pick the
-  listing you messaged its owner about; its title and city fill in (the
-  street address stays private to the advertiser, who shares it in Messages,
-  so you type it). If not, type them.
-- **Step 2, move-in date.**
-- **Step 3, create or join:** **Create My Home** (you become its household
-  admin) or **Join a roommate's home** with their invite code (they approve
-  you, as today).
-- **Step 4, invite roommates:** by email, or share the invite code.
+roommates"; `MARKETPLACE_FLOW.md` §22–24)
+- **Create a Home**, three steps with a progress bar:
+  1. **Basic info:** "Found it on Apartment Masters?" Pick the listing you
+     messaged its owner about: its title and city fill in (the street address
+     stays private to the advertiser, who shares it in Messages, so you type
+     it). Home name, address, move-in date (optional).
+  2. **Members:** invite roommates by email (sent when the home is created);
+     you're shown as the household admin.
+  3. **Review**, then **Create My Home**: you land in your new home.
+- **Join a Home:** enter the invite code (filled in from an invite email) →
+  **review the home** (name, address, how many members) → your move-in date →
+  **Send request** → "Request sent" (sent ✓, under review, response) → a
+  **Join status** page with your requests. While waiting, signing in lands
+  there. The household admin approves, as today.
 - **Move-in date in action:** until someone's move-in date, rent months,
   cleaning and shopping turns and default expense splits leave them out (as
-  if they were away); after it, they're counted. Their profile shows "Moving
-  in on …".
-- The old Create apartment and Join pages open Home Setup.
+  if they were away); after it, they're counted. Rent: someone pays a month if
+  they've moved in by that month's due day. The household page shows "Moving
+  in on …", and the calendar shows the move-in day.
+- The old Create apartment and Join pages are replaced by these.
 - **Two quick fixes from the Sprint 12 review** (live problems today):
   - A listing's exact street address is visible only to its poster and
     admins, on the page and in its data; everyone else sees the city (owner's
@@ -1313,22 +1325,32 @@ roommates")
     listings shows one today.
   - On phones, the Listings header gets a menu (Browse, Post a listing, My
     listings, Messages); today those links are hidden on small screens.
+- Database: a move-in date on each membership, added with a reviewed SQL file.
 
 **Your test on apptmasters.com**
-1. On the "found a place" account (first message the owner of a listing):
-   Home Setup → **Yes** (found on Apartment Masters) → pick that listing: its
-   title and city fill in; type the street address. Move-in date: two weeks
-   from today. **Create My Home**: you're the admin of a new home; invite a
-   roommate by email.
-2. In that home, set up rent with the rent payer being someone already moved
-   in: this month's rent gives the new person no share.
-3. A second account joins with the invite code and a move-in date in the
-   past; once approved, they're in the cleaning and shopping turns.
-4. Open the listing that has a street address, signed out and as another
+1. **Create:** signed in without a home (e.g. A), open **Create a Home** (from
+   "Yes, I found a place" on Listings). Basic info: if you messaged a listing
+   owner, pick that listing; its title and city fill in; type the street
+   address; move-in date two weeks from today. Members: invite a second
+   account by email. Review → **Create My Home**: you're in your new home as
+   its admin, and the invite email arrives.
+2. **Join:** with the second account (no home), open the invite email's link:
+   the code is filled in. Review shows the home's name, address and member
+   count. Choose a move-in date in the past → **Send request** → "Request
+   sent". Sign out and in: you land on **Join status**.
+3. **Approve** the request as the admin. The household page shows the admin
+   "Moving in on …" (two weeks from now). Create a cleaning rotation with both
+   of you: the admin's turns are skipped until their move-in date. The
+   calendar shows the move-in day.
+4. **Rent:** set up rent with the second account as the rent payer: this
+   month's rent gives the admin (not moved in by the due day) no share.
+5. Open the listing that has a street address, signed out and as another
    account: only the city shows. As its poster, you still see the address
    (and can edit it).
-5. On a phone, signed in without a home: the Listings header has a menu with
+6. On a phone, signed in without a home: the Listings header has a menu with
    Browse, Post a listing, My listings and Messages.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 ---
 
@@ -1351,6 +1373,17 @@ actions. Detailed test steps are written when each slice starts.
   chooses. Public pages show city, neighborhood and an approximate map area.
 - **Map and radius:** the last slice, once the owner picks a map service
   (account and key needed).
+- **The filters' data (approved 2026-10-16):** the listing form asks what the
+  document's filters need and saves it with the listing (a database
+  addition). Everything else taken from the pictures is front end only.
+- **Design:** the owner's pictures in [`docs/mockups/`](mockups/): Home,
+  search results, Filters, listing details, Saved, Messages, a conversation
+  and More on phones; Find a Home, Messages and Saved on desktop. Left out
+  because the app doesn't have them: ratings and reviews, "verified" badges,
+  online status, "Schedule viewing", calls in marketplace messages, photos and
+  voice in marketplace messages, square feet, nearby places (subway, grocery),
+  "Recommended for you" (shown as the latest listings), saved searches and
+  folders, household chats inside marketplace Messages.
 
 **My proposals in the review (owner can change them at each slice):**
 - "Found a home" and the "Have you found your new home?" question (11a) stay,
