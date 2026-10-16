@@ -21,16 +21,18 @@ once and every part of the app that's affected updates itself:
 | [`prisma/manual-sql/`](prisma/manual-sql/) | Every database change applied by hand on the live server, and how to add one |
 | [`scripts/ops/verify-live.sh`](scripts/ops/verify-live.sh) | Post-deploy check run on the server |
 
-## Where we are (2026-10-15)
+## Where we are (2026-10-16)
 
-- **Done and approved by the owner:** Phase S (security), Sprints 1–7
+- **Done and approved by the owner:** Phase S (security) and Sprints 1–7
   (navigation, Home feed, Cleaning, Shopping, the Money engine, Shopping →
-  Money, and Rent: landlord paid vs. roommates reimbursed, months that start
-  and remind by themselves).
-- **Now:** Sprint 8, Maintenance: Reported → Acknowledged → Scheduled → In
-  progress → Completed → Resolved, scheduling on the calendar, and the
-  resident confirming the fix.
-- **Tests:** 207 automated tests; lint errors down from 75 to 64.
+  Money, Rent), plus 8a (maintenance steps and scheduling).
+- **Live and waiting for the owner's test:** 8b ("Is it fixed?"), 9a (a
+  calendar that builds itself), 9b (one notification service), 10a (Household
+  issues) and 10b (Insights).
+- **Next:** Sprint 11, Marketplace → My Home ("Have you found your new home?",
+  Create / Join Home). Then the "Before public launch" items in
+  [`docs/ROADMAP.md`](docs/ROADMAP.md), nightly backups first.
+- **Tests:** 239 automated tests; lint errors down from 75 to 60.
 - **Not in GitHub, on purpose:** `.env.local` (passwords and keys; keep a
   copy in a password manager) and the server's own configuration.
 
