@@ -8,7 +8,7 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { SearchFilters } from "@/lib/listingSearch";
+import { orderedPrices, parseAmount, type SearchFilters } from "@/lib/listingSearch";
 import { BedIcon, CalendarIcon, ChevronDownIcon, PinIcon, SlidersIcon, TagIcon, UsersIcon, XIcon } from "@/components/landing/icons";
 
 export type PickerKey = "place" | "people" | "price" | "bedrooms" | "moveIn";
@@ -73,6 +73,9 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
   const [open, setOpen] = useState<PickerKey | null>(null);
   const [place, setPlace] = useState(filters.q);
   const [date, setDate] = useState(filters.moveIn);
+  // Typed amounts stay as typed ("1,500") until Show (Fix F1).
+  const [minText, setMinText] = useState(filters.minPrice?.toString() ?? "");
+  const [maxText, setMaxText] = useState(filters.maxPrice?.toString() ?? "");
 
   useEffect(() => {
     if (!open) return;
@@ -84,6 +87,8 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
   function toggle(key: PickerKey) {
     setPlace(filters.q);
     setDate(filters.moveIn);
+    setMinText(filters.minPrice?.toString() ?? "");
+    setMaxText(filters.maxPrice?.toString() ?? "");
     setOpen(o => (o === key ? null : key));
   }
   function pick(patch: Partial<SearchFilters>) {
@@ -93,7 +98,7 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
 
   const icons: Record<PickerKey, typeof TagIcon> = { place: PinIcon, people: UsersIcon, price: TagIcon, bedrooms: BedIcon, moveIn: CalendarIcon };
   const titles: Record<PickerKey, string> = {
-    place: "City, neighborhood, or ZIP code", people: "How many people will live there?", price: "Rent per month, up to",
+    place: "City, neighborhood, or ZIP code", people: "How many people will live there?", price: "Rent per month",
     bedrooms: "Bedrooms", moveIn: "Move-in date",
   };
   const filtersInner = (
@@ -108,7 +113,7 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
         {filtersHref
           ? <Link href={filtersHref} className={`${chip} ${idle}`}>{filtersInner}</Link>
-          : <button type="button" onClick={onFilters} className={`${chip} ${idle}`}>{filtersInner}</button>}
+          : <button type="button" onClick={() => { setOpen(null); onFilters?.(); }} className={`${chip} ${idle}`}>{filtersInner}</button>}
         {pickers.map(key => {
           const Icon = icons[key];
           const active = open === key;
@@ -150,14 +155,35 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
           )}
 
           {open === "price" && (
-            <div className="grid grid-cols-3 gap-2">
-              {PRICES.map(p => (
-                <button key={p} type="button" onClick={() => pick({ minPrice: null, maxPrice: p })}
-                  className={option(filters.maxPrice === p && filters.minPrice === null)}>
-                  {money(p)}
-                </button>
-              ))}
-            </div>
+            <>
+              {/* Min and Max as typed ("1,500", "$900"); a Min above the Max is swapped (Fix F1). */}
+              <form onSubmit={e => { e.preventDefault(); pick(orderedPrices(parseAmount(minText), parseAmount(maxText))); }} className="flex items-end gap-2">
+                <label className="min-w-0 flex-1">
+                  <span className="mb-1 block text-xs font-medium text-gray-500">Min</span>
+                  <span className="relative block">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+                    <input inputMode="numeric" value={minText} onChange={e => setMinText(e.target.value)} placeholder="No min" aria-label="Minimum rent" className={`${field} w-full pl-6`} />
+                  </span>
+                </label>
+                <label className="min-w-0 flex-1">
+                  <span className="mb-1 block text-xs font-medium text-gray-500">Max</span>
+                  <span className="relative block">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+                    <input inputMode="numeric" value={maxText} onChange={e => setMaxText(e.target.value)} placeholder="No max" aria-label="Maximum rent" className={`${field} w-full pl-6`} />
+                  </span>
+                </label>
+                <button type="submit" className={goButton}>Show</button>
+              </form>
+              <p className="mb-2 mt-4 text-xs font-medium text-gray-500">Or up to</p>
+              <div className="grid grid-cols-3 gap-2">
+                {PRICES.map(p => (
+                  <button key={p} type="button" onClick={() => pick({ minPrice: null, maxPrice: p })}
+                    className={option(filters.maxPrice === p && filters.minPrice === null)}>
+                    {money(p)}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
 
           {open === "bedrooms" && (

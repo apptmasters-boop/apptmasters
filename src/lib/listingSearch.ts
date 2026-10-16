@@ -96,8 +96,23 @@ const oneOf = <T extends string>(v: string | null, allowed: readonly T[]): T | "
 const AMENITY_KEYS = AMENITIES.map(a => a.key);
 
 /** Filters from the page address (older links used `city` for the place). */
+/** An amount as people type it: "1,500", "$900" or "900.00" (Fix F1); null when empty or not a number. */
+export function parseAmount(v: string | null | undefined): number | null {
+  if (/-\s*\$?\s*\d/.test(v ?? "")) return null; // no negative amounts
+  const cleaned = (v ?? "").replace(/[^\d.]/g, "");
+  if (cleaned === "") return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+}
+
+/** Min and max in order: a min above the max is swapped rather than matching nothing (Fix F1). */
+export function orderedPrices(min: number | null, max: number | null): { minPrice: number | null; maxPrice: number | null } {
+  return min !== null && max !== null && min > max ? { minPrice: max, maxPrice: min } : { minPrice: min, maxPrice: max };
+}
+
 export function parseFilters(p: URLSearchParams): SearchFilters {
   const occupants = num(p.get("occupants"));
+  const prices = orderedPrices(parseAmount(p.get("minPrice")), parseAmount(p.get("maxPrice")));
   const bathrooms = num(p.get("bathrooms"));
   const minSqft = num(p.get("minSqft"));
   const listedWithin = num(p.get("listedWithin"));
@@ -107,8 +122,8 @@ export function parseFilters(p: URLSearchParams): SearchFilters {
     kind: oneOf(p.get("kind"), KINDS.map(k => k.value)),
     propertyType: oneOf(p.get("propertyType"), PROPERTY_TYPES.map(t => t.value)),
     roomType: oneOf(p.get("roomType"), ROOM_TYPES.map(t => t.value)),
-    minPrice: num(p.get("minPrice")),
-    maxPrice: num(p.get("maxPrice")),
+    minPrice: prices.minPrice,
+    maxPrice: prices.maxPrice,
     occupants: occupants !== null && occupants >= 1 ? Math.min(Math.floor(occupants), 20) : null,
     bedrooms: oneOf(p.get("bedrooms"), ["0", "1", "2", "3+"] as const) || (num(p.get("bedrooms")) !== null && num(p.get("bedrooms"))! >= 3 ? "3+" : ""),
     bathrooms: bathrooms !== null && bathrooms >= 1 ? bathrooms : null,

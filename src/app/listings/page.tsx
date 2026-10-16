@@ -26,7 +26,7 @@ interface Results {
 
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;
 /** The phone's quick buttons already show these (with "Any" to remove them). */
-const ON_QUICK_BUTTONS = new Set(["q", "occupants", "price", "bedrooms"]);
+const ON_QUICK_BUTTONS = new Set(["q", "occupants", "price", "bedrooms", "moveIn"]);
 /** The tabs show this one. */
 const ON_TABS = new Set(["kind"]);
 const VIEW_KEY = "am:resultsView";
@@ -122,14 +122,7 @@ function FindAHome() {
   );
 
   return (
-    <main className="mx-auto max-w-[96rem] px-4 pb-10 pt-4 sm:px-6 lg:grid lg:grid-cols-[19rem_1fr] lg:gap-8 lg:px-8 lg:pt-8">
-      {/* Desktop: the filters on the left (§4). */}
-      <aside className="hidden lg:block">
-        <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-          <FilterPanel key={query} value={filters} onApply={f => go(f)} />
-        </div>
-      </aside>
-
+    <main className="mx-auto max-w-[96rem] px-4 pb-10 pt-4 sm:px-6 lg:px-8 lg:pt-8">
       <div className="min-w-0">
         {/* Phones: where, how many, people and price, sort; then the quick buttons. */}
         <div className="flex items-center gap-3 lg:hidden">
@@ -145,11 +138,6 @@ function FindAHome() {
             </select>
           </label>
         </div>
-        <div className="lg:hidden">
-          <QuickPickers key={query} className="mt-4" pickers={["place", "people", "price", "bedrooms"]} filters={filters} showValues
-            onPick={patch => go({ ...filters, ...patch }, true)} onFilters={() => setSheet(true)} filtersCount={chips.length} />
-        </div>
-
         {/* Desktop: the count, sort, and grid or list. */}
         <div className="hidden items-center justify-between gap-4 lg:flex">
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -174,6 +162,10 @@ function FindAHome() {
           </div>
         </div>
 
+        {/* The filters, on top on every screen (Fix F1): Filters opens all of them; the others open a picker. */}
+        <QuickPickers key={query} className="mt-4" pickers={["place", "people", "price", "bedrooms", "moveIn"]} filters={filters} showValues
+          onPick={patch => go({ ...filters, ...patch }, true)} onFilters={() => setSheet(true)} filtersCount={chips.length} />
+
         {/* Apartments, rooms or houses, with how many of each match. */}
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="tablist" aria-label="Kind of place">
           {tabs.map(t => (
@@ -186,15 +178,14 @@ function FindAHome() {
           ))}
         </div>
 
-        {/* Every active filter, removable (§6): on phones only those not on the quick buttons. */}
-        {removable(otherChips, "flex lg:hidden")}
-        {removable(chips, "hidden lg:flex")}
+        {/* Every active filter can be removed (§6): those not on the quick buttons, as chips. */}
+        {removable(otherChips, "flex")}
 
         <div className="mt-5">
           {failed ? (
             <p className="py-16 text-center text-sm text-gray-500">Couldn&apos;t load listings. Please refresh.</p>
           ) : !results ? (
-            <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3 lg:gap-5">
+            <div className="grid gap-3 lg:grid-cols-3 lg:gap-5 2xl:grid-cols-4">
               {Array.from({ length: 6 }, (_, i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-gray-100 lg:h-80 dark:bg-gray-800" />)}
             </div>
           ) : results.total === 0 ? (
@@ -208,7 +199,7 @@ function FindAHome() {
                 {(chips.length > 0 || filters.kind) && (
                   <button type="button" onClick={clearAll} className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">Clear all filters</button>
                 )}
-                <button type="button" onClick={() => setSheet(true)} className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-800 lg:hidden dark:border-gray-700 dark:text-gray-100">Change filters</button>
+                <button type="button" onClick={() => setSheet(true)} className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-800 dark:border-gray-700 dark:text-gray-100">Change filters</button>
               </div>
             </div>
           ) : (
@@ -217,7 +208,7 @@ function FindAHome() {
                 {results.listings.map(l => <ListingCard key={l.id} listing={l} layout="row" />)}
               </div>
               {view === "grid" ? (
-                <div className="hidden gap-5 lg:grid lg:grid-cols-2 xl:grid-cols-3">
+                <div className="hidden gap-5 lg:grid lg:grid-cols-3 2xl:grid-cols-4">
                   {results.listings.map(l => <ListingCard key={l.id} listing={l} layout="grid" />)}
                 </div>
               ) : (
@@ -242,13 +233,13 @@ function FindAHome() {
         </p>
       </div>
 
-      {/* Phones: the Filters sheet (docs/mockups/filters-mobile.jpg). */}
+      {/* All the filters: a sheet on phones (docs/mockups/filters-mobile.jpg), a window on computers (Fix F1). */}
       {sheet && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Filters">
           <div className="absolute inset-0 bg-black/40" onClick={() => setSheet(false)} aria-hidden />
-          <div className="absolute inset-x-0 bottom-0 top-4 flex flex-col rounded-t-3xl bg-white px-4 pt-2.5 shadow-2xl motion-safe:animate-[sheet-up_0.25s_ease-out] dark:bg-gray-900">
-            <span className="mx-auto mb-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 dark:bg-gray-700" aria-hidden />
-            <FilterPanel value={filters} sticky onClose={() => setSheet(false)} onApply={f => { setSheet(false); go(f); }} />
+          <div className="absolute inset-x-0 bottom-0 top-4 flex flex-col rounded-t-3xl bg-white px-4 pt-2.5 shadow-2xl motion-safe:animate-[sheet-up_0.25s_ease-out] sm:inset-x-auto sm:bottom-6 sm:right-1/2 sm:top-6 sm:w-[34rem] sm:translate-x-1/2 sm:rounded-3xl sm:px-6 sm:pt-5 sm:motion-safe:animate-none dark:bg-gray-900">
+            <span className="mx-auto mb-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 sm:hidden dark:bg-gray-700" aria-hidden />
+            <FilterPanel value={filters} onClose={() => setSheet(false)} onApply={f => { setSheet(false); go(f); }} />
           </div>
         </div>
       )}

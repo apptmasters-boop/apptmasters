@@ -1955,3 +1955,58 @@ the nightly job; the separate private repository, encrypted.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+## Fixes asked by the owner
+
+### F1 — Filters on top, prices, every filter checked (2026-10-16)
+
+**What the owner saw** (computer, Find a Home): the filters sat in a panel on
+the left; the Min / Max price "didn't work"; asked that every filter be
+checked.
+
+**What was wrong**
+- The search itself filtered prices correctly (checked on the live site), but
+  on a computer the **Apply filters** button was at the very bottom of the long
+  left panel, out of view: typing a price seemed to do nothing.
+- Typing an amount with a comma or a dollar sign ("1,500", "$900") erased the
+  box.
+- A Min higher than the Max silently showed nothing.
+- The quick **Price** button only offered "up to" amounts, no Min / Max.
+
+**What changes**
+- **Computer: no more left panel.** The filters are on the top row, as on the
+  phone: **Filters · place · people · price · bedrooms · move-in date**, each
+  opening its picker; **Filters** opens every filter in a window with **Show N
+  listings** always visible at the bottom. The results use the whole width.
+- **Price:** the quick Price button has **Min and Max boxes** (and quick "up
+  to" amounts); amounts can be typed with commas or "$"; a Min higher than the
+  Max is swapped instead of showing nothing.
+- **Every filter checked:** a new automatic test sets each filter one by one
+  (place, kind of place, room type, price, people, bedrooms, bathrooms, size,
+  move-in date, lease, each option, laundry, smoking, both fees, how recent,
+  and the 3 sorts) and checks that exactly the right listings come back. A
+  browser check also clicks through each filter on the screen.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 349 (53 new: every filter, one by one, returns exactly the matching
+      listings; amounts typed with "$" and commas; Min above Max)
+- [x] Lint: no new errors (51)
+- [x] Browser check (`scripts/dev/screenshots/filters-ui-check.mjs`): every filter
+      set on the screen gives the same results as the search, on a phone and a
+      computer; prices typed with "$" and commas; Min above Max swapped; sorts in order
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (computer first, then phone)
+1. Find a Home on a computer: no panel on the left; the top row shows
+   Filters, the place, people, price, bedrooms and move-in date.
+2. Tap **Price**, type Min **500** and Max **1,000** (with the comma), tap
+   **Show**: only places between $500 and $1,000 (today: the $600 one). The
+   button says "$500 – $1,000".
+3. Tap **Filters**: a window opens with every filter and **Show N listings**
+   at the bottom. Choose **Room**, then Show: only rooms.
+4. Try a few others (bedrooms, people, Furnished…): each time the results
+   and the number match.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

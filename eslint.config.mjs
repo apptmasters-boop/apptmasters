@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The screenshot tool's own browser profile and downloads (not in git).
+    "scripts/dev/screenshots/profile/**",
+    "scripts/dev/screenshots/node_modules/**",
+    "scripts/dev/screenshots/out*/**",
   ]),
 ]);
 

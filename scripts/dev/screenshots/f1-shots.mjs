@@ -1,0 +1,21 @@
+// Fix F1: the results page on a computer (top row), the price picker, and the Filters window.
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+import puppeteer from "puppeteer-core";
+const OUT = new URL("./outF1/", import.meta.url);
+fs.mkdirSync(OUT, { recursive: true });
+const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true, args: ["--no-sandbox"], userDataDir: fileURLToPath(new URL("./profile", import.meta.url)) });
+const page = await browser.newPage();
+const shot = async n => { await new Promise(r => setTimeout(r, 1000)); await page.screenshot({ path: fileURLToPath(new URL(`${n}.png`, OUT)) }); console.log("shot", n); };
+const click = t => page.evaluate(t => [...document.querySelectorAll("button")].find(b => b.offsetParent && b.textContent.trim().startsWith(t))?.click(), t);
+await page.setViewport({ width: 1536, height: 1000 });
+await page.goto("http://localhost:3100/listings?q=Brooklyn", { waitUntil: "networkidle2" });
+await page.waitForFunction(() => document.querySelectorAll("article").length > 0);
+await shot("results-d");
+await click("Any price"); await shot("price-picker-d");
+await click("Filters"); await shot("filters-window-d");
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
+await page.goto("http://localhost:3100/listings?q=Brooklyn", { waitUntil: "networkidle2" });
+await page.waitForFunction(() => document.querySelectorAll("article").length > 0);
+await click("Any price"); await shot("price-picker-m");
+await browser.close();
