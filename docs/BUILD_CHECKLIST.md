@@ -1081,7 +1081,7 @@ has allowed notifications on its phone or browser)
 
 ## Sprint 10 — Household Issues and Insights
 
-**Status:** Plan approved by the owner (2026-10-16) · 10a ready for your test · 10b building
+**Status:** Plan approved by the owner (2026-10-16) · 10a and 10b ready for your test
 · Spec: `PRODUCT_LOGIC.md` §17, §18, §19
 
 Already done in Sprint 1: the More menu follows the blueprint's groups (§17),
@@ -1148,7 +1148,7 @@ another roommate)
 
 ### 10b — Insights (one page instead of Stats and Analytics)
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building** (§19: "aggregate existing source data… use the same Money
 ledger")
@@ -1177,8 +1177,10 @@ ledger")
       household's spending; rent and who owes whom equal Money's numbers;
       cleanings, trips and chores over 3 months; members only)
 - [x] Lint: no new errors (60)
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (a9dd550)
+- [x] Deployed to apptmasters.com 2026-10-16 (no database change; checked with
+      the household that uses rent: everyone's shares add up to its spending;
+      old Stats and Analytics links open Insights)
 
 **Your test on apptmasters.com**
 1. More → **Insights**. This month's spending and categories match Shared
