@@ -51,7 +51,9 @@ export default function SearchPanel() {
             placeholder="City, neighborhood or ZIP" className={inputClass} autoComplete="address-level2" />
         </Field>
         <Field icon={<HomeIcon className="h-5 w-5" />} label="Looking for" htmlFor="lp-type">
-          <select id="lp-type" value={s.type} onChange={e => set({ type: e.target.value })} className={`${inputClass} cursor-pointer`}>
+          <select id="lp-type" value={s.type}
+            onChange={e => set({ type: e.target.value, ...(e.target.value !== "ROOM_TO_SHARE" ? { roommateLifestyleTag: "" } : {}) })}
+            className={`${inputClass} cursor-pointer`}>
             <option value="">Any place</option>
             {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -72,18 +74,6 @@ export default function SearchPanel() {
           Search
         </button>
       </form>
-
-      <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:gap-5">
-        <h2 className="shrink-0 text-sm font-semibold text-gray-900">I&apos;m looking for…</h2>
-        <div className="flex flex-wrap gap-2">
-          {TYPE_OPTIONS.map(({ value, label, icon: Icon }) => (
-            <Chip key={value} active={s.type === value} icon={<Icon className="h-4 w-4" />}
-              onClick={() => set({ type: s.type === value ? "" : value, ...(value !== "ROOM_TO_SHARE" ? { roommateLifestyleTag: "" } : {}) })}>
-              {label}
-            </Chip>
-          ))}
-        </div>
-      </div>
 
       <div className="mt-6">
         <h2 className="text-base font-semibold text-gray-900">What matters to you?</h2>

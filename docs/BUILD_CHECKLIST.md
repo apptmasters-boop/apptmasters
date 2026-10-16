@@ -1501,7 +1501,7 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | Step | What changes | Status |
 |---|---|---|
 | **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Ready for your test |
-| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". Owner's request (2026-10-16): "I'm looking for… Room to share · Whole apartment" shows twice on the signed-out Home; keep it once (the "Looking for" field in the search box) and remove the row of buttons under it | Not started |
+| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Not started |
 | **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Not started |
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Not started |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Not started |
@@ -1529,6 +1529,9 @@ marketplace Messages. The map, radius, Search history and the bell come with
 - Desktop: the header uses the full width; a search button; your photo (or
   initials), first name and ▾ for your menu. Visitors: search, Log in, Sign up.
 - The phone bar: the active tab in green with a line under it.
+- Quick fix at the owner's request: the signed-out Home showed "I'm looking for…
+  Room to share · Whole apartment" twice; the row of buttons under the search
+  box is gone, the "Looking for" dropdown in the search box stays.
 
 **Automatic checks (developer)**
 - [x] Type check passes
@@ -1548,6 +1551,7 @@ marketplace Messages. The map, radius, Search history and the bell come with
    "Messages", "More"). The bottom bar shows the page you're on in green.
 3. **Computer:** the header spans the window; the search button opens Find a
    Home; your photo or initials and first name open your menu.
+   Signed out, Home shows "Looking for" once (the dropdown in the search box).
 4. **Household pages** (Money, Cleaning, Chat, Calendar): same pages as
    before, only the lettering is new; nothing is cut off.
 
