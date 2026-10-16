@@ -1287,7 +1287,7 @@ the test)
 
 ### 11b — Home Setup: Create a Home / Join a Home, with a move-in date
 
-**Status:** Built, checks pass; deploy next (the owner's designs, 2026-10-16)
+**Status:** Ready for your test (the owner's designs, 2026-10-16)
 
 **Design:** [`docs/mockups/create-home-mobile.jpg`](mockups/create-home-mobile.jpg),
 [`docs/mockups/join-home-mobile.jpg`](mockups/join-home-mobile.jpg). Left out
@@ -1340,8 +1340,9 @@ roommates"; `MARKETPLACE_FLOW.md` §22–24)
       everyone but the poster and admins)
 - [x] Lint: no new errors (59, one fewer)
 - [x] Screens checked on phone and desktop sizes on a local copy
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (8ccf353)
+- [x] Deployed to apptmasters.com 2026-10-16 with the SQL file (6 memberships, the
+      new date empty, so nothing changes for existing homes; all pages answer)
 
 **Your test on apptmasters.com**
 1. **Create:** signed in without a home (e.g. A), open **Create a Home** (from
