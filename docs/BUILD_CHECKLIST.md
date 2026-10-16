@@ -2010,5 +2010,5 @@ checked.
 4. Try a few others (bedrooms, people, Furnished…): each time the results
    and the number match.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
 

@@ -21,7 +21,7 @@ from there."
   the job at 7:30 UTC in the server's crontab. First backup and a restore
   check from GitHub passed on 2026-10-16. Everything is in
   [`BACKUPS.md`](BACKUPS.md).
-- **Fix F1 (owner, 2026-10-16) live, waiting for the owner's test:** filters on the
+- **Fix F1 (owner, 2026-10-16) approved:** filters on the
   top row on every screen (no left panel on computers), Min/Max price fixed,
   every filter tested (`tests/filters-every.test.ts`,
   `scripts/dev/screenshots/filters-ui-check.mjs`, which also runs against the
