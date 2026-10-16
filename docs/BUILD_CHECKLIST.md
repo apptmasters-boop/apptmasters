@@ -1900,7 +1900,7 @@ console or a password manager; every change to the server's configuration
 
 | Step | What | Who | Status |
 |---|---|---|---|
-| **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 30 days in a private encrypted S3 bucket; an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Owner: one paste in AWS CloudShell. Developer: the rest | Being prepared |
+| **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 7 nights encrypted in a private GitHub repository (owner's choice: no extra fees); an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Developer, with the owner's OKs | Being set up |
 | **P2 — AWS budget alert** | An email to the owner when the month's AWS bill goes over a set amount | Owner: one paste in CloudShell | Not started |
 | **P3 — Settings in a password manager** | The owner keeps a copy of the server's `.env.local` (passwords and keys) in a password manager, so a lost server can be rebuilt | Owner, with instructions | Not started |
 | **P4 — Changing your password signs out your other devices** | Today an old sign-in on another phone keeps working after a password change or reset | Developer (small database change, owner's OK first) | Not started |
@@ -1909,23 +1909,23 @@ console or a password manager; every change to the server's configuration
 ### P1 — Nightly backups
 
 **What changes**
-- Every night at 3:30 am New York time, the server saves the **database** and
-  the **uploaded files** (photos, receipts, voice messages).
-- It keeps the **last 3 nights on the server** and copies each night to a
-  **private, encrypted storage bucket in your AWS account**, where copies are
-  deleted after **30 days**. The server can add backups there but not delete
-  them.
-- If a night fails, **you get an email** saying which step failed.
-- The live checks show the last backup.
-- A **restore check** proves a backup can really be restored: it restores
-  into a temporary database, compares the numbers with the live site and
-  deletes the copy. It changes nothing live.
-- Cost: about $0.03 a month. Passwords and keys (`.env.local`) are not in
-  the backups (that's P3).
+- Every night (7:30 UTC: 3:30 am New York in summer), the server saves the
+  **database** and the **uploaded files** (photos, receipts, voice messages).
+- It keeps the **last 3 nights on the server**, and the **last 7 nights in a
+  private GitHub repository**, `apptmasters-backups`, separate from the
+  code. Owner's choice (2026-10-16): GitHub, no extra fees, encrypted.
+- On GitHub the files are **encrypted**: GitHub or anyone with access to the
+  repository sees only unreadable files. The password is in the server's
+  settings (`.env.local`), which you'll keep in your password manager (P3).
+- The repository holds one copy, replaced every night, so it doesn't grow.
+- If a night fails, **you get an email** saying which step failed. The live
+  checks show the last backup.
+- A **restore check** downloads the newest night from GitHub, decrypts it,
+  restores it into a temporary database, compares the numbers with the live
+  site and deletes the copy. It changes nothing live.
 
-**What the owner does once:** paste the block from
-[`BACKUPS.md`](BACKUPS.md) ("One-time setup in AWS") into AWS CloudShell and
-send the developer the bucket name it prints.
+**Owner's OKs (2026-10-16):** the first backup by hand and a restore check;
+the nightly job; the separate private repository, encrypted.
 
 **Automatic checks (developer)**
 - [x] Type check passes
@@ -1934,16 +1934,17 @@ send the developer the bucket name it prints.
 - [x] Lint: no new errors (51)
 - [ ] CI green on GitHub
 - [ ] Deployed to apptmasters.com
-- [ ] Owner's OK: the nightly job on the server and the bucket name in its
-      settings
-- [ ] First backup made by hand and copied to S3; restore check passed
+- [ ] The backups repository, the server's write key and the settings set up
+- [ ] First backup made by hand and pushed to GitHub; restore check from GitHub passed
+- [ ] Nightly job added to the server's crontab
 - [ ] The first nightly run (next morning) logged OK
 
 **Your test**
-1. In the AWS console, open **S3** and the bucket `apptmasters-backups-…`: a
-   folder with today's date holds `db.dump`, `uploads.tar.gz` and
-   `SHA256SUMS`. The next mornings, one more folder each day.
-2. The bucket says "Block all public access: On" and encryption is on.
+1. On GitHub, open the private repository **apptmasters-backups**: a folder
+   with today's date holds `db.dump.gpg.part00`, `uploads.tar.gz.gpg.part00`
+   and `SHA256SUMS`. Clicking a `.gpg` file shows nothing readable. The next
+   mornings, one more folder each day, up to 7.
+2. The repository is **Private** and isn't one of the code repository's files.
 3. I send you the restore check's result: the table counts match.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

@@ -149,9 +149,10 @@ Open (recorded in `docs/SECURITY.md`):
 
 ## Before public launch (required)
 
-- [ ] Nightly backups of the database and uploads to a private, encrypted S3
-      bucket with 30-day expiry, plus a 3-day local copy and a tested restore.
-      (~$0.03/month.)
+- [ ] Nightly backups of the database and uploads: 3 nights on the server and
+      7 nights encrypted in a private GitHub repository (owner's choice,
+      2026-10-16: no extra fees, instead of S3), with a tested restore. Pre-launch
+      step P1; see `docs/BACKUPS.md`.
 - [ ] AWS Budgets alert emailing the owner above a set monthly amount.
 - [ ] Owner stores the server's `.env.local` values in a password manager.
 - [ ] All Phase 1 items closed.
