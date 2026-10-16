@@ -20,13 +20,20 @@ export function esc(text: string): string {
   return text.replace(/[&<>"']/g, c => ESCAPES[c]);
 }
 
-export async function sendEmail(to: string, subject: string, html: string) {
+/**
+ * True when Resend accepted the email. Resend reports problems (such as
+ * sending more than about 2 emails a second) in its reply instead of throwing,
+ * so they're logged here; only the error code, never the address or subject.
+ */
+export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
   if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.startsWith("re_your_")) {
     console.warn(`[email] Resend not configured — skipping email to ${to}: ${subject}`);
-    return;
+    return false;
   }
   resend ??= new Resend(process.env.RESEND_API_KEY);
-  await resend.emails.send({ from, to, subject, html });
+  const { error } = await resend.emails.send({ from, to, subject, html });
+  if (error) console.error(`[email] not sent: ${error.name}`);
+  return !error;
 }
 
 export function passwordResetEmail(name: string, resetUrl: string) {

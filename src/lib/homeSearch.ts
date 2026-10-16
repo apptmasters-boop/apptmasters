@@ -17,6 +17,8 @@ const TITLE = "Have you found your new home?";
 const EMAIL_BODY = "If you've found a place, tell us and set up your home with your roommates: rent, cleaning and shopping, shared. Still looking? Say so and we'll check back in two weeks. (You can turn these emails off in your profile, under Household.)";
 const PUSH_BODY = "Tell us if you've found a place, or that you're still looking.";
 
+const EMAIL_PAUSE_MS = 600;
+
 /** Where "Yes, I found a place" leads until Home Setup (11b) exists. */
 export const AFTER_FOUND_PATH = "/apartment/create";
 
@@ -85,19 +87,24 @@ export async function runHomeQuestion(now: Date, opts: { onlyUsers?: string[]; d
     },
     select: personSelect,
   });
-  let asked = 0, emailed = 0;
+  let asked = 0, emailed = 0, lastEmailAt = 0;
   for (const p of candidates) {
     if (!homeQuestionEmailDue({ ...(await factsFor(p)), homeAskedAt: p.homeAskedAt }, now)) continue;
     asked++;
     if (opts.dryRun) continue;
-    await prisma.user.update({ where: { id: p.id }, data: { homeAskedAt: now } });
     const allowed = channelsFor(p.notifPrefs, HOME_QUESTION_TYPE);
     if (allowed.push) sendPushToUsers([p.id], TITLE, PUSH_BODY, "/listings").catch(() => {});
+    let sent = false;
     if (allowed.email) {
-      // One at a time: a slow or failed email must not stop the others.
-      try { await sendEmail(p.email, TITLE, notificationEmail(TITLE, EMAIL_BODY, `${appUrl}/listings?ask=home`, "Answer")); emailed++; }
-      catch { /* the next run in 14 days tries again */ }
+      // One at a time, with a pause: Resend takes about 2 emails a second.
+      const wait = lastEmailAt + EMAIL_PAUSE_MS - Date.now();
+      if (wait > 0) await new Promise(r => setTimeout(r, wait));
+      lastEmailAt = Date.now();
+      sent = await sendEmail(p.email, TITLE, notificationEmail(TITLE, EMAIL_BODY, `${appUrl}/listings?ask=home`, "Answer")).catch(() => false);
+      if (sent) emailed++;
     }
+    // When email was the only way to reach them and it failed, tomorrow's run tries again.
+    if (sent || allowed.push || !allowed.email) await prisma.user.update({ where: { id: p.id }, data: { homeAskedAt: now } });
   }
   return { asked, emailed };
 }

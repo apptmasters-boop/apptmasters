@@ -11,7 +11,13 @@ vi.mock("@/lib/push", () => ({
   sendPushToUsers: vi.fn(async (userIds: string[]) => { pushed.push(userIds); }),
   sendPushToUser: vi.fn(async () => {}),
 }));
+// The real sender (Resend is stubbed in setup-env), wrapped so one test can make an email fail.
+vi.mock("@/lib/email", async importOriginal => {
+  const real = await importOriginal<typeof import("@/lib/email")>();
+  return { ...real, sendEmail: vi.fn(real.sendEmail) };
+});
 
+import { sendEmail } from "@/lib/email";
 import { homeQuestionDueAt, homeQuestionEmailDue, landingPath, type HomeSearchFacts } from "@/lib/housing";
 import { runHomeQuestion } from "@/lib/homeSearch";
 import { GET as askRoute, POST as answerRoute } from "@/app/api/users/home-search/route";
@@ -205,5 +211,27 @@ describe("the daily job", () => {
     expect(result).toEqual({ asked: 1, emailed: 0 });
     expect(emailsTo(quiet.user.email)).toHaveLength(0);
     expect(pushed).toEqual([[quiet.user.id]]); // push still allowed
+  });
+
+  it("tries again the next day when email was the only way and it failed", async () => {
+    const p = await createUser();
+    await prisma.user.update({
+      where: { id: p.user.id },
+      data: { createdAt: at("2027-03-01T10:00:00Z"), notifPrefs: JSON.stringify({ pushEnabled: false }) },
+    });
+    vi.mocked(sendEmail).mockResolvedValueOnce(false);
+    expect(await runHomeQuestion(at("2027-03-15T11:00:00Z"), { onlyUsers: [p.user.id] })).toEqual({ asked: 1, emailed: 0 });
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: p.user.id } })).homeAskedAt).toBeNull();
+    expect(await runHomeQuestion(at("2027-03-16T11:00:00Z"), { onlyUsers: [p.user.id] })).toEqual({ asked: 1, emailed: 1 });
+    expect(emailsTo(p.user.email)).toHaveLength(1);
+  });
+
+  it("sends several emails one after another, with a pause for the email service", async () => {
+    const a = await createUser();
+    const b = await createUser();
+    for (const u of [a, b]) await prisma.user.update({ where: { id: u.user.id }, data: { createdAt: at("2027-03-01T10:00:00Z") } });
+    const started = Date.now();
+    expect(await runHomeQuestion(at("2027-03-15T11:00:00Z"), { onlyUsers: [a.user.id, b.user.id] })).toEqual({ asked: 2, emailed: 2 });
+    expect(Date.now() - started).toBeGreaterThanOrEqual(500);
   });
 });
