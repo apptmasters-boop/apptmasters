@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a–13g approved; 13h being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a–13g approved; 13h (the last step) live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1513,7 +1513,7 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Approved 2026-10-16 |
 | **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Approved 2026-10-16 |
 | **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Approved 2026-10-16 |
-| **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Being built |
+| **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Ready for your test |
 
 **Left out from the pictures** (the app doesn't have them): star ratings,
 "verified" badges other than the email confirmation, online status, calls and
@@ -1874,8 +1874,8 @@ of yours)
 - [x] Tests pass: 293 (no new ones: these pages only change how they look)
 - [x] Lint: no new errors (51)
 - [x] Screens compared with the pictures at phone and desktop sizes
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (d73848e)
+- [x] Deployed to apptmasters.com 2026-10-16 (d73848e); live checks all 200
 
 **Your test on apptmasters.com** (phone; signed in without a home)
 1. **More:** your photo (or initials) has a small camera badge: tapping it

@@ -38,11 +38,12 @@ once and every part of the app that's affected updates itself:
   every filter, Save / Saved, Messages); 12f (map, radius, search history, the
   bell for people without a home) comes later.
 - **Sprint 13, the screens like the owner's pictures, one step at a time**
-  ([`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md)): 13a (font and frame
-  everywhere) is live and waiting for the owner's test; 13b (Home) is next.
+  ([`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md)): 13a–13g approved;
+  13h (More, Join a Home, the setup pages), the last step, is live and waiting
+  for the owner's test.
 - **Then:** the "Before public launch" items in [`docs/ROADMAP.md`](docs/ROADMAP.md),
   nightly backups first.
-- **Tests:** 288 automated tests; lint errors down from 75 to 51.
+- **Tests:** 293 automated tests; lint errors down from 75 to 51.
 - **Not in GitHub, on purpose:** `.env.local` (passwords and keys; keep a
   copy in a password manager) and the server's own configuration.
 

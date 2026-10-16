@@ -11,16 +11,18 @@ from there."
 - **Approved:** 13a (the pictures' font and frame everywhere), on 2026-10-16.
   The owner's reply was "13b approved", read as 13a approved and the go-ahead
   for 13b.
-- **Approved:** 13a–13f on 2026-10-16 (13d with its database change applied).
-- **Live on apptmasters.com:** Sprint **13g — Messages** (people's photos, red
-  unread counts, search over conversations; a conversation on a phone without
-  the logo bar or phone bar; desktop three panels with Contact information and
-  Quick actions). Commit `1c99116`.
-- **Next step:** the owner tests 13g (steps in
-  [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "13g — Messages") and replies
-  **"13g approved"** (or lists what's wrong). Then build **13h — More, How It
-  Works, Help, Create / Join a Home**, the last step of Sprint 13, following
-  [`SPRINT_13_PLAN.md`](SPRINT_13_PLAN.md).
+- **Approved:** 13a–13g on 2026-10-16 (13d with its database change applied).
+- **Live on apptmasters.com:** Sprint **13h — More, How It Works, Help,
+  Create / Join a Home** (camera badge on the profile photo, the
+  house-and-magnifier drawing, the Join a Home drawing, white setup pages on
+  phones). Commit `d73848e`. **It's the last step of Sprint 13.**
+- **Next step:** the owner tests 13h (steps in
+  [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "13h") and replies **"13h
+  approved"**. Then Sprint 13 is done. What comes after is the owner's choice:
+  **12f** (map and radius, Search history, the bell for people without a
+  home; needs the owner to pick a map service) or the **pre-launch** items
+  (nightly backups first). The owner's open tests (11a, 11b, 12a–12e) and the
+  daily-email decision are still waiting too.
 - **Local test database:** if tests time out on this PC but pass on GitHub,
   recreate it ([`tests/README.md`](../tests/README.md); done on 2026-10-16 at
   about 4,500 test households).
@@ -39,8 +41,8 @@ from there."
 | 13d | Filters as in the picture + 4 new listing details (air conditioning, heat included, dishwasher, square feet). **Needs a database change: ask the owner's OK before applying it on the live site** | Approved 2026-10-16 (database change applied) |
 | 13e | Listing page | Approved 2026-10-16 |
 | 13f | Saved | Approved 2026-10-16 |
-| 13g | Messages (photos, conversation without the phone bar, desktop three panels) | Live, waiting for the owner's test |
-| 13h | More, How It Works, Help, Create / Join a Home | |
+| 13g | Messages (photos, conversation without the phone bar, desktop three panels) | Approved 2026-10-16 |
+| 13h | More, How It Works, Help, Create / Join a Home | Live, waiting for the owner's test |
 
 Owner decisions: the new look on the **whole app**; **profile photos** shown
 when a person added one; the **4 new details** added. Left out because the
@@ -51,7 +53,7 @@ marketplace messages, folders, saved searches, nearby places.
 ## Waiting for the owner
 
 - **Tests / sign-offs:** 11a ("Have you found your new home?"), 11b (Create /
-  Join a Home), 12a–12e (Find a Home), 13g. Sprints 1–10 and 13a–13f are
+  Join a Home), 12a–12e (Find a Home), 13h. Sprints 1–10 and 13a–13g are
   approved.
 - **Daily "Have you found your new home?" email:** needs the owner's OK to add
   the server's daily job (`0 14 * * *`, 10 am New York, calling
