@@ -1282,6 +1282,8 @@ the test)
 4. As B, open Listings and tap **Yes, I found a place**: you're taken to
    Create apartment, which has a **Join their home** link. Sign out and in
    again: you land there again.
+   *(Since 11b and Sprint 12: the card is also on Home, and "Yes, I found a
+   place" opens **Create a Home**, with "Join their home" at the bottom.)*
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
@@ -1366,6 +1368,8 @@ roommates"; `MARKETPLACE_FLOW.md` §22–24)
    (and can edit it).
 6. On a phone, signed in without a home: the Listings header has a menu with
    Browse, Post a listing, My listings and Messages.
+   *(Replaced in Sprint 12: the phone bar at the bottom has Home, Saved,
+   Messages and More; More has My listings and Post a listing.)*
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
