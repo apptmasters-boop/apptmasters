@@ -76,8 +76,9 @@ key (`~/.ssh/github_deploy_apptmasters`, listed under the repository's
 Settings → Deploy keys), which can't push or reach any other repository.
 
 1. Run the checks locally, push `master`, and wait for CI to pass.
-2. On the server, save the current build for rollback:
-   `cp -a .next ~/backups/<date>/next-build-<commit>`.
+2. No copy of the old build is kept on the server (the owner's choice,
+   2026-10-16: GitHub is the backup of the code). To undo a bad update, check
+   out the previous commit and build again (about 15 minutes).
 3. `git pull --ff-only origin master`, then `npm install` if dependencies changed.
 4. Build in the background. The server runs out of memory during the build's
    own type check, so it's skipped there (the checks above already ran):
