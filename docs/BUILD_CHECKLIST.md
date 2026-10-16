@@ -1373,7 +1373,7 @@ roommates"; `MARKETPLACE_FLOW.md` §22–24)
 
 ## Sprint 12 — Find a Home (Marketplace / Pre-Household)
 
-**Status:** 12a–12e ready for your test (built together at the owner's request, 2026-10-16) · Spec:
+**Status:** 12a–12e live, ready for your test (built together at the owner's request, 2026-10-16) · Spec:
 [`MARKETPLACE_FLOW.md`](MARKETPLACE_FLOW.md) (the owner's document,
 2026-10-16), `PRODUCT_LOGIC.md` §1–§4
 
@@ -1448,8 +1448,11 @@ marketplace Messages.
 - [x] Lint: no new errors (51, down from 59)
 - [x] Production build passes on this PC; screens checked at phone and desktop
       sizes on a local copy
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com with the SQL file
+- [x] CI green on GitHub (114be0d)
+- [x] Deployed to apptmasters.com 2026-10-16 (114be0d) with
+      `prisma/manual-sql/2026-10-16-sprint-12-find-a-home.sql` (owner approved);
+      live checks all 200. The 3 live listings have the new details empty, so a
+      People search finds none until their owners edit them
 
 **Your test on apptmasters.com** (phone and desktop)
 1. **Signed out:** Home has the search with "People". Search "Brooklyn" (or
