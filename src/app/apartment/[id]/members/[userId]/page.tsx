@@ -40,7 +40,7 @@ export default function MemberProfilePage() {
     async function load() {
       const [aptRes, statsRes, scoresRes, choresRes] = await Promise.all([
         apiFetch(`/api/apartments/${apartmentId}`),
-        apiFetch(`/api/apartments/${apartmentId}/stats`),
+        apiFetch(`/api/apartments/${apartmentId}/insights`), // same numbers as More → Insights (Sprint 10b)
         apiFetch(`/api/apartments/${apartmentId}/scores`),
         apiFetch(`/api/apartments/${apartmentId}/chores`),
       ]);
@@ -56,7 +56,7 @@ export default function MemberProfilePage() {
       const memberEntry = apt.members.find((m: { user: { id: string } }) => m.user.id === userId);
       if (!memberEntry) { router.replace(`/apartment/${apartmentId}`); return; }
 
-      const memberStats = stats?.memberStats?.find((m: { userId: string }) => m.userId === userId);
+      const memberStats = stats?.people?.find((m: { userId: string }) => m.userId === userId);
       const scoreEntry = scoresData.find((s: { userId: string }) => s.userId === userId);
 
       setMember({
@@ -73,9 +73,9 @@ export default function MemberProfilePage() {
         scoreTier: scoreEntry?.tier ?? "Fair",
         scoreLogs: scoreEntry?.logs ?? [],
         paid: memberStats?.paid ?? 0,
-        owed: memberStats?.owed ?? 0,
+        owed: memberStats?.share ?? 0,
         choresDone: memberStats?.choresDone ?? 0,
-        choresPending: memberStats?.choresPending ?? 0,
+        choresPending: memberStats?.choresToDo ?? 0,
         assignedChores: chores.filter(c => {
           const ch = c as unknown as { assignedTo: { id: string } | null };
           return ch.assignedTo?.id === userId && c.status !== "DONE";
@@ -148,19 +148,19 @@ export default function MemberProfilePage() {
         {/* Stats cards */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
-            <p className="text-xs text-gray-400 font-medium">Total paid</p>
+            <p className="text-xs text-gray-400 font-medium">Paid for the home (6 months)</p>
             <p className="text-xl font-bold text-gray-900 mt-0.5">${member.paid.toFixed(0)}</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
-            <p className="text-xs text-gray-400 font-medium">Total owed</p>
+            <p className="text-xs text-gray-400 font-medium">Their share (6 months)</p>
             <p className="text-xl font-bold text-gray-900 mt-0.5">${member.owed.toFixed(0)}</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
-            <p className="text-xs text-gray-400 font-medium">Chores done</p>
+            <p className="text-xs text-gray-400 font-medium">Chores done (3 months)</p>
             <p className="text-xl font-bold text-emerald-600 mt-0.5">{member.choresDone}</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
-            <p className="text-xs text-gray-400 font-medium">Chores pending</p>
+            <p className="text-xs text-gray-400 font-medium">Chores to do</p>
             <p className={`text-xl font-bold mt-0.5 ${member.choresPending > 0 ? "text-amber-600" : "text-gray-400"}`}>
               {member.choresPending}
             </p>

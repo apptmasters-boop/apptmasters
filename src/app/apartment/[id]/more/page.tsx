@@ -47,8 +47,7 @@ export default function MorePage() {
       ]} />
       <HubSection title="Insights" items={[
         { href: at("feed"), label: "Activity", description: "What's been happening at home", icon: MessageIcon },
-        { href: at("stats"), label: "Stats", description: "Household numbers at a glance", icon: ChartIcon },
-        { href: at("analytics"), label: "Analytics", description: "Spending and trends", icon: ChartIcon },
+        { href: at("insights"), label: "Insights", description: "Spending, rent and who does what", icon: ChartIcon },
       ]} />
       <HubSection title="Household records" items={[
         { href: at("scores"), label: "Roommate scores", description: "Points for keeping up with the house", icon: StarIcon },

@@ -1081,7 +1081,7 @@ has allowed notifications on its phone or browser)
 
 ## Sprint 10 — Household Issues and Insights
 
-**Status:** Plan approved by the owner (2026-10-16) · 10a building
+**Status:** Plan approved by the owner (2026-10-16) · 10a ready for your test · 10b building
 · Spec: `PRODUCT_LOGIC.md` §17, §18, §19
 
 Already done in Sprint 1: the More menu follows the blueprint's groups (§17),
@@ -1096,7 +1096,7 @@ and calls live in Chat.
 
 ### 10a — Household Issues (replaces Disputes)
 
-**Status:** Building
+**Status:** Ready for your test
 
 **What I'm building** (§18: "Issue created → Open → Discussion → Proposed
 resolution → Resolved")
@@ -1129,8 +1129,11 @@ resolution → Resolved")
       raiser or an admin; private issues hidden from others; old dismissed
       disputes show as closed)
 - [x] Lint: no new errors (63 → 60)
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (92f741a)
+- [x] Deployed to apptmasters.com 2026-10-16 (new fields added with
+      `prisma/manual-sql/2026-10-16-sprint-10a-household-issues.sql`; the one
+      existing dispute was already resolved and shows as Resolved; old Disputes
+      links open Household issues)
 
 **Your test on apptmasters.com** (three accounts: A raises, B is involved, C is
 another roommate)
@@ -1145,7 +1148,7 @@ another roommate)
 
 ### 10b — Insights (one page instead of Stats and Analytics)
 
-**Status:** Planned
+**Status:** Building
 
 **What I'm building** (§19: "aggregate existing source data… use the same Money
 ledger")
@@ -1161,6 +1164,21 @@ ledger")
 - Today's Stats and Analytics each add things up their own way (no rent;
   "owed" means "shared in"; "my share" leaves out your part of what you paid);
   Insights fixes that by using the same sources as Money.
+- A member's profile page shows the same numbers ("Paid for the home",
+  "Their share", chores), labeled with their period.
+- Charts: one color, a brighter step of the brand green, checked for contrast
+  in light and dark mode; a value on each month, a readout on hover or tap,
+  and a table view.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 239 (+5: months and categories over 6 months; your share
+      includes your part of what you paid; everyone's shares add up to the
+      household's spending; rent and who owes whom equal Money's numbers;
+      cleanings, trips and chores over 3 months; members only)
+- [x] Lint: no new errors (60)
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
 
 **Your test on apptmasters.com**
 1. More → **Insights**. This month's spending and categories match Shared

@@ -254,9 +254,9 @@ export default function FinancePage() {
           <BackLink />
           <span className="text-gray-300">|</span>
           <span className="font-bold text-gray-900">Finance</span>
-          <Link href={`/apartment/${apartmentId}/analytics`}
+          <Link href={`/apartment/${apartmentId}/insights`}
             className="text-xs text-blue-500 hover:text-blue-700 transition-colors">
-            Analytics →
+            Insights →
           </Link>
         </div>
         <div className="flex items-center gap-2">
