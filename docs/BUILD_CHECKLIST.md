@@ -1197,8 +1197,85 @@ ledger")
 
 ---
 
+## Sprint 11 — Marketplace → My Home
+
+**Status:** 11a building · Spec: `PRODUCT_LOGIC.md` §1, §2.1, §3.2–3.3, §4
+
+The last step of the journey: **Find a Home → Create / Join My Home → Live &
+Manage Together**. Finding a place is self-reported: the app asks, it never
+assumes a lease was signed (§1).
+
+**Owner's decisions (2026-10-16)**
+- **When to ask "Have you found your new home?":** 14 days after someone signs
+  up, or 7 days after they first message a listing owner, whichever comes
+  first. After "I'm still looking", again 14 days later. Never more than once
+  in 14 days.
+- **Move-in date:** members count from their move-in date. Until then they get
+  no rent share, no cleaning or shopping turn, and aren't in shared expenses by
+  default (like being away). Rent: someone pays a month if they've moved in by
+  that month's due day.
+
+### 11a — "Have you found your new home?"
+
+**Status:** Building
+
+**What I'm building** (§3.2–3.3)
+- **Who's asked:** signed-in people looking for a home (no home yet, haven't
+  said they found one), at the times above.
+- **Where:** a card at the top of **Listings**: "Have you found your new
+  home?" with **I'm still looking** and **Yes, I found a place**. A daily job
+  also asks once by email and phone notification (a person without a home has
+  no in-app bell yet), never more than once in 14 days.
+- **I'm still looking:** the card goes away for 14 days.
+- **Yes, I found a place:** they become "Found a home" (§2.1) and go to Home
+  Setup (11b). After signing in, they land on Home Setup until they have a
+  home.
+- Database: two dates on each person (last asked, last "still looking"), added
+  with a reviewed SQL file. The daily job needs one line in the server's
+  schedule (your OK at deploy time).
+
+**Your test on apptmasters.com** (an account without a home; I can make it
+"due" for the test)
+1. Open **Listings**: the card asks "Have you found your new home?".
+2. Tap **I'm still looking**: the card disappears and stays away.
+3. On a second account (also due), tap **Yes, I found a place**: you're taken
+   to Home Setup; signing out and in again lands there too.
+4. The email asking the question arrives once (from the daily job).
+
+### 11b — Home Setup: create or join, with a move-in date
+
+**Status:** Not started (built after 11a)
+
+**What I'm building** (§4: "I found a place → Found through Apartment
+Masters? → Select/enter home → Move-in date → Create My Home → Invite
+roommates")
+- **Step 1, where:** "Did you find it on Apartment Masters?" If yes, pick the
+  listing you were talking to its owner about; its name and address fill in.
+  If not, type them.
+- **Step 2, move-in date.**
+- **Step 3, create or join:** **Create My Home** (you become its household
+  admin) or **Join a roommate's home** with their invite code (they approve
+  you, as today).
+- **Step 4, invite roommates:** by email, or share the invite code.
+- **Move-in date in action:** until someone's move-in date, rent months,
+  cleaning and shopping turns and default expense splits leave them out (as
+  if they were away); after it, they're counted. Their profile shows "Moving
+  in on …".
+- The old Create apartment and Join pages open Home Setup.
+
+**Your test on apptmasters.com**
+1. On the "found a place" account: Home Setup → **Yes** (found on Apartment
+   Masters) → pick a listing: name and address fill in. Move-in date: two
+   weeks from today. **Create My Home**: you're the admin of a new home; invite
+   a roommate by email.
+2. In that home, set up rent with the rent payer being someone already moved
+   in: this month's rent gives the new person no share.
+3. A second account joins with the invite code and a move-in date in the
+   past; once approved, they're in the cleaning and shopping turns.
+
+---
+
 ## Later sprints (outline; detailed test steps are written when each starts)
 
 | Sprint | Planned slices | Status |
 |---|---|---|
-| 11 — Marketplace → My Home | 11a "Have you found your new home?" · 11b Create / Join Home flow | Not started |
