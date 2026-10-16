@@ -1488,7 +1488,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1500,7 +1500,7 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 
 | Step | What changes | Status |
 |---|---|---|
-| **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Being built |
+| **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Ready for your test |
 | **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all" | Not started |
 | **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Not started |
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Not started |
@@ -1536,8 +1536,9 @@ marketplace Messages. The map, radius, Search history and the bell come with
 - [x] Lint: no new errors (51)
 - [x] Screens compared with the pictures at phone and desktop sizes; household
       pages re-checked (Money, Cleaning, Shopping, Chat, Calendar)
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (4152330)
+- [x] Deployed to apptmasters.com 2026-10-16 (4152330; rebuilt without the build
+      cache, which had kept the old font); live checks all 200
 
 **Your test on apptmasters.com** (phone and computer)
 1. Open Home, Find a Home, Saved, Messages and More: the new lettering

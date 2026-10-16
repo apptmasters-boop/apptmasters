@@ -87,8 +87,11 @@ Settings → Deploy keys), which can't push or reach any other repository.
    out the previous commit and build again (about 15 minutes).
 3. `git pull --ff-only origin master`, then `npm install` if dependencies changed.
 4. Build in the background. The server runs out of memory during the build's
-   own type check, so it's skipped there (the checks above already ran):
+   own type check, so it's skipped there (the checks above already ran).
+   Clear Turbopack's build cache first: on 2026-10-16 it kept serving the old
+   `globals.css` (the font change didn't show until a clean rebuild):
    ```bash
+   rm -rf .next/cache/turbopack
    nohup sh -c "SKIP_BUILD_TYPECHECK=1 npm run build > /tmp/build.log 2>&1; echo EXIT=\$? >> /tmp/build.log" &
    ```
    Wait for `EXIT=0` in `/tmp/build.log` (about 2–15 minutes). The site keeps
