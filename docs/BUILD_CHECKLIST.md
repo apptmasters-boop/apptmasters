@@ -1434,7 +1434,7 @@ actions. Detailed test steps are written when each slice starts.
 | **12c — Search that matches** | Every filter except radius, in the page address; removable chips and Clear all; Whole places / Rooms tabs with counts; sort; "Show more"; an honest empty state; Filters screen on phones, side panel on desktop; "Back to results" keeps the search | Ready for your test |
 | **12d — Save and Saved** | Hearts on cards and the listing page; a visitor who taps Save signs up or in and comes back with it saved; Saved page (search, sort, kinds, unavailable listings labeled); "You've already messaged" on the listing | Ready for your test |
 | **12e — Messages** | Inbox with the listing in each conversation; a conversation with the listing on top (phones) or beside it (desktop, three panels: conversations, chat, listing) | Ready for your test |
-| **12f — Map, radius, Search History, bell** | After the owner picks a map service: map and radius. Search History. The notification bell for people without a home (needs notifications that don't belong to a household) | Not started |
+| **12f — Map, radius, Search History, bell** | After the owner picks a map service: map and radius. Search History. The notification bell for people without a home (needs notifications that don't belong to a household) | Not started (owner, 2026-10-16: not for now) |
 
 **Left out from the pictures** (the app doesn't have them): ratings, "verified"
 badges other than the email confirmation every account has, online status,
@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a–13g approved; 13h (the last step) live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** Complete: 13a–13h approved on 2026-10-16 · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1513,7 +1513,7 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Approved 2026-10-16 |
 | **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Approved 2026-10-16 |
 | **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Approved 2026-10-16 |
-| **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Ready for your test |
+| **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Approved 2026-10-16 |
 
 **Left out from the pictures** (the app doesn't have them): star ratings,
 "verified" badges other than the email confirmation, online status, calls and
@@ -1886,4 +1886,65 @@ of yours)
 3. **Create a Home**, **How It Works** and **Help** look like the rest of the
    app (white page on phones, same cards).
 
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported. **Sprint 13 complete.**
+The owner chose not to do 12f for now and to move on to the pre-launch items.
+
+## Pre-launch — before the public launch
+
+**Status:** P1 being prepared (planned 2026-10-16, after Sprint 13; 12f waits at
+the owner's request) · List: [`ROADMAP.md`](ROADMAP.md) "Before public launch"
+
+One step at a time, like the sprints. Several steps need the owner in the AWS
+console or a password manager; every change to the server's configuration
+(scheduled jobs, settings) is asked first.
+
+| Step | What | Who | Status |
+|---|---|---|---|
+| **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 30 days in a private encrypted S3 bucket; an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Owner: one paste in AWS CloudShell. Developer: the rest | Being prepared |
+| **P2 — AWS budget alert** | An email to the owner when the month's AWS bill goes over a set amount | Owner: one paste in CloudShell | Not started |
+| **P3 — Settings in a password manager** | The owner keeps a copy of the server's `.env.local` (passwords and keys) in a password manager, so a lost server can be rebuilt | Owner, with instructions | Not started |
+| **P4 — Changing your password signs out your other devices** | Today an old sign-in on another phone keeps working after a password change or reset | Developer (small database change, owner's OK first) | Not started |
+| **P5 — Security review before launch** | A fresh pass over every page and API: who can see and change what | Developer | Not started |
+
+### P1 — Nightly backups
+
+**What changes**
+- Every night at 3:30 am New York time, the server saves the **database** and
+  the **uploaded files** (photos, receipts, voice messages).
+- It keeps the **last 3 nights on the server** and copies each night to a
+  **private, encrypted storage bucket in your AWS account**, where copies are
+  deleted after **30 days**. The server can add backups there but not delete
+  them.
+- If a night fails, **you get an email** saying which step failed.
+- The live checks show the last backup.
+- A **restore check** proves a backup can really be restored: it restores
+  into a temporary database, compares the numbers with the live site and
+  deletes the copy. It changes nothing live.
+- Cost: about $0.03 a month. Passwords and keys (`.env.local`) are not in
+  the backups (that's P3).
+
+**What the owner does once:** paste the block from
+[`BACKUPS.md`](BACKUPS.md) ("One-time setup in AWS") into AWS CloudShell and
+send the developer the bucket name it prints.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 296 (new: a failed night emails the site admins, never anyone
+      else; only the server with the cron secret can report)
+- [x] Lint: no new errors (51)
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+- [ ] Owner's OK: the nightly job on the server and the bucket name in its
+      settings
+- [ ] First backup made by hand and copied to S3; restore check passed
+- [ ] The first nightly run (next morning) logged OK
+
+**Your test**
+1. In the AWS console, open **S3** and the bucket `apptmasters-backups-…`: a
+   folder with today's date holds `db.dump`, `uploads.tar.gz` and
+   `SHA256SUMS`. The next mornings, one more folder each day.
+2. The bucket says "Block all public access: On" and encryption is on.
+3. I send you the restore check's result: the table counts match.
+
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
+

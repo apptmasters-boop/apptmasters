@@ -37,10 +37,9 @@ once and every part of the app that's affected updates itself:
   [`docs/mockups/`](docs/mockups/)): 12a–12e live and waiting for the owner's test (header, Home, search with
   every filter, Save / Saved, Messages); 12f (map, radius, search history, the
   bell for people without a home) comes later.
-- **Sprint 13, the screens like the owner's pictures, one step at a time**
-  ([`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md)): 13a–13g approved;
-  13h (More, Join a Home, the setup pages), the last step, is live and waiting
-  for the owner's test.
+- **Sprint 13, the screens like the owner's pictures**
+  ([`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md)): done, all 8 steps
+  approved on 2026-10-16. 12f (map) waits, at the owner's request.
 - **Then:** the "Before public launch" items in [`docs/ROADMAP.md`](docs/ROADMAP.md),
   nightly backups first.
 - **Tests:** 293 automated tests; lint errors down from 75 to 51.
@@ -158,7 +157,7 @@ in [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md).
 | [x] | **10 — More / Issues / Insights** | Secondary menu (incl. scores, rules, agreements, activity, stats, audit), Disputes → Household Issues, Calls → Chat, insights from the ledger | existing pages |
 | [ ] | **11 — Marketplace → My Home** | "Have you found your new home?" follow-up and Create / Join Home flow | listings, invites |
 | [ ] | **12 — Find a Home** | The owner's marketplace flow ([`docs/MARKETPLACE_FLOW.md`](docs/MARKETPLACE_FLOW.md)): one header, every search filter with occupants, Save / Saved, Messages beside the listing, notifications without a home, then map and radius | `Listing`, `ListingMessage`, `/listings` pages |
-| [ ] | **13 — Look like the pictures** | Every screen matched to the owner's pictures, one step at a time ([`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md)) | the Find a Home pages, `src/components/market` |
+| [x] | **13 — Look like the pictures** | Every screen matched to the owner's pictures, one step at a time ([`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md)) | the Find a Home pages, `src/components/market` |
 
 ## Security & engineering
 

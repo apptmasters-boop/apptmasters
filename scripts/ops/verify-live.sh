@@ -36,6 +36,7 @@ for p in /api/listings/search "/api/listings/search?occupants=2&sort=price_asc" 
 echo "GET /api/saved: $(code -H "$AUTH" http://localhost:3000/api/saved)"
 echo "GET /api/listings/inbox: $(code -H "$AUTH" http://localhost:3000/api/listings/inbox)"
 echo "public site: $(code https://apptmasters.com/)"
+echo "last backup: $(tail -n 1 ~/backups/nightly/backup.log 2>/dev/null || echo none yet)"
 
 NEW=$(( $(wc -l < "$ERRLOG") - BEFORE ))
 echo "new error-log lines: $NEW"
