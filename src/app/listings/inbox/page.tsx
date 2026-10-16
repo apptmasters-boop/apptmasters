@@ -1,66 +1,86 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+/**
+ * Messages (Sprint 12; MARKETPLACE_FLOW.md §15–§16; designs
+ * docs/mockups/messages-mobile.jpg, messages-desktop.jpg): signed-in only.
+ * Phones: the inbox first, then a conversation. Desktop: conversations on the
+ * left; opening one shows the chat and the listing beside it.
+ */
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { apiFetch, getToken } from "@/lib/api";
-import { formatMessageTime } from "@/lib/time";
+import { useRouter } from "next/navigation";
+import { getToken } from "@/lib/api";
+import { useConversations, ConversationList } from "@/components/market/Conversations";
+import { MessageIcon } from "@/components/landing/icons";
 
-interface Conversation {
-  listingId: string; listingTitle: string; listingPhoto: string | null;
-  otherUserId: string; otherUserName: string;
-  lastMessage: string; lastMessageAt: string; unread: boolean;
-}
+type Tab = "all" | "asked" | "mine";
 
 export default function ListingsInboxPage() {
   const router = useRouter();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
+  const [tab, setTab] = useState<Tab>("all");
+  const conversations = useConversations(signedIn);
 
   useEffect(() => {
     if (!getToken()) { router.replace("/signup?returnTo=/listings/inbox"); return; }
-    (async () => {
-      const res = await apiFetch("/api/listings/inbox");
-      if (res.ok) setConversations(await res.json());
-      setLoading(false);
-    })();
+    let current = true;
+    Promise.resolve().then(() => { if (current) setSignedIn(true); });
+    return () => { current = false; };
   }, [router]);
 
-  if (loading) return <main className="max-w-2xl mx-auto px-4 py-16 text-center text-gray-400">Loading…</main>;
+  const counts = useMemo(() => ({
+    all: conversations?.length ?? 0,
+    asked: conversations?.filter(c => !c.myListing).length ?? 0,
+    mine: conversations?.filter(c => c.myListing).length ?? 0,
+  }), [conversations]);
+  const shown = (conversations ?? []).filter(c => tab === "all" || (tab === "mine" ? c.myListing : !c.myListing));
+  const unread = (conversations ?? []).filter(c => c.unread).length;
+  const tabs: [Tab, string][] = [["all", "All"], ["asked", "Places I asked about"], ["mine", "My listings"]];
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Messages</h1>
-      {conversations.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center">
-          <p className="text-4xl mb-3">💬</p>
-          <p className="text-gray-600 font-medium mb-1">No conversations yet</p>
-          <p className="text-sm text-gray-400">When someone messages you about a listing, it'll show up here.</p>
-        </div>
-      ) : (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100">
-          {conversations.map(c => (
-            <Link key={`${c.listingId}:${c.otherUserId}`}
-              href={`/listings/${c.listingId}/messages?with=${c.otherUserId}`}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
-              <div className="w-11 h-11 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center text-xl">
-                {c.listingPhoto ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.listingPhoto} alt="" className="w-full h-full object-cover" />
-                ) : "🏠"}
+    <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+      <div className="lg:grid lg:grid-cols-[24rem_1fr] lg:gap-6">
+        <section>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Messages</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Conversations with advertisers and people interested in your listings</p>
+          <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="tablist" aria-label="Conversations">
+            {tabs.map(([value, label]) => (
+              <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => setTab(value)}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold ${tab === value ? "bg-brand text-white" : "bg-white text-gray-700 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-200 dark:ring-gray-700"}`}>
+                {label}
+                {value === "all" && unread > 0
+                  ? <span className="rounded-full bg-red-500 px-2 text-xs text-white" aria-label={`${unread} unread`}>{unread}</span>
+                  : <span className={`rounded-full px-2 text-xs ${tab === value ? "bg-white/20" : "bg-gray-100 dark:bg-gray-800"}`}>{counts[value]}</span>}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+            {conversations === null ? (
+              <p className="py-12 text-center text-sm text-gray-400">Loading…</p>
+            ) : shown.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <MessageIcon className="mx-auto h-10 w-10 text-gray-300" />
+                <p className="mt-3 font-semibold text-gray-900 dark:text-white">No conversations yet</p>
+                <p className="mt-1 text-sm text-gray-500">Contact an advertiser from a listing, or wait for someone to write about yours.</p>
+                <Link href="/listings" className="mt-5 inline-block rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">Find a Home</Link>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className={`text-sm ${c.unread ? "font-bold text-gray-900" : "font-medium text-gray-700"}`}>{c.otherUserName}</p>
-                  {c.unread && <span className="w-2 h-2 rounded-full bg-blue-600 flex-shrink-0" />}
-                </div>
-                <p className="text-xs text-gray-400 truncate">{c.listingTitle}</p>
-                <p className={`text-sm truncate mt-0.5 ${c.unread ? "text-gray-800" : "text-gray-500"}`}>{c.lastMessage}</p>
-              </div>
-              <p className="text-xs text-gray-400 flex-shrink-0">{formatMessageTime(c.lastMessageAt)}</p>
-            </Link>
-          ))}
-        </div>
-      )}
+            ) : (
+              <>
+                <div className="lg:hidden"><ConversationList conversations={shown} /></div>
+                <div className="hidden lg:block"><ConversationList conversations={shown} compact /></div>
+              </>
+            )}
+          </div>
+        </section>
+
+        <section className="hidden items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white lg:flex dark:border-gray-700 dark:bg-gray-900">
+          <div className="px-6 py-20 text-center">
+            <MessageIcon className="mx-auto h-12 w-12 text-gray-300" />
+            <p className="mt-3 font-semibold text-gray-900 dark:text-white">Choose a conversation</p>
+            <p className="mt-1 text-sm text-gray-500">The chat and the listing it&apos;s about open here.</p>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

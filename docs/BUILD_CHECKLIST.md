@@ -1373,7 +1373,7 @@ roommates"; `MARKETPLACE_FLOW.md` §22–24)
 
 ## Sprint 12 — Find a Home (Marketplace / Pre-Household)
 
-**Status:** Planned (starts after 11b) · Spec:
+**Status:** 12a–12e ready for your test (built together at the owner's request, 2026-10-16) · Spec:
 [`MARKETPLACE_FLOW.md`](MARKETPLACE_FLOW.md) (the owner's document,
 2026-10-16), `PRODUCT_LOGIC.md` §1–§4
 
@@ -1423,12 +1423,61 @@ actions. Detailed test steps are written when each slice starts.
 
 | Slice | What it adds | Status |
 |---|---|---|
-| **12a — One header, More, How It Works** | One header everywhere: visitor (Home, Find a Home, How It Works, More, Log in, Sign up) and signed in (Home, Find a Home, Messages, Saved, How It Works, More, Notifications, avatar), with a phone menu; More for people without a home (Profile, My Listings, Create a Home, Join a Home, Notifications, Settings, Help, Sign out); How It Works and Help pages | Not started |
-| **12b — What a listing says** | The new listing fields (max occupants required), broker and application fee, Active / Unavailable status, the new headline; database change by reviewed SQL | Not started |
-| **12c — Search that matches** | Every filter except radius, kept in the page address (survives sign-in and Back); removable filter chips and Clear all; sort and listing age; result count, honest empty state, more than 60 results; side panel on desktop, Filters screen on phones; occupants in the landing search | Not started |
-| **12d — Save and Saved** | Save on cards and details; a visitor who taps Save signs up or in and comes back with the save done; Saved page (search, sort, unavailable listings labeled); Saved and Contacted markers | Not started |
-| **12e — Messages and notifications** | Desktop: conversations, chat and the listing side by side; phones: inbox, then conversation, listing one tap away; Contact reopens the existing conversation; the bell for people without a household | Not started |
-| **12f — Map, radius, Search History** | After the owner picks a map service: map tied to the results, approximate markers, radius around a place; Search History | Not started |
+| **12a — One header, More, How It Works** | One header on every Find a Home page (visitors: Home, Find a Home, How It Works, More, Log in, Sign up; signed in: Home, Find a Home, Messages, Saved, How It Works, More, avatar) and a phone bar (Home, Saved, Messages, More); Home for people without a home (search, quick filters, Already have a place?, latest listings); More, How It Works and Help pages; the same ApptMasters logo everywhere | Ready for your test |
+| **12b — What a listing says** | The new listing details on the form (how many people required; property and room type, neighborhood, ZIP, lease, laundry, smoking, what's included, broker and application fee); the street address private; the headline no longer promises "no broker fee" | Ready for your test |
+| **12c — Search that matches** | Every filter except radius, in the page address; removable chips and Clear all; Whole places / Rooms tabs with counts; sort; "Show more"; an honest empty state; Filters screen on phones, side panel on desktop; "Back to results" keeps the search | Ready for your test |
+| **12d — Save and Saved** | Hearts on cards and the listing page; a visitor who taps Save signs up or in and comes back with it saved; Saved page (search, sort, kinds, unavailable listings labeled); "You've already messaged" on the listing | Ready for your test |
+| **12e — Messages** | Inbox with the listing in each conversation; a conversation with the listing on top (phones) or beside it (desktop, three panels: conversations, chat, listing) | Ready for your test |
+| **12f — Map, radius, Search History, bell** | After the owner picks a map service: map and radius. Search History. The notification bell for people without a home (needs notifications that don't belong to a household) | Not started |
+
+**Left out from the pictures** (the app doesn't have them): ratings, "verified"
+badges other than the email confirmation every account has, online status,
+calls, photos and voice in marketplace messages, "Schedule viewing", square
+feet, nearby places, folders and saved searches in Saved, household chats in
+marketplace Messages.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 288 (+13 Find a Home: filters in the page address and as
+      chips, odd values ignored; occupants only match a declared capacity;
+      bedrooms 3+, details, laundry, smoke-free, no broker fee, lease, recently
+      listed; move-in date; place by city, neighborhood or ZIP, tab counts,
+      price sort; nothing private sent; a new listing must say how many people;
+      Saved needs an account, saves once, keeps unavailable listings, removes,
+      only visible listings)
+- [x] Lint: no new errors (51, down from 59)
+- [x] Production build passes on this PC; screens checked at phone and desktop
+      sizes on a local copy
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com with the SQL file
+
+**Your test on apptmasters.com** (phone and desktop)
+1. **Signed out:** Home has the search with "People". Search "Brooklyn" (or
+   your city): Find a Home lists matching places. The header shows Log in and
+   Sign up; the phone bar shows Home, Find a Home, Saved, More.
+2. **Filters:** on the phone tap Filters (on desktop, the panel on the left).
+   Choose 2 people and Furnished, then "Show N listings". Each filter shows as
+   a chip; tap one to remove it, or Clear all. The Whole places / Rooms tabs
+   show how many each. Sort by price. Filters that match nothing show "No
+   listings match these filters", never other listings.
+3. **A listing:** photos with the heart and share, the facts, What's included,
+   Lease and fees. No street address anywhere (only the neighborhood).
+4. **Save as a visitor:** tap Save → sign up or log in → you're back on the
+   same listing, saved (a "Saved" message shows).
+5. **Saved:** the listing is there; search and sort work; the heart removes it.
+6. **Contact:** from a listing, Contact → the conversation shows the listing
+   (on top on a phone, on the right on desktop with your conversations on the
+   left). Messages lists each conversation with its listing; unread ones have
+   a red dot.
+7. **More (phone):** your profile, Create a Home, Join a Home, Saved (with the
+   number), My listings, Messages, Log out.
+8. **Post a listing:** "How many people can live there?" is required; fill in
+   a few details (e.g. Pets allowed). Once approved, the Pets allowed filter
+   finds it. Your existing listings have the new details empty: edit them and
+   choose how many people, or an occupants search won't show them.
+9. **How It Works** and **Help** open from the header (or More).
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
 
 **Not in scope:** an application workflow (Contact ≠ Application), folders in
 Saved, leases and payments (outside ApptMasters), identity or phone

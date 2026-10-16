@@ -1,42 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
-import ListingsNav from "@/components/ListingsNav";
-import { HomeSidebar, HomeBottomBar, useChatUnread } from "@/components/home/HomeNav";
-import { apiFetch, getToken } from "@/lib/api";
-import { activeMemberships } from "@/lib/housing";
+import { MarketShell } from "@/components/market/MarketChrome";
 
-/** Home navigation for people who belong to an apartment (they reach listings from More). */
-function MemberNav({ apartment }: { apartment: { id: string; name: string } }) {
-  const unread = useChatUnread(apartment.id);
-  return (
-    <>
-      <HomeSidebar apartmentId={apartment.id} apartmentName={apartment.name} unread={unread} />
-      <HomeBottomBar apartmentId={apartment.id} unread={unread} />
-    </>
-  );
-}
-
+/** Find a Home pages share the marketplace header and phone bar (Sprint 12; MARKETPLACE_FLOW.md §13). */
 export default function ListingsLayout({ children }: { children: React.ReactNode }) {
-  const [apartment, setApartment] = useState<{ id: string; name: string } | null>(null);
-
-  useEffect(() => {
-    if (!getToken()) { setApartment(null); return; }
-    apiFetch("/api/auth/me").then(async res => {
-      if (!res.ok) return;
-      const me = await res.json();
-      // Only homes you're in: a join request still waiting doesn't open the household (Sprint 11b).
-      const homes = activeMemberships({ systemRole: me.systemRole, memberships: me.memberships ?? [] });
-      setApartment(homes.length > 0 ? (homes[0].apartment as { id: string; name: string }) : null);
-    });
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {apartment && <MemberNav apartment={apartment} />}
-      <div className={apartment ? "pb-16 md:pb-0 md:pl-64" : ""}>
-        <ListingsNav />
-        {children}
-      </div>
-    </div>
-  );
+  return <MarketShell>{children}</MarketShell>;
 }

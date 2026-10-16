@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getTokenFromRequest } from "@/lib/auth";
+import { detailsSchema, detailsData } from "@/lib/listingFields";
+import { parseFilters, searchWhere, searchOrderBy } from "@/lib/listingSearch";
 
 const createSchema = z.object({
   type: z.enum(["APARTMENT_FOR_RENT", "ROOM_TO_SHARE"]),
@@ -25,47 +27,14 @@ const createSchema = z.object({
   roommateLifestyleTags: z.array(z.string()).optional(),
   roommateCulturalNotes: z.string().optional(),
   photoUrls: z.array(z.string()).min(1, "At least one photo is required").max(8, "Maximum 8 photos"),
-});
+}).extend(detailsSchema.shape); // Find a Home details (Sprint 12)
 
+/** Public listing search as a plain list (the home page); the same rules as /api/listings/search. */
 export async function GET(req: NextRequest) {
-  const params = req.nextUrl.searchParams;
-  const type = params.get("type");
-  const city = params.get("city");
-  const minPrice = params.get("minPrice");
-  const maxPrice = params.get("maxPrice");
-  const bedrooms = params.get("bedrooms");
-  const roommateGenderPref = params.get("roommateGenderPref");
-  const roommateOccupation = params.get("roommateOccupation");
-  const roommateSmoking = params.get("roommateSmoking");
-  const roommatePets = params.get("roommatePets");
-  const roommateLifestyleTag = params.get("roommateLifestyleTag");
-
-  const where: Record<string, unknown> = { status: "APPROVED" };
-  if (type) where.type = type;
-  if (city) {
-    where.OR = [
-      { city: { contains: city, mode: "insensitive" } },
-      { title: { contains: city, mode: "insensitive" } },
-    ];
-  }
-  if (bedrooms) where.bedrooms = Number(bedrooms);
-  if (minPrice || maxPrice) {
-    where.price = {
-      ...(minPrice ? { gte: Number(minPrice) } : {}),
-      ...(maxPrice ? { lte: Number(maxPrice) } : {}),
-    };
-  }
-  if (type === "ROOM_TO_SHARE") {
-    if (roommateGenderPref) where.roommateGenderPref = roommateGenderPref;
-    if (roommateOccupation) where.roommateOccupation = roommateOccupation;
-    if (roommateSmoking) where.roommateSmoking = roommateSmoking;
-    if (roommatePets) where.roommatePets = roommatePets;
-    if (roommateLifestyleTag) where.roommateLifestyleTags = { contains: `"${roommateLifestyleTag}"` };
-  }
-
+  const filters = parseFilters(req.nextUrl.searchParams);
   const listings = await prisma.listing.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
+    where: searchWhere(filters),
+    orderBy: searchOrderBy(filters),
     take: 60,
     // The street address is shared in the conversation, not publicly (owner's decision, 2026-10-16);
     // the review fields are for the poster and admins.
@@ -113,6 +82,7 @@ export async function POST(req: NextRequest) {
       roommatePets: data.type === "ROOM_TO_SHARE" ? data.roommatePets ?? null : null,
       roommateLifestyleTags: data.type === "ROOM_TO_SHARE" ? JSON.stringify(data.roommateLifestyleTags ?? []) : "[]",
       roommateCulturalNotes: data.type === "ROOM_TO_SHARE" ? data.roommateCulturalNotes ?? null : null,
+      ...detailsData(data, data.type),
       ownerId: payload.userId,
       photos: {
         create: data.photoUrls.map((url, i) => ({ url, position: i })),

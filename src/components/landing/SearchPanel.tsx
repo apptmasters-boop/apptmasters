@@ -1,8 +1,8 @@
 "use client";
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { PinIcon, HomeIcon, DollarIcon, SearchIcon } from "./icons";
-import { TYPE_OPTIONS, LIFESTYLE_OPTIONS, BUDGET_OPTIONS, searchToQuery, type ListingSearch } from "./options";
+import { PinIcon, HomeIcon, DollarIcon, SearchIcon, UsersIcon } from "./icons";
+import { TYPE_OPTIONS, LIFESTYLE_OPTIONS, BUDGET_OPTIONS, OCCUPANT_OPTIONS, searchToQuery, type ListingSearch } from "./options";
 
 function Field({ icon, label, htmlFor, className = "", children }: {
   icon: ReactNode; label: string; htmlFor: string; className?: string; children: ReactNode;
@@ -33,7 +33,7 @@ function Chip({ active, onClick, icon, children }: { active: boolean; onClick: (
 
 export default function SearchPanel() {
   const router = useRouter();
-  const [s, setS] = useState<ListingSearch>({ city: "", type: "", maxPrice: "", roommateLifestyleTag: "" });
+  const [s, setS] = useState<ListingSearch>({ city: "", type: "", maxPrice: "", occupants: "", roommateLifestyleTag: "" });
   const set = (patch: Partial<ListingSearch>) => setS(prev => ({ ...prev, ...patch }));
 
   function submit(e?: React.FormEvent) {
@@ -45,15 +45,20 @@ export default function SearchPanel() {
   return (
     <div>
       <form onSubmit={submit}
-        className="grid gap-2.5 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl shadow-black/5 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_auto] md:p-4">
+        className="grid gap-2.5 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl shadow-black/5 sm:grid-cols-2 md:grid-cols-[1.5fr_1fr_1fr_1fr_auto] md:p-4">
         <Field icon={<PinIcon className="h-5 w-5" />} label="Where are you going?" htmlFor="lp-city" className="sm:col-span-2 md:col-span-1">
           <input id="lp-city" value={s.city} onChange={e => set({ city: e.target.value })}
-            placeholder="City or neighborhood" className={inputClass} autoComplete="address-level2" />
+            placeholder="City, neighborhood or ZIP" className={inputClass} autoComplete="address-level2" />
         </Field>
         <Field icon={<HomeIcon className="h-5 w-5" />} label="Looking for" htmlFor="lp-type">
           <select id="lp-type" value={s.type} onChange={e => set({ type: e.target.value })} className={`${inputClass} cursor-pointer`}>
             <option value="">Any place</option>
             {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </Field>
+        <Field icon={<UsersIcon className="h-5 w-5" />} label="People" htmlFor="lp-people">
+          <select id="lp-people" value={s.occupants} onChange={e => set({ occupants: e.target.value })} className={`${inputClass} cursor-pointer`}>
+            {OCCUPANT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </Field>
         <Field icon={<DollarIcon className="h-5 w-5" />} label="Monthly budget" htmlFor="lp-budget">

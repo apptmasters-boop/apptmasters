@@ -38,7 +38,8 @@ export function landingPath(me: MeForLanding): string {
   if (me.foundHomeAt) return "/apartment/create";
   if (me.systemRole === "MANAGER") return "/manager";
   if (me.systemRole === "SUPER_ADMIN") return "/admin";
-  return "/listings";
+  // Looking for a home: Home, with search, saved listings and Create / Join a Home (Sprint 12).
+  return "/";
 }
 
 // ---------------------------------------------------------------------------

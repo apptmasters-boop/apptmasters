@@ -40,16 +40,28 @@ export interface ListingSearch {
   city: string;
   type: string;
   maxPrice: string;
+  /** How many people will live there (MARKETPLACE_FLOW.md §3, §5). */
+  occupants: string;
   roommateLifestyleTag: string;
 }
 
+export const OCCUPANT_OPTIONS = [
+  { value: "", label: "Any" },
+  { value: "1", label: "1 person" },
+  { value: "2", label: "2 people" },
+  { value: "3", label: "3 people" },
+  { value: "4", label: "4 people" },
+  { value: "5", label: "5+ people" },
+];
+
 export function searchToQuery(s: ListingSearch): string {
   const params = new URLSearchParams();
-  if (s.city.trim()) params.set("city", s.city.trim());
+  if (s.city.trim()) params.set("q", s.city.trim());
   // A lifestyle tag only applies to rooms, so it implies that type.
   const type = s.roommateLifestyleTag ? "ROOM_TO_SHARE" : s.type;
   if (type) params.set("type", type);
   if (s.maxPrice) params.set("maxPrice", s.maxPrice);
+  if (s.occupants) params.set("occupants", s.occupants);
   if (s.roommateLifestyleTag) params.set("roommateLifestyleTag", s.roommateLifestyleTag);
   return params.toString();
 }

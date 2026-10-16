@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch, getToken } from "@/lib/api";
-import ListingForm, { emptyListingForm, toPayload, ListingFormData } from "../../_components/ListingForm";
+import ListingForm, { emptyListingForm, toPayload, detailsToForm, ListingFormData } from "../../_components/ListingForm";
 
 export default function EditListingPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +25,7 @@ export default function EditListingPage() {
       if (listing.status === "REMOVED") { setForbidden(true); setLoading(false); return; }
 
       setForm({
+        ...emptyListingForm,
         type: listing.type,
         title: listing.title,
         description: listing.description,
@@ -46,6 +47,7 @@ export default function EditListingPage() {
         roommateLifestyleTags: (() => { try { return JSON.parse(listing.roommateLifestyleTags); } catch { return []; } })(),
         roommateCulturalNotes: listing.roommateCulturalNotes ?? "",
         photoUrls: listing.photos.map((p: { url: string }) => p.url),
+        ...detailsToForm(listing), // Find a Home details (Sprint 12)
       });
       setRejectionReason(listing.status === "REJECTED" ? listing.rejectionReason : null);
       setLoading(false);

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: 500,
     include: {
-      listing: { select: { id: true, title: true, city: true, state: true, ownerId: true, photos: { orderBy: { position: "asc" }, take: 1 } } },
+      listing: { select: { id: true, title: true, city: true, state: true, ownerId: true, price: true, priceMax: true, bedrooms: true, status: true, photos: { orderBy: { position: "asc" }, take: 1 } } },
       sender: { select: { id: true, name: true } },
       receiver: { select: { id: true, name: true } },
     },
@@ -31,6 +31,11 @@ export async function GET(req: NextRequest) {
       // Home Setup (Sprint 11b) offers the listings you asked about, with their city (never the street address).
       listingCity: [m.listing.city, m.listing.state].filter(Boolean).join(", "),
       myListing: m.listing.ownerId === payload.userId,
+      // The listing card in the inbox (Sprint 12 design): price, bedrooms, still available or not.
+      listingPrice: m.listing.price,
+      listingPriceMax: m.listing.priceMax,
+      listingBedrooms: m.listing.bedrooms,
+      listingStatus: m.listing.status,
       otherUserId: other.id,
       otherUserName: other.name,
       lastMessage: m.content,

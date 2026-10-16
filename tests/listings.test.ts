@@ -11,6 +11,7 @@ const validListing = {
   price: 900,
   city: "Testville",
   photoUrls: ["/uploads/listings/test.jpg"],
+  maxOccupants: 1, // required since Sprint 12 (MARKETPLACE_FLOW.md §5)
 };
 
 /** A city name no other test (or earlier run) uses, so queries only see this test's rows. */

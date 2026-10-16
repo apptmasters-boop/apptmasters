@@ -29,7 +29,7 @@ describe("landingPath", () => {
   it("sends a platform admin who lives in a home to Home, not the admin dashboard", () => {
     expect(landingPath(user({ systemRole: "SUPER_ADMIN", memberships: [home("a1")] }))).toBe("/apartment/a1");
   });
-  it("sends home seekers to Find a Home", () => expect(landingPath(user())).toBe("/listings"));
+  it("sends home seekers to Home (search, Saved, Create / Join a Home)", () => expect(landingPath(user())).toBe("/"));
   it("sends someone who found a place to set up their home", () => {
     expect(landingPath(user({ foundHomeAt: new Date() }))).toBe("/apartment/create");
   });

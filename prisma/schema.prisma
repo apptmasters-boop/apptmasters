@@ -80,6 +80,7 @@ model User {
   apartmentDeleteCodes     ApartmentDeleteCode[]
   pendingRotationAdvances  CleaningRotation[]       @relation("PendingRotationAdvance")
   listings                 Listing[]                @relation("ListingOwner")
+  savedListings            SavedListing[]
   listingReviews           Listing[]                @relation("ListingReviewer")
   listingReports           ListingReport[]          @relation("ListingReporter")
   listingMessagesSent      ListingMessage[]         @relation("ListingMessageSender")
@@ -1015,6 +1016,26 @@ model Listing {
   availableFrom   DateTime?
   leaseLength     String?   // freeform: "month-to-month" | "6 months" | "1 year" | ...
 
+  // Find a Home details (Sprint 12; docs/MARKETPLACE_FLOW.md §4–§5, §28). Empty = not stated.
+  maxOccupants      Int?     // how many people can live there; never guessed from bedrooms (§5)
+  neighborhood      String?
+  zipCode           String?
+  propertyType      String?  // APARTMENT | HOUSE | STUDIO
+  roomType          String?  // rooms to share: PRIVATE_ROOM | SHARED_ROOM
+  furnished         Boolean?
+  leaseMonths       Int?     // shortest lease, in months; 0 = month-to-month
+  utilitiesIncluded Boolean?
+  internetIncluded  Boolean?
+  privateBathroom   Boolean?
+  laundry           String?  // IN_UNIT | IN_BUILDING | NONE
+  parking           Boolean?
+  elevator          Boolean?
+  petsAllowed       Boolean?
+  smokingAllowed    Boolean?
+  accessible        Boolean?
+  brokerFee         Float?   // 0 = no broker fee
+  applicationFee    Float?   // 0 = none
+
   // Roommate-matching criteria — only meaningful/shown when type = ROOM_TO_SHARE
   roommateGenderPref     String? // ANY | MALE | FEMALE
   roommateAgeMin         Int?
@@ -1038,6 +1059,20 @@ model Listing {
   photos       ListingPhoto[]
   reports      ListingReport[]
   messages     ListingMessage[]
+  savedBy      SavedListing[]
+}
+
+// Saved listings (Sprint 12; MARKETPLACE_FLOW.md §10, §14): which person saved which listing.
+model SavedListing {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  listingId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
 }
 
 model ListingPhoto {

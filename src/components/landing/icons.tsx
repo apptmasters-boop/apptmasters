@@ -64,3 +64,22 @@ export const SendIcon = (p: P) => <Svg {...p}><path d="M21 3 10 14" /><path d="M
 export const InfoIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5v.5" /></Svg>;
 export const XIcon = (p: P) => <Svg {...p}><path d="M6 6l12 12M18 6 6 18" /></Svg>;
 export const KeyHouseIcon = (p: P) => <Svg {...p}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9v11h6M19 9v4" /><circle cx="16.5" cy="17" r="2.5" /><path d="m18.3 18.8 2.7 2.7M20 20.5l-1 1" /></Svg>;
+// Find a Home (Sprint 12)
+export const HeartIcon = (p: P & { filled?: boolean }) => <Svg className={p.className}><path fill={p.filled ? "currentColor" : "none"} d="M12 20.5s-7.5-4.6-9.2-9.3C1.7 8 3.6 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.6 0 5.5 3.5 4.4 6.7-1.7 4.7-9.2 9.3-9.2 9.3Z" /></Svg>;
+export const ShareIcon = (p: P) => <Svg {...p}><path d="M12 15V3M8 7l4-4 4 4" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></Svg>;
+export const SlidersIcon = (p: P) => <Svg {...p}><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></Svg>;
+export const SortIcon = (p: P) => <Svg {...p}><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4" /></Svg>;
+export const ChevronDownIcon = (p: P) => <Svg {...p}><path d="m6 9 6 6 6-6" /></Svg>;
+export const HelpCircleIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17h.01" /></Svg>;
+export const ListIcon = (p: P) => <Svg {...p}><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z" /><path d="M14 3v6h6M8 13h8M8 17h5" /></Svg>;
+export const WifiIcon = (p: P) => <Svg {...p}><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01" /></Svg>;
+export const SofaIcon = (p: P) => <Svg {...p}><path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3" /><path d="M3 13a2 2 0 0 1 4 0v2h10v-2a2 2 0 0 1 4 0v5H3v-5ZM6 18v2M18 18v2" /></Svg>;
+export const WasherIcon = (p: P) => <Svg {...p}><rect x="4" y="3" width="16" height="18" rx="2" /><circle cx="12" cy="13" r="4" /><path d="M8 6.5h.01M11 6.5h2" /></Svg>;
+export const BoltIcon = (p: P) => <Svg {...p}><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" /></Svg>;
+export const CarIcon = (p: P) => <Svg {...p}><path d="M5 17h14M5 17v2M19 17v2M3 13l2-6a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 7l2 6v4H3v-4Z" /><path d="M7 13.5h.01M17 13.5h.01" /></Svg>;
+export const ElevatorIcon = (p: P) => <Svg {...p}><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M12 3v18M7.5 10 9 8l1.5 2M13.5 14l1.5 2 1.5-2" /></Svg>;
+export const AccessibleIcon = (p: P) => <Svg {...p}><circle cx="12" cy="4.5" r="1.5" /><path d="M12 7v6h5l2 6M8.5 10a6 6 0 1 0 7.2 9" /></Svg>;
+export const ShowerIcon = (p: P) => <Svg {...p}><path d="M4 20V7a3 3 0 0 1 6 0" /><path d="M7 9.5h6M8 13v.01M10 15v.01M12 13v.01M14 15v.01M12 17v.01" /></Svg>;
+export const TagIcon = (p: P) => <Svg {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><circle cx="7.5" cy="7.5" r="1.5" /></Svg>;
+export const ReceiptIcon = (p: P) => <Svg {...p}><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" /><path d="M9 8h6M9 12h6" /></Svg>;
+export const GridIcon = (p: P) => <Svg {...p}><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></Svg>;

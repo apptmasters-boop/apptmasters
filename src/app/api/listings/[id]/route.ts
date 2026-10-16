@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getTokenFromRequest, requireSuperAdmin } from "@/lib/auth";
+import { detailsSchema, detailsData } from "@/lib/listingFields";
 
 const editSchema = z.object({
   type: z.enum(["APARTMENT_FOR_RENT", "ROOM_TO_SHARE"]),
@@ -25,7 +26,7 @@ const editSchema = z.object({
   roommateLifestyleTags: z.array(z.string()).optional(),
   roommateCulturalNotes: z.string().optional(),
   photoUrls: z.array(z.string()).min(1, "At least one photo is required").max(8, "Maximum 8 photos"),
-});
+}).extend(detailsSchema.shape); // Find a Home details (Sprint 12)
 
 /** Only for the poster and admins. */
 const PRIVATE_FIELDS = ["address", "rejectionReason", "reviewedById", "reviewedAt"] as const;
@@ -39,7 +40,7 @@ export async function GET(
     where: { id },
     include: {
       photos: { orderBy: { position: "asc" } },
-      owner: { select: { id: true, name: true } },
+      owner: { select: { id: true, name: true, createdAt: true } }, // "Member since" on the listing page
     },
   });
   if (!listing) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -119,6 +120,7 @@ export async function PATCH(
       roommatePets: data.type === "ROOM_TO_SHARE" ? data.roommatePets ?? null : null,
       roommateLifestyleTags: data.type === "ROOM_TO_SHARE" ? JSON.stringify(data.roommateLifestyleTags ?? []) : "[]",
       roommateCulturalNotes: data.type === "ROOM_TO_SHARE" ? data.roommateCulturalNotes ?? null : null,
+      ...detailsData(data, data.type),
       status: nextStatus,
       rejectionReason: nextStatus === "PENDING" ? null : listing.rejectionReason,
       reviewedAt: nextStatus === "PENDING" ? null : listing.reviewedAt,
