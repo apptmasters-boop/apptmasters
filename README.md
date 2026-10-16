@@ -14,9 +14,11 @@ once and every part of the app that's affected updates itself:
 
 | Document | What it's for |
 |---|---|
+| [`docs/HANDOFF.md`](docs/HANDOFF.md) | **Start here:** where we stopped, the next step, what's waiting for the owner, and how to set up a new PC |
 | [`docs/PRODUCT_LOGIC.md`](docs/PRODUCT_LOGIC.md) | Product & functional blueprint, the source of truth for how the product behaves |
 | [`docs/MARKETPLACE_FLOW.md`](docs/MARKETPLACE_FLOW.md) | The "Find a Home" flow in detail (search, filters, Save, Contact, Messages), the owner's document for Sprint 12 |
 | [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md) | Phase-by-phase build checklist with owner test steps and sign-offs |
+| [`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md) | Sprint 13: making every screen look like the owner's pictures ([`docs/mockups/`](docs/mockups/)), step by step |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Security & engineering roadmap (what's fixed, what's open) |
 | [`tests/README.md`](tests/README.md) | How the automated tests work, and the developer PC's test database |
 | [`prisma/manual-sql/`](prisma/manual-sql/) | Every database change applied by hand on the live server, and how to add one |
@@ -34,7 +36,10 @@ once and every part of the app that's affected updates itself:
   designs ([`docs/MARKETPLACE_FLOW.md`](docs/MARKETPLACE_FLOW.md),
   [`docs/mockups/`](docs/mockups/)): 12a–12e live and waiting for the owner's test (header, Home, search with
   every filter, Save / Saved, Messages); 12f (map, radius, search history, the
-  bell for people without a home) is next.
+  bell for people without a home) comes later.
+- **Sprint 13, the screens like the owner's pictures, one step at a time**
+  ([`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md)): 13a (font and frame
+  everywhere) is live and waiting for the owner's test; 13b (Home) is next.
 - **Then:** the "Before public launch" items in [`docs/ROADMAP.md`](docs/ROADMAP.md),
   nightly backups first.
 - **Tests:** 288 automated tests; lint errors down from 75 to 51.
@@ -152,6 +157,7 @@ in [`docs/BUILD_CHECKLIST.md`](docs/BUILD_CHECKLIST.md).
 | [x] | **10 — More / Issues / Insights** | Secondary menu (incl. scores, rules, agreements, activity, stats, audit), Disputes → Household Issues, Calls → Chat, insights from the ledger | existing pages |
 | [ ] | **11 — Marketplace → My Home** | "Have you found your new home?" follow-up and Create / Join Home flow | listings, invites |
 | [ ] | **12 — Find a Home** | The owner's marketplace flow ([`docs/MARKETPLACE_FLOW.md`](docs/MARKETPLACE_FLOW.md)): one header, every search filter with occupants, Save / Saved, Messages beside the listing, notifications without a home, then map and radius | `Listing`, `ListingMessage`, `/listings` pages |
+| [ ] | **13 — Look like the pictures** | Every screen matched to the owner's pictures, one step at a time ([`docs/SPRINT_13_PLAN.md`](docs/SPRINT_13_PLAN.md)) | the Find a Home pages, `src/components/market` |
 
 ## Security & engineering
 

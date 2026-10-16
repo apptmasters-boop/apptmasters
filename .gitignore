@@ -54,3 +54,8 @@ next-env.d.ts
 
 # User uploaded files (stored on server, not in repo)
 /public/uploads/
+
+# developer screenshots (scripts/dev/screenshots/README.md)
+/scripts/dev/screenshots/node_modules/
+/scripts/dev/screenshots/out*/
+/scripts/dev/screenshots/profile/

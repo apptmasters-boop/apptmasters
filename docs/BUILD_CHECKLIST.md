@@ -1542,6 +1542,8 @@ marketplace Messages. The map, radius, Search history and the bell come with
 - [x] CI green on GitHub (4152330)
 - [x] Deployed to apptmasters.com 2026-10-16 (4152330; rebuilt without the build
       cache, which had kept the old font); live checks all 200
+- [x] Quick fix deployed 2026-10-16 (0b2d0fa): "Looking for" once on the signed-out
+      Home; live checks all 200
 
 **Your test on apptmasters.com** (phone and computer)
 1. Open Home, Find a Home, Saved, Messages and More: the new lettering

@@ -1,0 +1,9 @@
+{
+  "name": "apptmasters-screenshots",
+  "private": true,
+  "type": "module",
+  "description": "Developer-only screenshots of the local app; not part of the site build.",
+  "dependencies": {
+    "puppeteer-core": "23.11.1"
+  }
+}
