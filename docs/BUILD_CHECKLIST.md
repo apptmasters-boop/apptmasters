@@ -1994,8 +1994,10 @@ checked.
 - [x] Browser check (`scripts/dev/screenshots/filters-ui-check.mjs`): every filter
       set on the screen gives the same results as the search, on a phone and a
       computer; prices typed with "$" and commas; Min above Max swapped; sorts in order
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (09dca61)
+- [x] Deployed to apptmasters.com 2026-10-16 (09dca61); live checks all 200; the
+      browser check of every filter passed on apptmasters.com itself (phone and
+      computer)
 
 **Your test on apptmasters.com** (computer first, then phone)
 1. Find a Home on a computer: no panel on the left; the top row shows

@@ -21,6 +21,12 @@ from there."
   the job at 7:30 UTC in the server's crontab. First backup and a restore
   check from GitHub passed on 2026-10-16. Everything is in
   [`BACKUPS.md`](BACKUPS.md).
+- **Fix F1 (owner, 2026-10-16) live, waiting for the owner's test:** filters on the
+  top row on every screen (no left panel on computers), Min/Max price fixed,
+  every filter tested (`tests/filters-every.test.ts`,
+  `scripts/dev/screenshots/filters-ui-check.mjs`, which also runs against the
+  live site with `SHOTS_BASE=https://apptmasters.com`). The owner may send
+  more fixes; they go under "Fixes asked by the owner" in the checklist.
 - **Next step:** check the next morning's backup log line (`last backup` in
   `verify-live.sh`), the owner tests P1 and replies **"P1 approved"**; then
   **P2** (AWS budget alert: the owner pastes one command), **P3** (the owner
