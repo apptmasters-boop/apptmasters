@@ -186,7 +186,7 @@ describe("the daily job", () => {
 
     expect(await runHomeQuestion(at("2027-03-15T11:00:00Z"), { onlyUsers })).toEqual({ asked: 1, emailed: 1 });
     expect(emailsTo(due.user.email)).toHaveLength(1);
-    expect(emailsTo(due.user.email)[0].html).toContain("/listings?ask=home");
+    expect(emailsTo(due.user.email)[0].html).toContain("/?ask=home");
     expect(emailsTo(notYet.user.email)).toHaveLength(0);
     expect(pushed).toEqual([[due.user.id]]);
 

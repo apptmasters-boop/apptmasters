@@ -1283,7 +1283,9 @@ the test)
    Create apartment, which has a **Join their home** link. Sign out and in
    again: you land there again.
    *(Since 11b and Sprint 12: the card is also on Home, and "Yes, I found a
-   place" opens **Create a Home**, with "Join their home" at the bottom.)*
+   place" opens **Create a Home**, with "Join their home" at the bottom.
+   Since 13c: the card is on **Home only**, and the email's Answer button
+   opens Home.)*
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
@@ -1492,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a approved; 13b live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a and 13b approved; 13c being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1505,8 +1507,8 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | Step | What changes | Status |
 |---|---|---|
 | **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Approved 2026-10-16 |
-| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Ready for your test |
-| **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Not started |
+| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Approved 2026-10-16 |
+| **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Being built |
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Not started |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Not started |
 | **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Not started |
@@ -1604,5 +1606,56 @@ e.g. A; phone and computer)
    search" and show those listings; See all opens the same search.
 5. "Already have a place?": **Create a home** and **Join a home** open their
    pages; the arrow opens How It Works.
+
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
+
+### 13c — Search results
+
+**What changes** (pictures: `docs/mockups/search-results-mobile.jpg`,
+`find-a-home-desktop.jpg`)
+- **Tabs:** All · **Apartments** · **Rooms** · **Houses**, each with how many
+  match (Apartments are whole places that aren't houses, including listings
+  that don't say).
+- **Phone, top of the page:** the place, then "6 listings · 2 people ·
+  Up to $2,000", with sort. Under it, buttons with your current choices:
+  Filters, the place, people, price and bedrooms. Each opens a small picker
+  to change it (with "Any" to remove it). Other filters show as removable
+  chips with Clear all.
+- **Phone cards** as in the picture: the photo on the left with the price,
+  then the title on one line, "Brooklyn, NY 11216", bedrooms · bathrooms ·
+  how many people, the kind of place, when it's available, and a row of short
+  details (Furnished, Wi-Fi, Laundry…).
+- **Computer cards** as in the picture: the photo, then **$1,800/month**, the
+  title, the place, how many people · bedrooms · bathrooms, details, and the
+  advertiser's photo (or initial) and first name with "2 days ago". A **Grid /
+  List** switch next to Sort by.
+- **The advertiser's profile photo** shows when they've added one (nothing
+  else about them: never their email).
+- **"Have you found your new home?"** moves to Home only. Its email's Answer
+  button and the phone notification now open Home.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 290 (new: the four tabs and their counts; the advertiser's photo
+      is sent, their email never)
+- [x] Lint: no new errors (51)
+- [x] Screens compared with the pictures at phone and desktop sizes
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (phone and computer)
+1. Search your city. The tabs read All · Apartments · Rooms · Houses with a
+   number on each; tap Rooms: only rooms; the numbers don't change.
+2. **Phone:** the top shows the place and "N listings". Tap the **price**
+   button → pick $2,000: the results update and the button says "Up to
+   $2,000"; tap it again → **Any price**. Do the same with **people** and
+   **bedrooms**.
+3. **Phone cards:** photo on the left with the price; the title fits on one
+   line; the facts and a row of details below; the heart saves.
+4. **Computer:** cards start with "$…/month"; the advertiser's photo or
+   initial and first name at the bottom with how long ago it was posted.
+   Switch to **List**, then back to **Grid**.
+5. Signed in as an account the question is due for (A or B): the "Have you
+   found your new home?" card is on **Home**, no longer on Find a Home.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

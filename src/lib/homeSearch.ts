@@ -93,14 +93,14 @@ export async function runHomeQuestion(now: Date, opts: { onlyUsers?: string[]; d
     asked++;
     if (opts.dryRun) continue;
     const allowed = channelsFor(p.notifPrefs, HOME_QUESTION_TYPE);
-    if (allowed.push) sendPushToUsers([p.id], TITLE, PUSH_BODY, "/listings").catch(() => {});
+    if (allowed.push) sendPushToUsers([p.id], TITLE, PUSH_BODY, "/").catch(() => {});
     let sent = false;
     if (allowed.email) {
       // One at a time, with a pause: Resend takes about 2 emails a second.
       const wait = lastEmailAt + EMAIL_PAUSE_MS - Date.now();
       if (wait > 0) await new Promise(r => setTimeout(r, wait));
       lastEmailAt = Date.now();
-      sent = await sendEmail(p.email, TITLE, notificationEmail(TITLE, EMAIL_BODY, `${appUrl}/listings?ask=home`, "Answer")).catch(() => false);
+      sent = await sendEmail(p.email, TITLE, notificationEmail(TITLE, EMAIL_BODY, `${appUrl}/?ask=home`, "Answer")).catch(() => false);
       if (sent) emailed++;
     }
     // When email was the only way to reach them and it failed, tomorrow's run tries again.

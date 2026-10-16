@@ -8,9 +8,10 @@ type View = "hidden" | "ask" | "signIn" | "looking";
 
 /**
  * "Have you found your new home?" (Sprint 11a, PRODUCT_LOGIC §3.3), at the top
- * of Listings when the question is due for the signed-in person (timing:
- * src/lib/housing.ts). The daily email links here with ?ask=home, so someone
- * opening it signed out is asked to sign in first.
+ * of Home when the question is due for the signed-in person (timing:
+ * src/lib/housing.ts; it moved from Find a Home to Home in Sprint 13c). The
+ * daily email links to Home with ?ask=home, so someone opening it signed out
+ * is asked to sign in first.
  */
 export default function HomeQuestionCard() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function HomeQuestionCard() {
       {view === "signIn" ? (
         <>
           <p className="mt-1 text-sm text-gray-600">Sign in to answer.</p>
-          <Link href={`/login?returnTo=${encodeURIComponent("/listings")}`}
+          <Link href={`/login?returnTo=${encodeURIComponent("/")}`}
             className="mt-3 inline-block rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark">
             Sign in
           </Link>

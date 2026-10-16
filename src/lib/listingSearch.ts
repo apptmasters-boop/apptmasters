@@ -19,6 +19,18 @@ export const SORTS: { value: SortOrder; label: string }[] = [
   { value: "price_desc", label: "Price: high to low" },
 ];
 
+/**
+ * The tabs on the results (Sprint 13c; docs/mockups/search-results-mobile.jpg):
+ * Apartments are whole places that aren't houses (including listings that
+ * don't say), Houses are whole houses, Rooms are rooms to share.
+ */
+export const KINDS = [
+  { value: "apartment", label: "Apartments" },
+  { value: "room", label: "Rooms" },
+  { value: "house", label: "Houses" },
+] as const;
+export type Kind = (typeof KINDS)[number]["value"];
+
 export const LEASE_FILTERS = [
   { value: "0", label: "Month-to-month" },
   { value: "6", label: "6 months or less" },
@@ -36,6 +48,8 @@ export interface SearchFilters {
   q: string;
   /** Whole place or room to share (Listing.type). */
   type: "" | "APARTMENT_FOR_RENT" | "ROOM_TO_SHARE";
+  /** The results tab: apartments, rooms or houses. */
+  kind: "" | Kind;
   propertyType: string;
   roomType: string;
   minPrice: number | null;
@@ -63,7 +77,7 @@ export interface SearchFilters {
 }
 
 export const EMPTY_FILTERS: SearchFilters = {
-  q: "", type: "", propertyType: "", roomType: "", minPrice: null, maxPrice: null, occupants: null,
+  q: "", type: "", kind: "", propertyType: "", roomType: "", minPrice: null, maxPrice: null, occupants: null,
   bedrooms: "", bathrooms: null, moveIn: "", lease: "", amenities: [], laundry: false, smoking: "",
   noBrokerFee: false, noApplicationFee: false, listedWithin: null, sort: "newest", roommateLifestyleTag: "",
 };
@@ -84,6 +98,7 @@ export function parseFilters(p: URLSearchParams): SearchFilters {
   return {
     q: (p.get("q") ?? p.get("city") ?? "").trim().slice(0, 80),
     type: oneOf(p.get("type"), ["APARTMENT_FOR_RENT", "ROOM_TO_SHARE"] as const),
+    kind: oneOf(p.get("kind"), KINDS.map(k => k.value)),
     propertyType: oneOf(p.get("propertyType"), PROPERTY_TYPES.map(t => t.value)),
     roomType: oneOf(p.get("roomType"), ROOM_TYPES.map(t => t.value)),
     minPrice: num(p.get("minPrice")),
@@ -113,6 +128,7 @@ export function filtersToParams(f: SearchFilters): URLSearchParams {
   };
   set("q", f.q.trim());
   set("type", f.type);
+  set("kind", f.kind);
   set("propertyType", f.propertyType);
   set("roomType", f.roomType);
   set("minPrice", f.minPrice);
@@ -144,6 +160,7 @@ export function activeChips(f: SearchFilters): FilterChip[] {
   const add = (key: string, label: string, clear: Partial<SearchFilters>) => chips.push({ key, label, clear });
   if (f.q) add("q", f.q, { q: "" });
   if (f.type) add("type", f.type === "ROOM_TO_SHARE" ? "Rooms" : "Whole places", { type: "", roomType: "" });
+  if (f.kind) add("kind", KINDS.find(k => k.value === f.kind)!.label, { kind: "" });
   if (f.propertyType) add("propertyType", PROPERTY_TYPES.find(t => t.value === f.propertyType)!.label, { propertyType: "" });
   if (f.roomType) add("roomType", ROOM_TYPES.find(t => t.value === f.roomType)!.label, { roomType: "" });
   if (f.minPrice !== null && f.maxPrice !== null) add("price", `${money(f.minPrice)}–${money(f.maxPrice)}`, { minPrice: null, maxPrice: null });
@@ -177,6 +194,9 @@ export function searchWhere(f: SearchFilters, now = new Date()): Prisma.ListingW
     ] });
   }
   if (f.type) and.push({ type: f.type });
+  if (f.kind === "room") and.push({ type: "ROOM_TO_SHARE" });
+  if (f.kind === "house") and.push({ type: "APARTMENT_FOR_RENT", propertyType: "HOUSE" });
+  if (f.kind === "apartment") and.push({ type: "APARTMENT_FOR_RENT", OR: [{ propertyType: null }, { propertyType: { not: "HOUSE" } }] });
   if (f.propertyType) and.push({ propertyType: f.propertyType });
   if (f.roomType) and.push({ roomType: f.roomType });
   if (f.minPrice !== null) and.push({ price: { gte: f.minPrice } });
@@ -196,6 +216,15 @@ export function searchWhere(f: SearchFilters, now = new Date()): Prisma.ListingW
   if (f.listedWithin) and.push({ createdAt: { gte: new Date(now.getTime() - f.listedWithin * DAY) } });
   if (f.roommateLifestyleTag) and.push({ type: "ROOM_TO_SHARE", roommateLifestyleTags: { contains: `"${f.roommateLifestyleTag}"` } });
   return { AND: and };
+}
+
+/** How many listings each tab holds, from counts grouped by type and property type. */
+export function kindCounts(groups: { type: string; propertyType: string | null; _count: { _all: number } }[]) {
+  const sum = (match: (g: (typeof groups)[number]) => boolean) => groups.filter(match).reduce((n, g) => n + g._count._all, 0);
+  const room = sum(g => g.type === "ROOM_TO_SHARE");
+  const house = sum(g => g.type === "APARTMENT_FOR_RENT" && g.propertyType === "HOUSE");
+  const apartment = sum(g => g.type === "APARTMENT_FOR_RENT" && g.propertyType !== "HOUSE");
+  return { all: room + house + apartment, apartment, room, house };
 }
 
 export function searchOrderBy(f: SearchFilters): Prisma.ListingOrderByWithRelationInput[] {

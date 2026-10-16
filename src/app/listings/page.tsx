@@ -1,25 +1,35 @@
 "use client";
 /**
- * Find a Home (Sprint 12; MARKETPLACE_FLOW.md §3–§7; designs
- * docs/mockups/search-results-mobile.jpg, filters-mobile.jpg,
- * find-a-home-desktop.jpg). Public: anyone can search. The filters live in the
- * page address, so they survive signing in and the Back button (§12); every
- * active filter is a removable chip (§6); no matches means an honest empty
- * state, never other listings passed off as matches (§7).
+ * Find a Home (Sprint 12, look matched to the pictures in Sprint 13c;
+ * MARKETPLACE_FLOW.md §3–§7; designs docs/mockups/search-results-mobile.jpg,
+ * filters-mobile.jpg, find-a-home-desktop.jpg). Public: anyone can search. The
+ * filters live in the page address, so they survive signing in and the Back
+ * button (§12); every active filter can be seen and removed (§6); no matches
+ * means an honest empty state, never other listings passed off as matches (§7).
  */
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { parseFilters, filtersToParams, activeChips, SORTS, EMPTY_FILTERS, type SearchFilters, type SortOrder } from "@/lib/listingSearch";
+import { parseFilters, filtersToParams, activeChips, SORTS, KINDS, EMPTY_FILTERS, type SearchFilters, type SortOrder } from "@/lib/listingSearch";
 import FilterPanel from "@/components/market/FilterPanel";
+import QuickPickers from "@/components/market/QuickPickers";
 import ListingCard, { type MarketListing } from "@/components/market/ListingCard";
-import HomeQuestionCard from "./_components/HomeQuestionCard";
-import { ArrowLeftIcon, SearchIcon, SlidersIcon, SortIcon, UsersIcon, TagIcon, PinIcon, BedIcon, XIcon } from "@/components/landing/icons";
+import { ArrowLeftIcon, GridIcon, ListIcon, SearchIcon, SortIcon, XIcon } from "@/components/landing/icons";
 
-
-interface Results { listings: MarketListing[]; total: number; counts: { all: number; APARTMENT_FOR_RENT: number; ROOM_TO_SHARE: number }; page: number; pageSize: number }
+interface Results {
+  listings: MarketListing[];
+  total: number;
+  counts: { all: number; apartment: number; room: number; house: number };
+  page: number;
+  pageSize: number;
+}
 
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;
+/** The phone's quick buttons already show these (with "Any" to remove them). */
+const ON_QUICK_BUTTONS = new Set(["q", "occupants", "price", "bedrooms"]);
+/** The tabs show this one. */
+const ON_TABS = new Set(["kind"]);
+const VIEW_KEY = "am:resultsView";
 
 function FindAHome() {
   const router = useRouter();
@@ -29,13 +39,27 @@ function FindAHome() {
   const [results, setResults] = useState<Results | null>(null);
   const [failed, setFailed] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  // Home's quick chips (Filters, Price, People, Move-in date) open the Filters screen on phones.
+  // Home's Filters button opens the Filters screen on phones.
   const [sheet, setSheet] = useState(() => params.get("panel") === "1");
+  // Desktop: grid of cards or a list (remembered on this device).
+  const [view, setView] = useState<"grid" | "list">("grid");
 
-  // Remember this search, so "Back to results" from a listing returns to it (§12).
+  // Remember this search, so "Back to results" and Home's "Based on your last search" return to it (§12).
   useEffect(() => {
     try { sessionStorage.setItem("am:lastSearch", query ? `?${query}` : ""); } catch { /* storage blocked */ }
   }, [query]);
+
+  useEffect(() => {
+    let current = true;
+    Promise.resolve().then(() => {
+      try { if (current && localStorage.getItem(VIEW_KEY) === "list") setView("list"); } catch { /* storage blocked */ }
+    });
+    return () => { current = false; };
+  }, []);
+  function chooseView(v: "grid" | "list") {
+    setView(v);
+    try { localStorage.setItem(VIEW_KEY, v); } catch { /* storage blocked */ }
+  }
 
   useEffect(() => {
     let current = true;
@@ -67,33 +91,34 @@ function FindAHome() {
     setLoadingMore(false);
   }
 
-  const chips = activeChips(filters).filter(c => c.key !== "type");
+  const chips = activeChips(filters).filter(c => !ON_TABS.has(c.key));
+  const otherChips = chips.filter(c => !ON_QUICK_BUTTONS.has(c.key));
+  const price = filters.minPrice !== null && filters.maxPrice !== null ? `${money(filters.minPrice)} – ${money(filters.maxPrice)}`
+    : filters.maxPrice !== null ? `Up to ${money(filters.maxPrice)}` : filters.minPrice !== null ? `${money(filters.minPrice)}+` : null;
   const summary = [
     results ? `${results.total} listing${results.total === 1 ? "" : "s"}` : null,
     filters.occupants ? `${filters.occupants} ${filters.occupants === 1 ? "person" : "people"}` : null,
-    filters.minPrice !== null || filters.maxPrice !== null ? `${filters.minPrice !== null ? money(filters.minPrice) : "$0"} – ${filters.maxPrice !== null ? money(filters.maxPrice) : "any"}` : null,
+    price,
   ].filter(Boolean).join(" · ");
   const where = filters.q || "All areas";
-  const tabs: { value: SearchFilters["type"]; label: string; count?: number }[] = [
+  const tabs: { value: SearchFilters["kind"]; label: string; count?: number }[] = [
     { value: "", label: "All", count: results?.counts.all },
-    { value: "APARTMENT_FOR_RENT", label: "Whole places", count: results?.counts.APARTMENT_FOR_RENT },
-    { value: "ROOM_TO_SHARE", label: "Rooms", count: results?.counts.ROOM_TO_SHARE },
+    ...KINDS.map(k => ({ value: k.value, label: k.label, count: results?.counts[k.value] })),
   ];
-  const quick = [
-    { icon: PinIcon, label: filters.q || "Location" },
-    { icon: UsersIcon, label: filters.occupants ? `${filters.occupants} ${filters.occupants === 1 ? "person" : "people"}` : "People" },
-    { icon: TagIcon, label: filters.maxPrice !== null ? `Under ${money(filters.maxPrice)}` : "Price" },
-    { icon: BedIcon, label: filters.bedrooms ? (filters.bedrooms === "0" ? "Studio" : `${filters.bedrooms} bd`) : "Any bedrooms" },
-  ];
+  const clearAll = () => go({ ...EMPTY_FILTERS, sort: filters.sort });
 
-  const sortSelect = (
-    <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-      <span className="hidden sm:inline">Sort by</span>
-      <select value={filters.sort} onChange={e => go({ ...filters, sort: e.target.value as SortOrder }, true)} aria-label="Sort by"
-        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 focus:border-brand focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-        {SORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-      </select>
-    </label>
+  const removable = (list: typeof chips, className: string) => list.length > 0 && (
+    <div className={`mt-3 flex-wrap items-center gap-2 ${className}`} aria-label="Active filters">
+      {list.map(c => (
+        <button key={c.key} type="button" onClick={() => go({ ...filters, ...c.clear }, true)} aria-label={`Remove ${c.label}`}
+          className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-sm font-medium text-brand hover:bg-brand/15 dark:bg-brand/25 dark:text-emerald-200">
+          {c.label}<XIcon className="h-3.5 w-3.5" />
+        </button>
+      ))}
+      <button type="button" onClick={clearAll} className="px-1 text-sm font-semibold text-gray-600 underline-offset-2 hover:underline dark:text-gray-300">
+        Clear all
+      </button>
+    </div>
   );
 
   return (
@@ -106,9 +131,7 @@ function FindAHome() {
       </aside>
 
       <div className="min-w-0">
-        <HomeQuestionCard />
-
-        {/* Phones: where, how many, the price, sort; then quick chips that open the filters. */}
+        {/* Phones: where, how many, people and price, sort; then the quick buttons. */}
         <div className="flex items-center gap-3 lg:hidden">
           <button type="button" onClick={() => router.back()} aria-label="Back" className="-ml-1 rounded-full p-1 text-gray-800 dark:text-gray-200"><ArrowLeftIcon className="h-6 w-6" /></button>
           <div className="min-w-0 flex-1">
@@ -122,52 +145,50 @@ function FindAHome() {
             </select>
           </label>
         </div>
-        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
-          <button type="button" onClick={() => setSheet(true)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
-            <SlidersIcon className="h-4 w-4" />Filters{chips.length > 0 && <span className="rounded-full bg-brand px-1.5 text-xs font-semibold text-white">{chips.length}</span>}
-          </button>
-          {quick.map(({ icon: Icon, label }) => (
-            <button key={label} type="button" onClick={() => setSheet(true)}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
-              <Icon className="h-4 w-4" />{label}
-            </button>
-          ))}
+        <div className="lg:hidden">
+          <QuickPickers key={query} className="mt-4" pickers={["place", "people", "price", "bedrooms"]} filters={filters} showValues
+            onPick={patch => go({ ...filters, ...patch }, true)} onFilters={() => setSheet(true)} filtersCount={chips.length} />
         </div>
 
-        {/* Desktop: the count and the sort. */}
+        {/* Desktop: the count, sort, and grid or list. */}
         <div className="hidden items-center justify-between gap-4 lg:flex">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
             {results ? `${results.total} ${results.total === 1 ? "place" : "places"}` : "Places"} in {where}
           </h1>
-          {sortSelect}
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              Sort by
+              <select value={filters.sort} onChange={e => go({ ...filters, sort: e.target.value as SortOrder }, true)} aria-label="Sort by"
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 focus:border-brand focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                {SORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </label>
+            <div className="flex overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900" role="group" aria-label="Show as">
+              {([["grid", "Grid", GridIcon], ["list", "List", ListIcon]] as const).map(([value, label, Icon]) => (
+                <button key={value} type="button" aria-pressed={view === value} onClick={() => chooseView(value)}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium ${view === value ? "bg-brand-soft text-brand dark:bg-brand/25 dark:text-emerald-200" : "text-gray-600 hover:bg-gray-50 dark:text-gray-300"}`}>
+                  <Icon className="h-4 w-4" />{label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Whole places or rooms, with how many of each match. */}
+        {/* Apartments, rooms or houses, with how many of each match. */}
         <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="tablist" aria-label="Kind of place">
           {tabs.map(t => (
-            <button key={t.label} type="button" role="tab" aria-selected={filters.type === t.value}
-              onClick={() => go({ ...filters, type: t.value, roomType: t.value === "ROOM_TO_SHARE" ? filters.roomType : "" }, true)}
-              className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                filters.type === t.value ? "bg-brand text-white" : "bg-white text-gray-700 ring-1 ring-gray-200 hover:ring-gray-300 dark:bg-gray-900 dark:text-gray-200 dark:ring-gray-700"}`}>
+            <button key={t.label} type="button" role="tab" aria-selected={filters.kind === t.value && !filters.type}
+              onClick={() => go({ ...filters, kind: t.value, type: "", roomType: t.value === "room" ? filters.roomType : "" }, true)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors sm:px-5 sm:py-2.5 ${
+                filters.kind === t.value && !filters.type ? "bg-brand text-white" : "bg-white text-gray-700 ring-1 ring-gray-200 hover:ring-gray-300 dark:bg-gray-900 dark:text-gray-200 dark:ring-gray-700"}`}>
               {t.label}{t.count !== undefined && ` (${t.count})`}
             </button>
           ))}
         </div>
 
-        {chips.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2" aria-label="Active filters">
-            {chips.map(c => (
-              <button key={c.key} type="button" onClick={() => go({ ...filters, ...c.clear }, true)} aria-label={`Remove ${c.label}`}
-                className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-sm font-medium text-brand hover:bg-brand/15 dark:bg-brand/25 dark:text-emerald-200">
-                {c.label}<XIcon className="h-3.5 w-3.5" />
-              </button>
-            ))}
-            <button type="button" onClick={() => go({ ...EMPTY_FILTERS, sort: filters.sort })} className="px-1 text-sm font-semibold text-gray-600 underline-offset-2 hover:underline dark:text-gray-300">
-              Clear all
-            </button>
-          </div>
-        )}
+        {/* Every active filter, removable (§6): on phones only those not on the quick buttons. */}
+        {removable(otherChips, "flex lg:hidden")}
+        {removable(chips, "hidden lg:flex")}
 
         <div className="mt-5">
           {failed ? (
@@ -184,8 +205,8 @@ function FindAHome() {
                 Try removing a filter{chips.length > 0 ? " above" : ""}, or widen the price or the place. We only show places that match.
               </p>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
-                {chips.length > 0 && (
-                  <button type="button" onClick={() => go({ ...EMPTY_FILTERS, sort: filters.sort })} className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">Clear all filters</button>
+                {(chips.length > 0 || filters.kind) && (
+                  <button type="button" onClick={clearAll} className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">Clear all filters</button>
                 )}
                 <button type="button" onClick={() => setSheet(true)} className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-800 lg:hidden dark:border-gray-700 dark:text-gray-100">Change filters</button>
               </div>
@@ -195,9 +216,15 @@ function FindAHome() {
               <div className="space-y-3 lg:hidden">
                 {results.listings.map(l => <ListingCard key={l.id} listing={l} layout="row" />)}
               </div>
-              <div className="hidden gap-5 lg:grid lg:grid-cols-2 xl:grid-cols-3">
-                {results.listings.map(l => <ListingCard key={l.id} listing={l} layout="grid" />)}
-              </div>
+              {view === "grid" ? (
+                <div className="hidden gap-5 lg:grid lg:grid-cols-2 xl:grid-cols-3">
+                  {results.listings.map(l => <ListingCard key={l.id} listing={l} layout="grid" />)}
+                </div>
+              ) : (
+                <div className="hidden space-y-3 lg:block">
+                  {results.listings.map(l => <ListingCard key={l.id} listing={l} layout="row" />)}
+                </div>
+              )}
               {results.listings.length < results.total && (
                 <div className="mt-6 text-center">
                   <button type="button" onClick={more} disabled={loadingMore}

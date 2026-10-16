@@ -91,7 +91,7 @@ describe("search finds only real matches", () => {
     await place({ city, price: 1200, zipCode: "11216" });
     const res = await find(`q=${city}&sort=price_asc`);
     expect(res.listings.map((l: { price: number }) => l.price)).toEqual([900, 1200, 2000]);
-    expect(res.counts).toEqual({ all: 3, APARTMENT_FOR_RENT: 2, ROOM_TO_SHARE: 1 });
+    expect(res.counts).toEqual({ all: 3, apartment: 2, room: 1, house: 0, APARTMENT_FOR_RENT: 2, ROOM_TO_SHARE: 1 });
     // A type filter keeps the tab counts for the others.
     const rooms = await find(`q=${city}&type=ROOM_TO_SHARE`);
     expect(rooms.total).toBe(1);
@@ -107,7 +107,34 @@ describe("search finds only real matches", () => {
     const [l] = (await find(`q=${city}`)).listings;
     expect(l).not.toHaveProperty("address");
     expect(l).not.toHaveProperty("rejectionReason");
-    expect(l.owner).toEqual({ id: expect.any(String), name: "Test", since: expect.any(String) });
+    expect(l.owner).toEqual({ id: expect.any(String), name: "Test", since: expect.any(String), photo: null });
+  });
+
+  it("tabs: apartments (including listings that don't say), rooms and houses, with steady counts (13c)", async () => {
+    const city = `City-${randomUUID()}`;
+    const flat = await place({ city, propertyType: "APARTMENT" });
+    const unsaid = await place({ city });
+    const studio = await place({ city, propertyType: "STUDIO" });
+    const house = await place({ city, propertyType: "HOUSE" });
+    const room = await place({ city, type: "ROOM_TO_SHARE", propertyType: "HOUSE" });
+    const ids = async (kind: string) => (await find(`q=${city}&kind=${kind}`)).listings.map((l: { id: string }) => l.id).sort();
+    expect(await ids("apartment")).toEqual([flat.id, unsaid.id, studio.id].sort());
+    expect(await ids("house")).toEqual([house.id]);
+    expect(await ids("room")).toEqual([room.id]);
+    const houses = await find(`q=${city}&kind=house`);
+    expect(houses.total).toBe(1);
+    expect(houses.counts).toMatchObject({ all: 5, apartment: 3, room: 1, house: 1 });
+    expect(parseFilters(new URLSearchParams("kind=castle")).kind).toBe("");
+    expect(activeChips(parseFilters(new URLSearchParams("kind=room")))).toEqual([{ key: "kind", label: "Rooms", clear: { kind: "" } }]);
+  });
+
+  it("the advertiser's profile photo is sent, their email never (13c)", async () => {
+    const city = `City-${randomUUID()}`;
+    const listing = await place({ city });
+    const owner = await prisma.user.update({ where: { id: listing.ownerId }, data: { photo: "/uploads/avatars/owner.jpg" } });
+    const res = await find(`q=${city}`);
+    expect(res.listings[0].owner.photo).toBe("/uploads/avatars/owner.jpg");
+    expect(JSON.stringify(res)).not.toContain(owner.email);
   });
 });
 

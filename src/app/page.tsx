@@ -12,7 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { landingPath } from "@/lib/housing";
-import { activeChips, parseFilters } from "@/lib/listingSearch";
+import { activeChips, parseFilters, EMPTY_FILTERS, filtersToParams } from "@/lib/listingSearch";
 import { MarketShell } from "@/components/market/MarketChrome";
 import { useMe } from "@/components/market/useMe";
 import ListingCard, { type MarketListing } from "@/components/market/ListingCard";
@@ -116,6 +116,8 @@ const STEPS = [
 function VisitorHome() {
   return (
     <>
+      {/* Opened from the "Have you found your new home?" email while signed out: sign in to answer. */}
+      <div className="mx-auto max-w-[96rem] px-4 pt-4 empty:hidden sm:px-6 lg:px-8"><HomeQuestionCard /></div>
       <section className="bg-gray-50 pb-10 dark:bg-gray-950">
         <div className="relative h-[300px] sm:h-[340px] md:h-[420px]">
           <Image src="/landing/hero.png" alt="Housemates talking in a bright city apartment" fill sizes="100vw"
@@ -217,7 +219,12 @@ function SeekerHome() {
               className="min-w-0 flex-1 bg-transparent text-base text-gray-900 placeholder:text-gray-400 focus:outline-none dark:text-white" />
             <button type="submit" className="hidden rounded-xl bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand-dark sm:block">Search</button>
           </form>
-          <QuickPickers q={q} />
+          <QuickPickers pickers={["price", "bedrooms", "moveIn"]} filters={{ ...EMPTY_FILTERS, q: q.trim() }}
+            filtersHref={q.trim() ? `/listings?q=${encodeURIComponent(q.trim())}&panel=1` : "/listings?panel=1"}
+            onPick={patch => {
+              const query = filtersToParams({ ...EMPTY_FILTERS, q: q.trim(), ...patch }).toString();
+              router.push(query ? `/listings?${query}` : "/listings");
+            }} />
         </div>
         <div className="mt-8 lg:mt-0"><AlreadyHavePlace /></div>
       </div>

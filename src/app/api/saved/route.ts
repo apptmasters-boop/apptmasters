@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   });
   return NextResponse.json(saved.map(s => ({
     savedAt: s.createdAt,
-    listing: { ...s.listing, owner: { id: s.listing.owner.id, name: s.listing.owner.name.split(" ")[0], since: s.listing.owner.createdAt } },
+    listing: { ...s.listing, owner: { id: s.listing.owner.id, name: s.listing.owner.name.split(" ")[0], since: s.listing.owner.createdAt, photo: s.listing.owner.photo } },
   })));
 }
 
