@@ -34,6 +34,7 @@ echo "GET /api/users/home-search: $(code -H "$AUTH" http://localhost:3000/api/us
 echo "page /listings: $(code http://localhost:3000/listings)"
 for p in /api/listings/search "/api/listings/search?occupants=2&sort=price_asc" / /saved /more /how-it-works /help; do echo "GET $p: $(code "http://localhost:3000$p")"; done
 echo "GET /api/saved: $(code -H "$AUTH" http://localhost:3000/api/saved)"
+echo "GET /api/listings/inbox: $(code -H "$AUTH" http://localhost:3000/api/listings/inbox)"
 echo "public site: $(code https://apptmasters.com/)"
 
 NEW=$(( $(wc -l < "$ERRLOG") - BEFORE ))

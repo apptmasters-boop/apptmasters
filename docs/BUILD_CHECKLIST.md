@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a–13f approved; 13g being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a–13f approved; 13g live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1512,7 +1512,7 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Approved 2026-10-16 |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Approved 2026-10-16 |
 | **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Approved 2026-10-16 |
-| **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Being built |
+| **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Ready for your test |
 | **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Not started |
 
 **Left out from the pictures** (the app doesn't have them): star ratings,
@@ -1830,8 +1830,9 @@ e.g. A; phone and computer)
       unread messages, never an email)
 - [x] Lint: no new errors (51)
 - [x] Screens compared with the pictures at phone and desktop sizes
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (1c99116)
+- [x] Deployed to apptmasters.com 2026-10-16 (1c99116); live checks all 200 (now
+      including the Messages list)
 
 **Your test on apptmasters.com** (two accounts, e.g. A and B, and a listing
 of yours)
