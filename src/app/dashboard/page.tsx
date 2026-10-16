@@ -57,12 +57,12 @@ export default function DashboardPage() {
           const [grocRes, invRes, dispRes, choresRes] = await Promise.all([
             apiFetch(`/api/apartments/${apt.id}/grocery`),
             apiFetch(`/api/apartments/${apt.id}/inventory`),
-            apiFetch(`/api/apartments/${apt.id}/disputes`),
+            apiFetch(`/api/apartments/${apt.id}/issues`),
             apiFetch(`/api/apartments/${apt.id}/chores`),
           ]);
           const grocery = grocRes.ok ? await grocRes.json() : [];
           const inventory = invRes.ok ? await invRes.json() : [];
-          const disputes = dispRes.ok ? await dispRes.json() : [];
+          const issues = dispRes.ok ? (await dispRes.json()).issues ?? [] : [];
           const chores = choresRes.ok ? await choresRes.json() : [];
           const now = new Date();
           setStats(prev => ({
@@ -70,7 +70,7 @@ export default function DashboardPage() {
             [apt.id]: {
               pendingGrocery: grocery.filter((g: { purchased: boolean }) => !g.purchased).length,
               lowInventory: inventory.filter((i: { quantity: number; reorderThreshold: number }) => i.quantity <= i.reorderThreshold).length,
-              activeDisputes: disputes.filter((d: { status: string }) => d.status === "OPEN").length,
+              activeDisputes: issues.filter((d: { status: string }) => !["RESOLVED", "CLOSED"].includes(d.status)).length,
               overdueChores: chores.filter((c: { status: string; dueDate: string | null }) =>
                 c.status === "PENDING" && c.dueDate && new Date(c.dueDate) < now
               ).length,
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                         s.myChoresCount > 0 && { label: `${s.myChoresCount} my chore${s.myChoresCount > 1 ? "s" : ""}`, color: "bg-blue-50 text-blue-700 border-blue-200" },
                         s.pendingGrocery > 0 && { label: `${s.pendingGrocery} grocery`, color: "bg-amber-50 text-amber-700 border-amber-200" },
                         s.lowInventory > 0 && { label: `${s.lowInventory} low stock`, color: "bg-amber-50 text-amber-700 border-amber-200" },
-                        s.activeDisputes > 0 && { label: `${s.activeDisputes} dispute${s.activeDisputes > 1 ? "s" : ""}`, color: "bg-orange-50 text-orange-700 border-orange-200" },
+                        s.activeDisputes > 0 && { label: `${s.activeDisputes} open issue${s.activeDisputes > 1 ? "s" : ""}`, color: "bg-orange-50 text-orange-700 border-orange-200" },
                       ].filter(Boolean) as { label: string; color: string }[]
                     : [];
 

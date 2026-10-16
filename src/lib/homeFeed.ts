@@ -217,6 +217,14 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
       });
     }
   }
+  // Household issues (Sprint 10a): the person who raised one answers a proposed resolution.
+  const proposals = await prisma.dispute.findMany({ where: { apartmentId, raisedById: userId, status: "PROPOSED" }, select: { id: true, title: true, proposal: true, proposedAt: true } });
+  for (const p of proposals) {
+    items.push({
+      id: `issue-proposal:${p.id}`, priority: 3, href: `${base}/issues`, when: p.proposedAt?.toISOString(),
+      title: `Proposed resolution: ${p.title}`, detail: `"${(p.proposal ?? "").slice(0, 80)}" · accept or decline`,
+    });
+  }
   if (joinRequests > 0) {
     items.push({ id: "join-requests", priority: 3, href: `${base}/settings`, title: `${joinRequests} ${joinRequests === 1 ? "person wants" : "people want"} to join`, detail: "Approve or decline" });
   }

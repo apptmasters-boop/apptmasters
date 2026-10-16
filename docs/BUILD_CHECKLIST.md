@@ -1081,7 +1081,7 @@ has allowed notifications on its phone or browser)
 
 ## Sprint 10 — Household Issues and Insights
 
-**Status:** Planned (2026-10-15; built after the deploy queue 8b → 9a → 9b)
+**Status:** Plan approved by the owner (2026-10-16) · 10a building
 · Spec: `PRODUCT_LOGIC.md` §17, §18, §19
 
 Already done in Sprint 1: the More menu follows the blueprint's groups (§17),
@@ -1096,7 +1096,7 @@ and calls live in Chat.
 
 ### 10a — Household Issues (replaces Disputes)
 
-**Status:** Planned
+**Status:** Building
 
 **What I'm building** (§18: "Issue created → Open → Discussion → Proposed
 resolution → Resolved")
@@ -1118,6 +1118,19 @@ resolution → Resolved")
   the raiser "Proposed resolution: *title*. Accept or decline".
 - Database: a few new fields (topic, private, proposal) and a kind for
   timeline entries, added with a reviewed SQL file.
+- Not changed here: the "Dispute" button on a single expense (Shared
+  expenses), which flags one expense; it's a separate feature.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 234 (+5: topics and who it involves; who's told; reply →
+      discussion, propose → proposed, decline needs a reason, accept →
+      resolved; only the raiser accepts; one proposal at a time; close by the
+      raiser or an admin; private issues hidden from others; old dismissed
+      disputes show as closed)
+- [x] Lint: no new errors (63 → 60)
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
 
 **Your test on apptmasters.com** (three accounts: A raises, B is involved, C is
 another roommate)

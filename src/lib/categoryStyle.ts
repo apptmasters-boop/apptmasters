@@ -18,6 +18,7 @@ export const CATEGORY_COLORS: Record<string, CategoryColor> = {
   chat: "emerald",
   maintenance: "amber",
   disputes: "red",
+  issues: "red",
   feed: "indigo",
   stats: "teal",
   agreements: "indigo",

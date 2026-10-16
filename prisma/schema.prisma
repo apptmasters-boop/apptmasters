@@ -740,11 +740,20 @@ model ScoreLog {
   score   RoommateScore @relation(fields: [scoreId], references: [id], onDelete: Cascade)
 }
 
+// A household issue (PRODUCT_LOGIC §18; called "dispute" before Sprint 10a). Rules: src/lib/issues.ts.
 model Dispute {
   id          String    @id @default(cuid())
   title       String
   description String
-  status      String    @default("OPEN") // OPEN | RESOLVED | DISMISSED
+  // OPEN | DISCUSSION | PROPOSED | RESOLVED | CLOSED (DISMISSED before Sprint 10a = CLOSED)
+  status      String    @default("OPEN")
+  category    String    @default("OTHER") // NOISE | CLEANING | EXPENSES | RENT | GUESTS | OTHER
+  // Private: only the person who raised it, the person it involves (againstId) and household admins see it.
+  isPrivate   Boolean   @default(false)
+  // The resolution waiting for the raiser's answer, while PROPOSED.
+  proposal     String?
+  proposedById String?
+  proposedAt   DateTime?
   resolution  String?
   resolvedAt  DateTime?
   createdAt   DateTime  @default(now())
@@ -759,9 +768,11 @@ model Dispute {
   comments  DisputeComment[]
 }
 
+// One entry on an issue's timeline.
 model DisputeComment {
   id        String   @id @default(cuid())
   body      String
+  kind      String   @default("COMMENT") // COMMENT | PROPOSAL | DECLINED | ACCEPTED | CLOSED
   createdAt DateTime @default(now())
 
   disputeId String

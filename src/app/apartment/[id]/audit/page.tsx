@@ -15,8 +15,10 @@ const ACTION_LABELS: Record<string, { label: string; icon: string; color: string
   ROLE_CHANGED:        { label: "Role changed",         icon: "🔄", color: "text-blue-600" },
   STATUS_CHANGED:      { label: "Status changed",       icon: "📋", color: "text-amber-600" },
   MEMBER_REMOVED:      { label: "Member removed",       icon: "🚪", color: "text-red-600" },
-  DISPUTE_RESOLVED:    { label: "Dispute resolved",     icon: "🤝", color: "text-green-600" },
-  DISPUTE_DISMISSED:   { label: "Dispute dismissed",    icon: "🗑️", color: "text-gray-500" },
+  DISPUTE_RESOLVED:    { label: "Issue resolved",       icon: "🤝", color: "text-green-600" },
+  DISPUTE_DISMISSED:   { label: "Issue closed",         icon: "🗑️", color: "text-gray-500" },
+  ISSUE_RESOLVED:      { label: "Issue resolved",       icon: "🤝", color: "text-green-600" },
+  ISSUE_CLOSED:        { label: "Issue closed",         icon: "🗂️", color: "text-gray-500" },
   SYSTEM_ROLE_CHANGED: { label: "System role changed",  icon: "⚙️", color: "text-purple-600" },
   ACCOUNT_DELETED:     { label: "Account deleted",      icon: "❌", color: "text-red-700" },
 };

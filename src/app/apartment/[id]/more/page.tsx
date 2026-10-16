@@ -42,7 +42,7 @@ export default function MorePage() {
       )}
       <HubSection title="Home management" items={[
         { href: at("maintenance"), label: "Maintenance", description: "Report and follow repairs", icon: WrenchIcon },
-        { href: at("disputes"), label: "Household issues", description: "Raise and resolve concerns together", icon: ScaleIcon },
+        { href: at("issues"), label: "Household issues", description: "Raise and resolve concerns together", icon: ScaleIcon },
         { href: at("calendar"), label: "Calendar", description: "Household events and dates", icon: CalendarIcon },
       ]} />
       <HubSection title="Insights" items={[
