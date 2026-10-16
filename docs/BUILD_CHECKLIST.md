@@ -1901,7 +1901,7 @@ console or a password manager; every change to the server's configuration
 | Step | What | Who | Status |
 |---|---|---|---|
 | **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 7 nights encrypted in a private GitHub repository (owner's choice: no extra fees); an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Developer, with the owner's OKs | Set up, ready for your test |
-| **P2 — AWS budget alert** | An email to the owner when the month's AWS bill goes over a set amount | Owner: one paste in CloudShell | Not started |
+| **P2 — AWS budget alert** | An email to the owner when the month's AWS bill goes over $15, or AWS forecasts it will | Owner: one paste in CloudShell | Ready for the owner |
 | **P3 — Settings in a password manager** | The owner keeps a copy of the server's `.env.local` (passwords and keys) in a password manager, so a lost server can be rebuilt | Owner, with instructions | Not started |
 | **P4 — Changing your password signs out your other devices** | Today an old sign-in on another phone keeps working after a password change or reset | Developer (small database change, owner's OK first) | Not started |
 | **P5 — Security review before launch** | A fresh pass over every page and API: who can see and change what | Developer | Not started |
@@ -1952,6 +1952,38 @@ the nightly job; the separate private repository, encrypted.
    mornings, one more folder each day, up to 7.
 2. The repository is **Private** and isn't one of the code repository's files.
 3. I send you the restore check's result: the table counts match.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### P2 — AWS budget alert
+
+**What changes**
+- AWS emails the owner when the **month's bill goes over $15** (owner's
+  choice, 2026-10-16), and also as soon as AWS **forecasts** the month will go
+  over. The server costs roughly that much today, so an alert can come in a
+  normal month; the amount is easy to raise (AWS console → Billing →
+  Budgets → apptmasters-monthly → Edit).
+- AWS budgets are free: nothing new to pay. The email address is typed by
+  the owner in CloudShell and only goes to AWS.
+
+**What the owner does once** (2 minutes): sign in to the AWS console, open
+**CloudShell** (the `>_` icon at the top), paste this and press Enter, then
+type the email address the alerts should go to:
+
+```bash
+read -p "Email for the alerts: " EMAIL
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+aws budgets create-budget --account-id "$ACCOUNT" \
+  --budget '{"BudgetName":"apptmasters-monthly","BudgetLimit":{"Amount":"15","Unit":"USD"},"TimeUnit":"MONTHLY","BudgetType":"COST"}' \
+  --notifications-with-subscribers "[{\"Notification\":{\"NotificationType\":\"ACTUAL\",\"ComparisonOperator\":\"GREATER_THAN\",\"Threshold\":100,\"ThresholdType\":\"PERCENTAGE\"},\"Subscribers\":[{\"SubscriptionType\":\"EMAIL\",\"Address\":\"$EMAIL\"}]},{\"Notification\":{\"NotificationType\":\"FORECASTED\",\"ComparisonOperator\":\"GREATER_THAN\",\"Threshold\":100,\"ThresholdType\":\"PERCENTAGE\"},\"Subscribers\":[{\"SubscriptionType\":\"EMAIL\",\"Address\":\"$EMAIL\"}]}]" \
+  && echo "Budget alert created"
+```
+
+**Your test**
+1. CloudShell prints **"Budget alert created"**.
+2. In the AWS console, **Billing and Cost Management → Budgets** lists
+   **apptmasters-monthly**, $15 a month, with 2 alerts (actual and forecast)
+   to your email.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
