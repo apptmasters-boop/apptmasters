@@ -67,7 +67,7 @@ export function SaveButton({ listingId, className = "", onImage = true, large = 
   );
 }
 
-function Photo({ l, className }: { l: MarketListing; className: string }) {
+function Photo({ l, className, showNew = true }: { l: MarketListing; className: string; showNew?: boolean }) {
   return (
     <div className={`relative overflow-hidden bg-gray-100 dark:bg-gray-800 ${className}`}>
       {l.photos[0] ? (
@@ -77,7 +77,7 @@ function Photo({ l, className }: { l: MarketListing; className: string }) {
       ) : (
         <div className="flex h-full w-full items-center justify-center text-gray-300"><HomeIcon className="h-10 w-10" /></div>
       )}
-      {isNew(l.createdAt) && <span className="absolute left-2.5 top-2.5 rounded-lg bg-brand-soft px-2 py-1 text-xs font-semibold text-brand">New</span>}
+      {showNew && isNew(l.createdAt) && <span className="absolute left-2.5 top-2.5 rounded-lg bg-brand-soft px-2 py-1 text-xs font-semibold text-brand">New</span>}
       <span className="absolute bottom-2.5 left-2.5 rounded-lg bg-black/75 px-2.5 py-1 text-sm font-bold text-white">{priceText(l)}</span>
       {l.photos.length > 1 && (
         <span className="absolute bottom-3.5 right-3 flex gap-1" aria-hidden>
@@ -127,7 +127,7 @@ export default function ListingCard({ listing: l, layout = "row", footer }: {
     return (
       <article className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <Link href={`/listings/${l.id}`} className="block">
-          <Photo l={l} className="aspect-[4/3]" />
+          <Photo l={l} className="aspect-[4/3]" showNew={false} />
           <div className="space-y-1 p-3">
             <h3 className="truncate text-[15px] font-semibold text-gray-900 group-hover:text-brand dark:text-white">{l.title}</h3>
             <p className="flex items-center gap-1 truncate text-[13px] text-gray-600 dark:text-gray-300"><PinIcon className="h-4 w-4 shrink-0" />{[l.city, l.state].filter(Boolean).join(", ")}</p>

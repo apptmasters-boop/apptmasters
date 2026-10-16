@@ -60,7 +60,7 @@ export default function HomeQuestionCard() {
   }
 
   return (
-    <section aria-labelledby="home-question" className="mb-6 rounded-2xl border border-brand/20 bg-brand-soft px-5 py-4">
+    <section aria-labelledby="home-question" className="mb-6 rounded-2xl border border-brand/20 bg-brand-soft px-4 py-3.5 sm:px-5 sm:py-4">
       <h2 id="home-question" className="text-base font-semibold text-gray-900">Have you found your new home?</h2>
       {view === "signIn" ? (
         <>

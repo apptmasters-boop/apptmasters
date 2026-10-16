@@ -1492,7 +1492,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a approved; 13b being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1504,8 +1504,8 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 
 | Step | What changes | Status |
 |---|---|---|
-| **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Ready for your test |
-| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Not started |
+| **13a — The look everywhere** | The pictures' modern font on every page; the phone's browser bar in the brand green; softer cards and borders; on phones the logo bar only on Home (other pages get their own title bar); desktop header full width with the search button and your photo and name | Approved 2026-10-16 |
+| **13b — Home** | Headline, search, quick chips Filters · Price · Bedrooms · Move-in date (each opens a picker), "Already have a place?", listing tiles with "See all". (The duplicate "I'm looking for… Room to share · Whole apartment" row on the signed-out Home was removed early, at the owner's request on 2026-10-16; the "Looking for" dropdown in the search box stays.) | Being built |
 | **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Not started |
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Not started |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Not started |
@@ -1560,5 +1560,49 @@ marketplace Messages. The map, radius, Search history and the bell come with
    Signed out, Home shows "Looking for" once (the dropdown in the search box).
 4. **Household pages** (Money, Cleaning, Chat, Calendar): same pages as
    before, only the lettering is new; nothing is cut off.
+
+**Sign-off:** [x] Approved on 2026-10-16 (the owner replied "13b approved", read
+as 13a approved and the go-ahead for 13b) · Issues found: none reported
+
+### 13b — Home
+
+**What changes** (signed in without a home; picture: `docs/mockups/home-mobile.jpg`)
+- The headline and the search box as in the picture (no "Hi …" line).
+- Quick buttons in a row: **Filters · Price ▾ · Bedrooms ▾ · Move-in date ▾**.
+  Price, Bedrooms and Move-in date open a small picker right there; choosing
+  opens Find a Home with that filter (and with what you typed in the search
+  box). Filters opens the full Filters screen.
+- "Already have a place?" as in the picture: a house-and-people icon, an arrow
+  to How It Works, and the Create a home / Join a home buttons.
+- Listing tiles as in the picture (price on the photo, title, place,
+  "2 bd · 1 ba · Available Nov 1"), under **"Based on your last search"** when
+  you searched earlier in this visit, otherwise **"Latest listings"**; See all
+  opens that search.
+- The "Have you found your new home?" card stays at the top when it's due
+  (11a), a little more compact.
+- Computer: the search on the left and "Already have a place?" on the right.
+- Signed out: the landing page stays; its tiles get the same look.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass (288; Home only changes how it looks and links)
+- [x] Lint: no new errors (51)
+- [x] Screens compared with the picture at phone and desktop sizes
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (signed in with an account without a home,
+e.g. A; phone and computer)
+1. Home shows the headline, the search box and Filters · Price · Bedrooms ·
+   Move-in date in a row (on a phone you can slide the row).
+2. Tap **Price** and pick "$2,000" (rent up to $2,000): Find a Home opens
+   with that price as a chip. Go back, tap **Bedrooms** → "2": Find a Home with 2 bedrooms.
+   Tap **Move-in date**, choose a date, tap Show listings.
+3. Type "Brooklyn" (or your city) in the search box, then pick a Price: the
+   results are in that place and under that price.
+4. After a search, come back to Home: the tiles say "Based on your last
+   search" and show those listings; See all opens the same search.
+5. "Already have a place?": **Create a home** and **Join a home** open their
+   pages; the arrow opens How It Works.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

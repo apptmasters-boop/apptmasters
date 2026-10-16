@@ -64,6 +64,8 @@ export const SendIcon = (p: P) => <Svg {...p}><path d="M21 3 10 14" /><path d="M
 export const InfoIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5v.5" /></Svg>;
 export const XIcon = (p: P) => <Svg {...p}><path d="M6 6l12 12M18 6 6 18" /></Svg>;
 export const KeyHouseIcon = (p: P) => <Svg {...p}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9v11h6M19 9v4" /><circle cx="16.5" cy="17" r="2.5" /><path d="m18.3 18.8 2.7 2.7M20 20.5l-1 1" /></Svg>;
+/** A house with two people in it ("Already have a place?", docs/mockups/home-mobile.jpg). */
+export const HomeUsersIcon = (p: P) => <Svg {...p}><path d="M2.5 10.5 12 3l9.5 7.5" /><path d="M4.5 9v11.5h15V9" /><circle cx="9.5" cy="12.5" r="1.75" /><circle cx="14.75" cy="12.5" r="1.75" /><path d="M6.75 18.5a2.75 2.75 0 0 1 5.5 0M12 18.5a2.75 2.75 0 0 1 5.5 0" /></Svg>;
 // Find a Home (Sprint 12)
 export const HeartIcon = (p: P & { filled?: boolean }) => <Svg className={p.className}><path fill={p.filled ? "currentColor" : "none"} d="M12 20.5s-7.5-4.6-9.2-9.3C1.7 8 3.6 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.6 0 5.5 3.5 4.4 6.7-1.7 4.7-9.2 9.3-9.2 9.3Z" /></Svg>;
 export const ShareIcon = (p: P) => <Svg {...p}><path d="M12 15V3M8 7l4-4 4 4" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></Svg>;

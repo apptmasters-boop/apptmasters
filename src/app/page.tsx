@@ -1,61 +1,107 @@
 "use client";
 /**
- * Home (Sprint 12; MARKETPLACE_FLOW.md §3, §13, §21; design
- * docs/mockups/home-mobile.jpg). Public: visitors get the landing page with
- * the search. Someone signed in without a home gets their Home: search, quick
- * filters, Create / Join a Home and the latest listings. People with a home
- * (or a portal, or a home being set up) go where they belong.
+ * Home (Sprint 12, look matched to docs/mockups/home-mobile.jpg in Sprint 13b;
+ * MARKETPLACE_FLOW.md §3, §13, §21). Public: visitors get the landing page
+ * with the search. Someone signed in without a home gets their Home: search,
+ * quick pickers, Create / Join a Home and listings from their last search (or
+ * the latest). People with a home (or a portal, or a home being set up) go
+ * where they belong.
  */
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { landingPath } from "@/lib/housing";
+import { activeChips, parseFilters } from "@/lib/listingSearch";
 import { MarketShell } from "@/components/market/MarketChrome";
-import { useMe, type Me } from "@/components/market/useMe";
+import { useMe } from "@/components/market/useMe";
 import ListingCard, { type MarketListing } from "@/components/market/ListingCard";
+import QuickPickers from "@/components/market/QuickPickers";
 import SearchPanel from "@/components/landing/SearchPanel";
 import { SectionHeading, CommunityCards, SafetySection, CtaBand } from "@/components/landing/Sections";
 import HomeQuestionCard from "./listings/_components/HomeQuestionCard";
 import {
-  ArrowRightIcon, CalendarIcon, ChevronRightIcon, HomeIcon, MessageIcon, PlusCircleIcon, SearchIcon, SlidersIcon, TagIcon, UsersIcon,
+  ArrowRightIcon, ChevronRightIcon, HomeIcon, HomeUsersIcon, MessageIcon, PlusCircleIcon, SearchIcon, UsersIcon,
 } from "@/components/landing/icons";
 
-function useLatest(count: number) {
-  const [listings, setListings] = useState<MarketListing[] | null>(null);
+async function fetchListings(query: string, count: number): Promise<MarketListing[]> {
+  const res = await fetch(`/api/listings/search${query}`).catch(() => null);
+  const data = res?.ok ? await res.json() : { listings: [] };
+  return data.listings.slice(0, count);
+}
+
+/** Listings for Home: the last search of this visit when it found any, otherwise the latest. */
+function useHomeListings(lastSearch: string, count: number) {
+  const [state, setState] = useState<{ listings: MarketListing[]; fromSearch: boolean } | null>(null);
   useEffect(() => {
     let current = true;
     async function load() {
-      const res = await fetch("/api/listings/search").catch(() => null);
-      const data = res?.ok ? await res.json() : { listings: [] };
-      if (current) setListings(data.listings.slice(0, count));
+      const found = lastSearch ? await fetchListings(lastSearch, count) : [];
+      const result = found.length > 0
+        ? { listings: found, fromSearch: true }
+        : { listings: await fetchListings("", count), fromSearch: false };
+      if (current) setState(result);
     }
     load();
     return () => { current = false; };
-  }, [count]);
-  return listings;
+  }, [lastSearch, count]);
+  return state;
 }
 
-function LatestListings({ title, subtitle }: { title: string; subtitle?: string }) {
-  const listings = useLatest(8);
+function Tiles({ listings }: { listings: MarketListing[] | null }) {
+  if (listings === null) {
+    return (
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        {Array.from({ length: 4 }, (_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />)}
+      </div>
+    );
+  }
+  if (listings.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-gray-300 px-6 py-10 text-center dark:border-gray-700">
+        <p className="font-medium text-gray-700 dark:text-gray-200">No listings yet</p>
+        <p className="mt-1 text-sm text-gray-500">Be the first to post an apartment or a room to share.</p>
+        <Link href="/listings/new" className="mt-5 inline-flex rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">Post a listing</Link>
+      </div>
+    );
+  }
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      {listings.map(l => <ListingCard key={l.id} listing={l} layout="tile" />)}
+    </div>
+  );
+}
+
+function VisitorLatest() {
+  const state = useHomeListings("", 8);
   return (
     <section>
-      <SectionHeading title={title} subtitle={subtitle ?? ""} link={{ href: "/listings", label: "See all" }} />
-      {listings === null ? (
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-          {Array.from({ length: 4 }, (_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />)}
+      <SectionHeading title="Latest listings" subtitle="Every listing is reviewed before it goes live." link={{ href: "/listings", label: "See all" }} />
+      <Tiles listings={state?.listings ?? null} />
+    </section>
+  );
+}
+
+/** "Based on your last search" (this visit's, saved by Find a Home) or "Latest listings". */
+function SeekerListings({ lastSearch }: { lastSearch: string }) {
+  const state = useHomeListings(lastSearch, 8);
+  const fromSearch = !!state?.fromSearch;
+  const about = fromSearch ? activeChips(parseFilters(new URLSearchParams(lastSearch))).map(c => c.label).slice(0, 3).join(" · ") : "";
+  return (
+    <section aria-labelledby="home-listings">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <h2 id="home-listings" className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl dark:text-white">
+            {fromSearch ? "Based on your last search" : "Latest listings"}
+          </h2>
+          {about && <p className="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">{about}</p>}
         </div>
-      ) : listings.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 px-6 py-10 text-center dark:border-gray-700">
-          <p className="font-medium text-gray-700 dark:text-gray-200">No listings yet</p>
-          <p className="mt-1 text-sm text-gray-500">Be the first to post an apartment or a room to share.</p>
-          <Link href="/listings/new" className="mt-5 inline-flex rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">Post a listing</Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-          {listings.map(l => <ListingCard key={l.id} listing={l} layout="tile" />)}
-        </div>
-      )}
+        <Link href={fromSearch ? `/listings${lastSearch}` : "/listings"}
+          className="inline-flex shrink-0 items-center gap-0.5 text-sm font-semibold text-brand hover:underline dark:text-emerald-300">
+          See all<ChevronRightIcon className="h-4 w-4" />
+        </Link>
+      </div>
+      <Tiles listings={state?.listings ?? null} />
     </section>
   );
 }
@@ -89,7 +135,7 @@ function VisitorHome() {
       </section>
 
       <main className="mx-auto max-w-[96rem] space-y-12 px-4 py-10 sm:px-6 md:space-y-16 md:py-14 lg:px-8">
-        <LatestListings title="Latest listings" subtitle="Every listing is reviewed before it goes live." />
+        <VisitorLatest />
 
         <section>
           <SectionHeading title="How it works" subtitle="From finding a place to living well together." link={{ href: "/how-it-works", label: "Learn more" }} />
@@ -112,60 +158,71 @@ function VisitorHome() {
   );
 }
 
-function SeekerHome({ me }: { me: Me }) {
+/** "Already have a place?" (docs/mockups/home-mobile.jpg). */
+function AlreadyHavePlace() {
+  return (
+    <section className="rounded-2xl border border-brand/15 bg-brand-soft/40 p-4 sm:p-5 dark:border-brand/30 dark:bg-brand/15">
+      <Link href="/how-it-works" className="group flex items-start gap-4">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand dark:bg-brand/30 dark:text-emerald-200">
+          <HomeUsersIcon className="h-7 w-7" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <h2 className="text-[17px] font-bold text-gray-900 dark:text-white">Already have a place?</h2>
+          <span className="mt-1 block text-sm leading-snug text-gray-600 dark:text-gray-300">
+            Create a new household or join an existing one to manage your home with your roommates.
+          </span>
+        </span>
+        <ChevronRightIcon className="mt-4 h-5 w-5 shrink-0 text-gray-500 group-hover:text-brand" />
+      </Link>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <Link href="/apartment/create" className="flex items-center justify-center gap-2 rounded-xl border-[1.5px] border-brand bg-white py-3 text-sm font-semibold text-brand hover:bg-brand-soft/50 dark:bg-transparent dark:text-emerald-300">
+          <PlusCircleIcon className="h-5 w-5" />Create a home
+        </Link>
+        <Link href="/apartment/join" className="flex items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-dark">
+          <UsersIcon className="h-5 w-5" />Join a home
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function SeekerHome() {
   const router = useRouter();
   const [q, setQ] = useState("");
-  const quick = [
-    { icon: SlidersIcon, label: "Filters" },
-    { icon: TagIcon, label: "Price" },
-    { icon: UsersIcon, label: "People" },
-    { icon: CalendarIcon, label: "Move-in date" },
-  ];
-  return (
-    <main className="mx-auto max-w-[96rem] space-y-8 px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-10">
-      <div>
-        <HomeQuestionCard />
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Hi {me.name.split(" ")[0]},</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">Find your next home</h1>
-        <p className="mt-2 max-w-xl text-gray-600 dark:text-gray-300">Browse apartments and rooms posted directly by the people who have them.</p>
+  // The last Find a Home search of this visit ("" when none); read after the first render.
+  const [lastSearch, setLastSearch] = useState<string | null>(null);
+  useEffect(() => {
+    let current = true;
+    Promise.resolve().then(() => {
+      let last = "";
+      try { last = sessionStorage.getItem("am:lastSearch") ?? ""; } catch { /* storage blocked */ }
+      if (current) setLastSearch(last);
+    });
+    return () => { current = false; };
+  }, []);
 
-        <form onSubmit={e => { e.preventDefault(); router.push(q.trim() ? `/listings?q=${encodeURIComponent(q.trim())}` : "/listings"); }}
-          className="mt-5 flex max-w-2xl items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3.5 shadow-sm focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15 dark:border-gray-700 dark:bg-gray-900">
-          <SearchIcon className="h-6 w-6 text-gray-500" />
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="City, neighborhood, or ZIP code" aria-label="City, neighborhood, or ZIP code"
-            className="min-w-0 flex-1 bg-transparent text-base text-gray-900 placeholder:text-gray-400 focus:outline-none dark:text-white" />
-          <button type="submit" className="hidden rounded-xl bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand-dark sm:block">Search</button>
-        </form>
-        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
-          {quick.map(({ icon: Icon, label }) => (
-            <Link key={label} href="/listings?panel=1"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
-              <Icon className="h-4 w-4" />{label}
-            </Link>
-          ))}
+  return (
+    <main className="mx-auto max-w-[96rem] space-y-8 px-4 pb-12 pt-5 sm:px-6 lg:px-8 lg:pt-10">
+      <HomeQuestionCard />
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start lg:gap-12">
+        <div>
+          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-gray-900 sm:text-4xl dark:text-white">Find your next home</h1>
+          <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-gray-600 sm:text-base dark:text-gray-300">
+            Browse apartments and rooms posted directly by the people who have them.
+          </p>
+          <form onSubmit={e => { e.preventDefault(); router.push(q.trim() ? `/listings?q=${encodeURIComponent(q.trim())}` : "/listings"); }}
+            className="mt-5 flex max-w-2xl items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3.5 shadow-sm focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15 dark:border-gray-700 dark:bg-gray-900">
+            <SearchIcon className="h-6 w-6 shrink-0 text-gray-500" />
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder="City, neighborhood, or ZIP code" aria-label="City, neighborhood, or ZIP code"
+              className="min-w-0 flex-1 bg-transparent text-base text-gray-900 placeholder:text-gray-400 focus:outline-none dark:text-white" />
+            <button type="submit" className="hidden rounded-xl bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand-dark sm:block">Search</button>
+          </form>
+          <QuickPickers q={q} />
         </div>
+        <div className="mt-8 lg:mt-0"><AlreadyHavePlace /></div>
       </div>
 
-      <section className="rounded-2xl border border-brand/20 bg-brand-soft/50 p-5 dark:bg-brand/15">
-        <div className="flex items-start gap-4">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-brand dark:bg-brand/30 dark:text-emerald-200"><HomeIcon className="h-6 w-6" /></span>
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold text-gray-900 dark:text-white">Already have a place?</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300">Create a household or join an existing one to manage your home with your roommates.</p>
-          </div>
-          <Link href="/how-it-works" aria-label="How it works" className="hidden text-gray-400 sm:block"><ChevronRightIcon className="h-5 w-5" /></Link>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:max-w-md">
-          <Link href="/apartment/create" className="flex items-center justify-center gap-2 rounded-xl border-2 border-brand bg-white py-3 text-sm font-semibold text-brand dark:bg-transparent dark:text-emerald-300">
-            <PlusCircleIcon className="h-5 w-5" />Create a home
-          </Link>
-          <Link href="/apartment/join" className="flex items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-dark">
-            <UsersIcon className="h-5 w-5" />Join a home
-          </Link>
-        </div>
-      </section>
-
-      <LatestListings title="Latest listings" />
+      {lastSearch === null ? <Tiles listings={null} /> : <SeekerListings lastSearch={lastSearch} />}
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
         Have a room to share or a place to rent? <Link href="/listings/new" className="inline-flex items-center gap-1 font-semibold text-brand hover:underline dark:text-emerald-300">Post a listing<ArrowRightIcon className="h-4 w-4" /></Link>
@@ -184,5 +241,5 @@ export default function Home() {
   if (me === undefined || (elsewhere && elsewhere !== "/")) {
     return <div className="flex min-h-screen items-center justify-center bg-white text-sm text-gray-400 dark:bg-gray-950">Loading…</div>;
   }
-  return <MarketShell>{me ? <SeekerHome me={me} /> : <VisitorHome />}</MarketShell>;
+  return <MarketShell>{me ? <SeekerHome /> : <VisitorHome />}</MarketShell>;
 }
