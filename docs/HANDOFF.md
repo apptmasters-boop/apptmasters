@@ -11,18 +11,22 @@ from there."
 - **Approved:** 13a (the pictures' font and frame everywhere), on 2026-10-16.
   The owner's reply was "13b approved", read as 13a approved and the go-ahead
   for 13b.
-- **Approved:** 13a–13g on 2026-10-16 (13d with its database change applied).
-- **Live on apptmasters.com:** Sprint **13h — More, How It Works, Help,
-  Create / Join a Home** (camera badge on the profile photo, the
-  house-and-magnifier drawing, the Join a Home drawing, white setup pages on
-  phones). Commit `d73848e`. **It's the last step of Sprint 13.**
-- **Next step:** the owner tests 13h (steps in
-  [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "13h") and replies **"13h
-  approved"**. Then Sprint 13 is done. What comes after is the owner's choice:
-  **12f** (map and radius, Search history, the bell for people without a
-  home; needs the owner to pick a map service) or the **pre-launch** items
-  (nightly backups first). The owner's open tests (11a, 11b, 12a–12e) and the
-  daily-email decision are still waiting too.
+- **Sprint 13 is done** (all 8 steps approved on 2026-10-16). The owner chose
+  not to do 12f (map) for now and to move on to the **pre-launch** steps
+  ([`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "Pre-launch").
+- **P1 — Nightly backups: set up, waiting for the owner's test.** Owner's
+  choice: the copy outside the server is a **private GitHub repository,
+  `apptmasters-backups`, encrypted**, no extra fees (not S3). 3 nights on the
+  server, 7 nights on GitHub, an email to the site admins if a night fails,
+  the job at 7:30 UTC in the server's crontab. First backup and a restore
+  check from GitHub passed on 2026-10-16. Everything is in
+  [`BACKUPS.md`](BACKUPS.md).
+- **Next step:** check the next morning's backup log line (`last backup` in
+  `verify-live.sh`), the owner tests P1 and replies **"P1 approved"**; then
+  **P2** (AWS budget alert: the owner pastes one command), **P3** (the owner
+  saves `.env.local`, which now holds the backup passphrase, in a password
+  manager: **important**, without it the GitHub backups can't be opened),
+  **P4** (a password change signs out other devices), **P5** (security review).
 - **Local test database:** if tests time out on this PC but pass on GitHub,
   recreate it ([`tests/README.md`](../tests/README.md); done on 2026-10-16 at
   about 4,500 test households).

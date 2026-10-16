@@ -1891,8 +1891,8 @@ The owner chose not to do 12f for now and to move on to the pre-launch items.
 
 ## Pre-launch — before the public launch
 
-**Status:** P1 being prepared (planned 2026-10-16, after Sprint 13; 12f waits at
-the owner's request) · List: [`ROADMAP.md`](ROADMAP.md) "Before public launch"
+**Status:** P1 set up and ready for your test (planned 2026-10-16, after Sprint 13;
+12f waits at the owner's request) · List: [`ROADMAP.md`](ROADMAP.md) "Before public launch"
 
 One step at a time, like the sprints. Several steps need the owner in the AWS
 console or a password manager; every change to the server's configuration
@@ -1900,7 +1900,7 @@ console or a password manager; every change to the server's configuration
 
 | Step | What | Who | Status |
 |---|---|---|---|
-| **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 7 nights encrypted in a private GitHub repository (owner's choice: no extra fees); an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Developer, with the owner's OKs | Being set up |
+| **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 7 nights encrypted in a private GitHub repository (owner's choice: no extra fees); an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Developer, with the owner's OKs | Set up, ready for your test |
 | **P2 — AWS budget alert** | An email to the owner when the month's AWS bill goes over a set amount | Owner: one paste in CloudShell | Not started |
 | **P3 — Settings in a password manager** | The owner keeps a copy of the server's `.env.local` (passwords and keys) in a password manager, so a lost server can be rebuilt | Owner, with instructions | Not started |
 | **P4 — Changing your password signs out your other devices** | Today an old sign-in on another phone keeps working after a password change or reset | Developer (small database change, owner's OK first) | Not started |
@@ -1932,11 +1932,17 @@ the nightly job; the separate private repository, encrypted.
 - [x] Tests pass: 296 (new: a failed night emails the site admins, never anyone
       else; only the server with the cron secret can report)
 - [x] Lint: no new errors (51)
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
-- [ ] The backups repository, the server's write key and the settings set up
-- [ ] First backup made by hand and pushed to GitHub; restore check from GitHub passed
-- [ ] Nightly job added to the server's crontab
+- [x] CI green on GitHub (d5ec660, 1a40138)
+- [x] Deployed to apptmasters.com 2026-10-16 (d5ec660; scripts 1a40138); live checks
+      all 200 and show the last backup; the failure endpoint refuses calls
+      without the secret and answers the server
+- [x] The private repository `apptmasters-backups`, the server's write key (that
+      repository only) and the settings (`BACKUP_REPO`, `BACKUP_PASSPHRASE`) set up
+- [x] First backup made by hand (10 seconds: database 328 KB, files 37 MB),
+      encrypted and pushed to GitHub; restore check from GitHub passed: every
+      table count the same as live, 20 of 20 files, temporary database deleted
+- [x] Nightly job added to the server's crontab (7:30 UTC; the previous crontab
+      saved as `~/backups/crontab.before-2026-10-16-backups`)
 - [ ] The first nightly run (next morning) logged OK
 
 **Your test**
