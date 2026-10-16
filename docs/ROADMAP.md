@@ -153,7 +153,8 @@ Open (recorded in `docs/SECURITY.md`):
       7 nights encrypted in a private GitHub repository (owner's choice,
       2026-10-16: no extra fees, instead of S3), with a tested restore. Pre-launch
       step P1; see `docs/BACKUPS.md`.
-- [ ] AWS Budgets alert emailing the owner above a set monthly amount.
+- [x] AWS Budgets alert emailing the owner above $15 a month (actual or
+      forecast), set up 2026-10-16 (pre-launch P2).
 - [ ] Owner stores the server's `.env.local` values in a password manager.
 - [ ] All Phase 1 items closed.
 

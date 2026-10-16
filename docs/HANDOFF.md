@@ -27,6 +27,9 @@ from there."
   `scripts/dev/screenshots/filters-ui-check.mjs`, which also runs against the
   live site with `SHOTS_BASE=https://apptmasters.com`). The owner may send
   more fixes; they go under "Fixes asked by the owner" in the checklist.
+- **P2 (AWS budget alert at $15/month) approved 2026-10-16. P3 (the owner saves
+  `.env.local` and `appmasters.pem` in a password manager) is with the owner:
+  instructions in the checklist, nothing is shown in the chat.**
 - **Next step:** check the next morning's backup log line (`last backup` in
   `verify-live.sh`), the owner tests P1 and replies **"P1 approved"**; then
   **P2** (AWS budget alert: the owner pastes one command), **P3** (the owner

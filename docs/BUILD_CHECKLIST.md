@@ -1901,8 +1901,8 @@ console or a password manager; every change to the server's configuration
 | Step | What | Who | Status |
 |---|---|---|---|
 | **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 7 nights encrypted in a private GitHub repository (owner's choice: no extra fees); an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Developer, with the owner's OKs | Set up, ready for your test |
-| **P2 — AWS budget alert** | An email to the owner when the month's AWS bill goes over $15, or AWS forecasts it will | Owner: one paste in CloudShell | Ready for the owner |
-| **P3 — Settings in a password manager** | The owner keeps a copy of the server's `.env.local` (passwords and keys) in a password manager, so a lost server can be rebuilt | Owner, with instructions | Not started |
+| **P2 — AWS budget alert** | An email to the owner when the month's AWS bill goes over $15, or AWS forecasts it will | Owner: one paste in CloudShell | Approved 2026-10-16 |
+| **P3 — Settings in a password manager** | The owner keeps a copy of the server's `.env.local` (passwords, keys and the backup passphrase) and the SSH key in a password manager, so a lost server can be rebuilt and the backups opened | Owner, with instructions | Ready for the owner |
 | **P4 — Changing your password signs out your other devices** | Today an old sign-in on another phone keeps working after a password change or reset | Developer (small database change, owner's OK first) | Not started |
 | **P5 — Security review before launch** | A fresh pass over every page and API: who can see and change what | Developer | Not started |
 
@@ -1984,6 +1984,52 @@ aws budgets create-budget --account-id "$ACCOUNT" \
 2. In the AWS console, **Billing and Cost Management → Budgets** lists
    **apptmasters-monthly**, $15 a month, with 2 alerts (actual and forecast)
    to your email.
+
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
+
+### P3 — The server's settings in a password manager
+
+**Why:** the server's settings file (`/var/www/apptmasters/.env.local`) holds
+every password and key the site needs (database, sign-in secret, email and
+notification keys) and **the password that opens the GitHub backups**
+(`BACKUP_PASSPHRASE`). It's deliberately not in GitHub or in the backups. If
+the server were lost, the site could only be rebuilt, and the backups opened,
+with a copy of it. The SSH key `appmasters.pem` (the only way into the server)
+belongs next to it.
+
+**What the owner does once** (5 minutes). Nothing is shown on screen or sent
+to anyone, Claude included:
+1. Open your password manager (if you don't have one: **Bitwarden**, free, or
+   the one built into your phone or Google account; it must allow a long
+   note).
+2. Create a **secure note** named **"apptmasters server settings"**.
+3. On this PC, open a **separate PowerShell window** (Start menu → type
+   *PowerShell*), not this chat, and paste:
+   ```powershell
+   ssh -i $HOME\.ssh\appmasters.pem ubuntu@ec2-44-192-72-84.compute-1.amazonaws.com "cat /var/www/apptmasters/.env.local" | Set-Clipboard
+   ```
+   It copies the settings straight to the clipboard without showing them.
+   Paste them into the note (Ctrl+V) and save.
+4. Then, in the same window, copy the SSH key the same way and paste it into
+   a second secure note named **"apptmasters SSH key (appmasters.pem)"**:
+   ```powershell
+   Get-Content $HOME\.ssh\appmasters.pem -Raw | Set-Clipboard
+   ```
+5. Clear the clipboard: `Set-Clipboard -Value " "`, and close the window.
+
+**Your test** (without sending any value to anyone)
+1. The note **"apptmasters server settings"** has **13 lines**, starting with
+   these names: `DATABASE_URL`, `APP_URL`, `NODE_ENV`, `JWT_SECRET`,
+   `SUPER_ADMIN_EMAIL`, `RESEND_API_KEY`, `RESEND_FROM`, `VAPID_SUBJECT`,
+   `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET`, `BACKUP_REPO`,
+   `BACKUP_PASSPHRASE`.
+2. The note **"apptmasters SSH key"** starts with `-----BEGIN` and ends with
+   `-----END … KEY-----`.
+3. You can open both notes from your phone too (so they survive losing this
+   PC).
+
+Whenever a setting changes on the server, the developer says so and the note
+is updated the same way.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
