@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a–13e approved; 13f live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a–13f approved; 13g being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1511,8 +1511,8 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Approved 2026-10-16 |
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Approved 2026-10-16 |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Approved 2026-10-16 |
-| **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Ready for your test |
-| **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Not started |
+| **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Approved 2026-10-16 |
+| **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Being built |
 | **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Not started |
 
 **Left out from the pictures** (the app doesn't have them): star ratings,
@@ -1796,5 +1796,56 @@ e.g. A; phone and computer)
 4. **Computer:** the left panel switches between the kinds; **Grid / List**
    switches the layout; grid cards show "N photos", the advertiser and "Saved
    … ago".
+
+**Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
+
+### 13g — Messages
+
+**What changes** (pictures: `docs/mockups/messages-mobile.jpg`,
+`conversation-mobile.jpg`, `messages-desktop.jpg`)
+- **Messages (phone):** a **search** button that filters your conversations;
+  tabs **All** (with the number of unread conversations in red) · Places I
+  asked about · My listings. Each conversation as in the picture: the
+  **person's photo** (or initial), their name and role, the time, a **red
+  count of unread messages**, the last message on 2 lines, and the listing
+  with its photo, price, bedrooms and city.
+- **A conversation (phone):** **no logo bar and no bottom bar**, so it uses
+  the whole screen. At the top: back, the person's photo, name and role. Then
+  the listing (photo, title, green price, facts, city, **View listing**).
+  Messages with the day ("Today"), the person's photo next to theirs, the
+  time and ✓✓ when read. The message box across the bottom with a round
+  green send button.
+- **Computer:** three panels across the window: your conversations with a
+  search box and the tabs; the chat; and on the right the listing (photo,
+  price, title, place, facts, **View full listing**), **Contact information**
+  (photo, role, member since, Email confirmed) and **Quick actions**: Save
+  listing, Share listing, Report this listing.
+- Left out (the app doesn't have them): online status, calls and video,
+  photos and voice in these messages, "Schedule viewing", "New message"
+  (a conversation always starts from a listing), household chats here.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 293 (new: Messages sends each person's photo and the number of
+      unread messages, never an email)
+- [x] Lint: no new errors (51)
+- [x] Screens compared with the pictures at phone and desktop sizes
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com
+
+**Your test on apptmasters.com** (two accounts, e.g. A and B, and a listing
+of yours)
+1. As A, Contact your listing and send two messages. As yourself (the
+   advertiser), open **Messages**: the conversation shows A's photo (or
+   initial), "Interested in your listing", a **red 2**, and the listing; the
+   All tab shows how many conversations are unread.
+2. Tap **search** and type part of a name or a listing title: only matching
+   conversations stay.
+3. **Phone:** open the conversation: no logo bar and no bottom bar; the
+   listing is on top with **View listing**; reply. Back on A's phone, the
+   reply arrives, and A's messages show ✓✓ once read.
+4. **Computer:** Messages opens three panels; on the right, **Contact
+   information** and **Quick actions**: Save listing saves it, Share listing
+   copies the link, Report this listing opens the report form.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

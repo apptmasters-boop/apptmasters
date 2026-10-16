@@ -52,6 +52,17 @@ psql -p 5433 -U postgres -c "create database apptmasters_test"
 ```
 The suite recreates all tables itself on the next `npm test`.
 
+**It grows with every run** (tests add data and never delete it). On
+2026-10-16, with about 4,500 test households, the site-wide "Money check"
+report test took over 20 seconds and timed out. When tests start timing out
+locally but pass on GitHub (which starts from an empty database), recreate it:
+```
+psql -h localhost -p 5433 -U postgres -d postgres -c "DROP DATABASE apptmasters_test WITH (FORCE)"
+psql -h localhost -p 5433 -U postgres -d postgres -c "CREATE DATABASE apptmasters_test"
+```
+Stop the local app on port 3100 first; afterwards re-run the screenshot seed
+scripts (`scripts/dev/screenshots/`).
+
 ## Writing a test
 
 - Build data with the helpers in `helpers.ts` (`createUser`, `createApartment`)

@@ -40,7 +40,7 @@ export async function GET(
         { senderId: otherUserId, receiverId: payload.userId },
       ],
     },
-    include: { sender: { select: { id: true, name: true } } },
+    include: { sender: { select: { id: true, name: true, photo: true } } }, // photo: Sprint 13g
     orderBy: { createdAt: "asc" },
     take: 200,
   });
@@ -85,7 +85,7 @@ export async function POST(
 
   const message = await prisma.listingMessage.create({
     data: { listingId, senderId: payload.userId, receiverId: otherUserId, content: content.trim() },
-    include: { sender: { select: { id: true, name: true } } },
+    include: { sender: { select: { id: true, name: true, photo: true } } }, // photo: Sprint 13g
   });
 
   const receiver = await prisma.user.findUnique({ where: { id: otherUserId }, select: { email: true, name: true } });

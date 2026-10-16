@@ -258,25 +258,27 @@ export function MarketShell({ children }: { children: React.ReactNode }) {
   }, [me]);
 
   const home = me?.homes[0];
+  // A conversation uses the whole phone screen: no phone bar under it (Sprint 13g).
+  const inConversation = /^\/listings\/[^/]+\/messages/.test(pathname);
   return (
     <div className="min-h-screen bg-white lg:bg-gray-50 dark:bg-gray-950">
-      {home && <ResidentNav home={home} />}
-      <div className={home ? "pb-16 md:pb-0 md:pl-64" : "pb-20 lg:pb-0"}>
+      {home && <ResidentNav home={home} bottomBar={!inConversation} />}
+      <div className={home ? `${inConversation ? "" : "pb-16"} md:pb-0 md:pl-64` : inConversation ? "" : "pb-20 lg:pb-0"}>
         <MarketHeader me={me} unread={unread} onPhone={pathname === "/"} />
         {children}
       </div>
-      {!home && <MarketBottomNav me={me} unread={unread} />}
+      {!home && !inConversation && <MarketBottomNav me={me} unread={unread} />}
       <Toast message={toast} />
     </div>
   );
 }
 
-function ResidentNav({ home }: { home: { id: string; name: string } }) {
+function ResidentNav({ home, bottomBar }: { home: { id: string; name: string }; bottomBar: boolean }) {
   const unread = useChatUnread(home.id);
   return (
     <>
       <HomeSidebar apartmentId={home.id} apartmentName={home.name} unread={unread} />
-      <HomeBottomBar apartmentId={home.id} unread={unread} />
+      {bottomBar && <HomeBottomBar apartmentId={home.id} unread={unread} />}
     </>
   );
 }

@@ -100,6 +100,8 @@ export default function ListingDetailPage() {
       if (!res.ok) { setNotFound(true); return; }
       const data = await res.json();
       if (current) setListing(data);
+      // "Report this listing" from a conversation opens the report form here (Sprint 13g).
+      if (current && new URLSearchParams(window.location.search).get("report") === "1") setReportOpen(true);
       // Back to the same search (§12).
       try { const last = sessionStorage.getItem("am:lastSearch"); if (last !== null && current) setBackHref(`/listings${last}`); } catch { /* storage blocked */ }
     }

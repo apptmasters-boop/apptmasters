@@ -12,10 +12,19 @@ export async function GET(req: NextRequest) {
     take: 500,
     include: {
       listing: { select: { id: true, title: true, city: true, state: true, ownerId: true, price: true, priceMax: true, bedrooms: true, status: true, photos: { orderBy: { position: "asc" }, take: 1 } } },
-      sender: { select: { id: true, name: true } },
-      receiver: { select: { id: true, name: true } },
+      // The other person's profile photo and member-since date (Sprint 13g); never their email.
+      sender: { select: { id: true, name: true, photo: true, createdAt: true } },
+      receiver: { select: { id: true, name: true, photo: true, createdAt: true } },
     },
   });
+
+  // How many messages to me are unread in each conversation (the red count, Sprint 13g).
+  const unreadCount = new Map<string, number>();
+  for (const m of messages) {
+    if (m.receiverId !== payload.userId || m.read) continue;
+    const key = `${m.listingId}:${m.senderId}`;
+    unreadCount.set(key, (unreadCount.get(key) ?? 0) + 1);
+  }
 
   const seen = new Set<string>();
   const conversations = [];
@@ -38,9 +47,12 @@ export async function GET(req: NextRequest) {
       listingStatus: m.listing.status,
       otherUserId: other.id,
       otherUserName: other.name,
+      otherUserPhoto: other.photo,
+      otherUserSince: other.createdAt,
       lastMessage: m.content,
       lastMessageAt: m.createdAt,
       unread: m.receiverId === payload.userId && !m.read,
+      unreadCount: unreadCount.get(key) ?? 0,
     });
   }
 

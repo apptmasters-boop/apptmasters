@@ -45,7 +45,7 @@ export async function GET(
               ],
               ...(lastId ? { id: { gt: lastId } } : {}),
             },
-            include: { sender: { select: { id: true, name: true } } },
+            include: { sender: { select: { id: true, name: true, photo: true } } }, // photo: Sprint 13g
             orderBy: { createdAt: "asc" },
             take: 20,
           });

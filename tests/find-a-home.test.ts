@@ -7,6 +7,8 @@ import { describe, it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { GET as search } from "@/app/api/listings/search/route";
 import { GET as getListing } from "@/app/api/listings/[id]/route";
+import { GET as inbox } from "@/app/api/listings/inbox/route";
+import { GET as readMessages, POST as sendMessage } from "@/app/api/listings/[id]/messages/route";
 import { POST as createListing } from "@/app/api/listings/route";
 import { GET as getSaved, POST as save } from "@/app/api/saved/route";
 import { DELETE as unsave } from "@/app/api/saved/[listingId]/route";
@@ -227,5 +229,35 @@ describe("Saved", () => {
     const me = await createUser();
     const pending = await place({ status: "PENDING" });
     expect((await save(request("/api/saved", { method: "POST", token: me.token, body: { listingId: pending.id } }))).status).toBe(404);
+  });
+});
+
+describe("Messages (13g)", () => {
+  it("shows each person's photo and how many messages are unread, never an email", async () => {
+    const owner = await createUser();
+    const seeker = await createUser();
+    await prisma.user.update({ where: { id: seeker.user.id }, data: { photo: "/uploads/avatars/seeker.jpg" } });
+    const listing = await place({ ownerId: owner.user.id });
+    const send = (token: string, content: string, withUser?: string) => sendMessage(
+      request(`/api/listings/${listing.id}/messages${withUser ? `?with=${withUser}` : ""}`, { method: "POST", token, body: { content } }),
+      routeParams({ id: listing.id }));
+    expect((await send(seeker.token, "Is it still available?")).status).toBe(201);
+    expect((await send(seeker.token, "Could I visit on Saturday?")).status).toBe(201);
+
+    const res = await inbox(request("/api/listings/inbox", { token: owner.token }));
+    const text = await res.text();
+    const conversation = JSON.parse(text).find((x: { listingId: string }) => x.listingId === listing.id);
+    expect(conversation).toMatchObject({ otherUserId: seeker.user.id, otherUserPhoto: "/uploads/avatars/seeker.jpg", unreadCount: 2, unread: true });
+    expect(conversation.otherUserSince).toEqual(expect.any(String));
+    expect(text).not.toContain(seeker.user.email);
+    expect(text).not.toContain(owner.user.email);
+
+    const thread = await readMessages(request(`/api/listings/${listing.id}/messages?with=${seeker.user.id}`, { token: owner.token }), routeParams({ id: listing.id }));
+    const threadText = await thread.text();
+    expect(JSON.parse(threadText)[0].sender).toMatchObject({ id: seeker.user.id, photo: "/uploads/avatars/seeker.jpg" });
+    expect(threadText).not.toContain(seeker.user.email);
+    // Reading the conversation clears the count.
+    const after = await (await inbox(request("/api/listings/inbox", { token: owner.token }))).json();
+    expect(after.find((x: { listingId: string }) => x.listingId === listing.id).unreadCount).toBe(0);
   });
 });
