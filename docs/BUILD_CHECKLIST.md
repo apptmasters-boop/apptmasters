@@ -1494,7 +1494,7 @@ Saved, leases and payments (outside ApptMasters), identity or phone
 
 ## Sprint 13 — Look like the pictures, screen by screen
 
-**Status:** 13a–13e approved; 13f being built (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
+**Status:** 13a–13e approved; 13f live, ready for your test (planned 2026-10-16) · Pictures: [`docs/mockups/`](mockups/)
 
 The owner asked for the screens to match the 13 pictures more closely, one
 step at a time: each step is deployed, tested by the owner and approved before
@@ -1511,7 +1511,7 @@ details** (air conditioning, heat included, dishwasher, square feet) come with
 | **13c — Search results** | Phone title bar (place, count, people, price, sort), chip row, All · Apartments · Rooms · Houses tabs, cards as in the picture; desktop cards with the price first and the advertiser's photo; Grid / List | Approved 2026-10-16 |
 | **13d — Filters + 4 new details** | Filters screen as in the picture (price slider, Clear per section, options with icons); desktop sidebar with checkboxes; air conditioning, heat included, dishwasher, square feet on the form and as filters | Approved 2026-10-16 |
 | **13e — Listing page** | Photo across the top with back, heart and share; green price; facts in 3 columns; amenities with icons; advertiser with photo | Approved 2026-10-16 |
-| **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Being built |
+| **13f — Saved** | Cards with View details and Message; desktop side panel and Grid / List | Ready for your test |
 | **13g — Messages** | People's photos, unread counts, the conversation without the logo bar and phone bar; desktop three panels with contact information and quick actions | Not started |
 | **13h — More, How It Works, Help, Create / Join a Home** | More as in the picture (profile card, "Still looking", sections); the same look on the other pages | Not started |
 
@@ -1782,8 +1782,8 @@ e.g. A; phone and computer)
 - [x] Tests pass: 292 (no new ones: the page only changes how it looks)
 - [x] Lint: no new errors (51)
 - [x] Screens compared with the pictures at phone and desktop sizes
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com
+- [x] CI green on GitHub (f397ec9)
+- [x] Deployed to apptmasters.com 2026-10-16 (f397ec9); live checks all 200
 
 **Your test on apptmasters.com** (save 2 or 3 listings first; phone and computer)
 1. **Phone:** Saved shows "Your saved listings (N)". Tap the **search**
