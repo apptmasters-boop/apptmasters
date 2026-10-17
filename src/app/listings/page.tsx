@@ -25,8 +25,9 @@ interface Results {
 }
 
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;
-/** The phone's quick buttons already show these (with "Any" to remove them). */
-const ON_QUICK_BUTTONS = new Set(["q", "occupants", "price", "bedrooms", "moveIn"]);
+/** The quick buttons already show these (with "Any" to remove them). The place has no button
+ * (owner, fix F3: "Anywhere" was redundant), so a searched place shows as a removable chip. */
+const ON_QUICK_BUTTONS = new Set(["occupants", "price", "bedrooms", "moveIn"]);
 /** The tabs show this one. */
 const ON_TABS = new Set(["kind"]);
 const VIEW_KEY = "am:resultsView";
@@ -163,7 +164,7 @@ function FindAHome() {
         </div>
 
         {/* The filters, on top on every screen (Fix F1): Filters opens all of them; the others open a picker. */}
-        <QuickPickers key={query} className="mt-4" pickers={["place", "people", "price", "bedrooms", "moveIn"]} filters={filters} showValues
+        <QuickPickers key={query} className="mt-4" pickers={["people", "price", "bedrooms", "moveIn"]} filters={filters} showValues
           onPick={patch => go({ ...filters, ...patch }, true)} onFilters={() => setSheet(true)} filtersCount={chips.length} />
 
         {/* Apartments, rooms or houses, with how many of each match. */}

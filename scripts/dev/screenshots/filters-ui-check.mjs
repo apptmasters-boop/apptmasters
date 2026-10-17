@@ -99,10 +99,16 @@ for (const [size, viewport] of [["computer", { width: 1536, height: 1000 }], ["p
   await clickStartsWith("Any bedrooms"); await clickButton("2"); await wait(800);
   ok(params().get("bedrooms") === "2", "bedrooms: 2"); await countsMatch("2 bedrooms");
   await open();
-  await clickStartsWith("Anywhere");
-  await page.type("input[aria-label='City, neighborhood, or ZIP code']", "Brooklyn");
-  await clickButton("Show"); await wait(800);
+  // No "Anywhere" button any more (fix F3): the place is set in Filters, and shows as a removable chip.
+  ok(!(await page.evaluate(() => [...document.querySelectorAll("button")].some(b => b.offsetParent && b.textContent.trim().startsWith("Anywhere")))), "no Anywhere button");
+  await clickStartsWith("Filters");
+  await page.waitForSelector("[role=dialog][aria-label=Filters]");
+  await page.type("[role=dialog] input[aria-label='Location']", "Brooklyn");
+  await clickStartsWith("Show", "[role=dialog][aria-label=Filters]");
+  await wait(800);
   ok(params().get("q") === "Brooklyn", "place: Brooklyn"); await countsMatch("Brooklyn");
+  await clickButton("Brooklyn"); await wait(800);
+  ok(!params().get("q"), "the Brooklyn chip removes the place");
   await open();
   await clickStartsWith("Move-in date");
   const date = new Date(Date.now() + 20 * 86_400_000).toISOString().slice(0, 10);

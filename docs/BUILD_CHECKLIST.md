@@ -2140,3 +2140,31 @@ Home; the search icon repeats Find a Home).
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F3 — No "Anywhere" button on the results (2026-10-17)
+
+**What the owner saw:** on Find a Home, the "Anywhere" button in the top row is
+redundant.
+
+**What changes**
+- The "Anywhere" (place) button is gone from the top row, on computers and
+  phones. The row is now **Filters · People · Price · Bedrooms · Move-in
+  date**.
+- A searched place (e.g. Brooklyn) shows as a removable **"Brooklyn ×"** chip
+  under the tabs; it's changed in **Filters → Location** or from Home's search
+  box. The title still says "N places in Brooklyn".
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 349
+- [x] Lint: no new errors (51)
+- [x] Browser check: no Anywhere button; the place set in Filters; the chip removes it
+      (phone and computer, `filters-ui-check.mjs`)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Find a Home: the top row starts with Filters, then People; no "Anywhere".
+2. Filters → Location → type Brooklyn → Show: a "Brooklyn ×" chip appears and
+   the title says "in Brooklyn". Tap the chip: back to all areas.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
