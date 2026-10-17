@@ -2168,3 +2168,29 @@ redundant.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F4 — Enter searches in Filters → Location (2026-10-17)
+
+**What the owner saw:** typing a ZIP code and pressing Enter didn't search.
+
+**What was wrong:** Enter worked in both Home search boxes, but not in
+**Filters → Location**, the only place to type a location on the results
+since F3: that box wasn't tied to the Show button.
+
+**What changes:** in the Filters window, **Enter** (or "Go" / the search key on
+a phone keyboard) in Location or the price boxes shows the listings, like the
+Show button.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Lint: no new errors (51)
+- [x] Browser check (`zip-enter-check.mjs`): a ZIP code + Enter searches in all three places (Home
+      signed out, Home signed in, Filters → Location)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Find a Home → Filters → Location: type **11216**, press **Enter**: the
+   listings in 11216 show, with an "11216 ×" chip.
+2. On Home, type 11216 in the search box and press Enter: same result.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

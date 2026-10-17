@@ -178,7 +178,8 @@ export default function FilterPanel({ value, onApply, onClose }: {
   const apply = () => onApply({ ...draft, ...orderedPrices(draft.minPrice, draft.maxPrice) });
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    // A form, so Enter in the Location (e.g. a ZIP code) or price boxes shows the listings (fix F4).
+    <form onSubmit={e => { e.preventDefault(); apply(); }} className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
         <button type="button" onClick={onClose} aria-label="Close filters" className="-ml-1 rounded-full p-1.5 text-gray-800 hover:bg-gray-100 dark:text-gray-200">
           <XIcon className="h-6 w-6" />
@@ -191,7 +192,7 @@ export default function FilterPanel({ value, onApply, onClose }: {
         <Section icon={PinIcon} title="Location" hint="City, neighborhood, or ZIP code" onClear={draft.q ? () => set({ q: "" }) : undefined}>
           <div className="relative">
             <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input aria-label="Location" value={draft.q} onChange={e => set({ q: e.target.value })} placeholder="New York, Brooklyn, or 11226" className={`${inputClass} pl-10`} />
+            <input aria-label="Location" enterKeyHint="search" value={draft.q} onChange={e => set({ q: e.target.value })} placeholder="New York, Brooklyn, or 11226" className={`${inputClass} pl-10`} />
           </div>
         </Section>
 
@@ -273,11 +274,11 @@ export default function FilterPanel({ value, onApply, onClose }: {
       </div>
 
       <div className="border-t border-gray-100 bg-white pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 dark:border-gray-800 dark:bg-gray-900">
-        <button type="button" onClick={apply}
+        <button type="submit"
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3.5 text-base font-semibold text-white hover:bg-brand-dark">
           {count === null ? "Show listings" : count === 0 ? "No listings match" : `Show ${count} listing${count === 1 ? "" : "s"}`}
         </button>
       </div>
-    </div>
+    </form>
   );
 }
