@@ -2368,3 +2368,23 @@ a Place".
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F12 — The footer keeps only Help (2026-10-17)
+
+**What the owner asked:** in the footer, remove everything except Help.
+
+**What changes**
+- The footer of the Find a Home pages shows **Help** (and "© ApptMasters").
+  How It Works and Post a listing are still reachable: Home's "How it works ·
+  Learn more" and "List your space", the menu under your name, and More.
+- The round "N" button seen on the local copy is Next.js's development tool,
+  never shown on apptmasters.com; it's now hidden on the local copy too
+  (`next.config.ts`, `devIndicators: false`).
+
+- [x] Type check passes · [x] Lint: no new errors (51) · [x] Browser check (`f2-check.mjs`)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100): at the bottom of Find a Home
+or Home, only "Help" (and © ApptMasters); no round N button.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

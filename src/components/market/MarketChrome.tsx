@@ -7,7 +7,7 @@
  *   Visitor           logo · Log in · Sign up
  *   Signed in         logo · your name (its menu holds Find a Home, Messages, Saved, the rest)
  *   Phone bar         Home · Saved · Messages · More (visitors: Home · Find a Home · Saved · More)
- *   Footer            How It Works · Help · Post a listing
+ *   Footer            Help
  *
  * The owner asked for the bare top bar on 2026-10-17 (Fix F2): the links were
  * redundant with the logo, the search and the phone bar.
@@ -175,17 +175,13 @@ export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | u
   );
 }
 
-/** The bottom of every Find a Home page (Fix F2): what used to be in the top bar. */
+/** The bottom of every Find a Home page (fix F2; only Help since fix F12, owner 2026-10-17). */
 export function MarketFooter() {
   const link = "hover:text-gray-900 hover:underline dark:hover:text-white";
   return (
     <footer className="mt-10 border-t border-gray-200 dark:border-gray-800">
       <div className="mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-gray-500 sm:px-6 lg:px-8 dark:text-gray-400">
-        <nav aria-label="More" className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <Link href="/how-it-works" className={link}>How It Works</Link>
-          <Link href="/help" className={link}>Help</Link>
-          <Link href="/listings/new" className={link}>Post a listing</Link>
-        </nav>
+        <Link href="/help" className={link}>Help</Link>
         <span>© {new Date().getFullYear()} ApptMasters</span>
       </div>
     </footer>

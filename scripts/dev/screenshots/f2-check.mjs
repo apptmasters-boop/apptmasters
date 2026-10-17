@@ -26,7 +26,7 @@ ok(outHeader.includes("Log in") && outHeader.includes("Sign up"), "Log in and Si
 await shot("signed-out-d");
 const footerLinks = await page.$$eval("footer a", as => as.map(a => [a.textContent.trim(), a.getAttribute("href")]));
 console.log("footer:", footerLinks.map(l => l[0]).join(" · "));
-ok(footerLinks.length === 3, "footer has How It Works, Help, Post a listing");
+ok(footerLinks.length === 1 && footerLinks[0][0] === "Help", "footer has only Help (fix F12)");
 await shot("footer-d", true);
 
 // Signed in (the owner's local account), computer.

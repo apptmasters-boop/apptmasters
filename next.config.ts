@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  // The round "N" button Next.js shows on the local development copy covered
+  // the footer during the owner's local tests (2026-10-17). Errors still show.
+  devIndicators: false,
   typescript: {
     // The production server (1 GB RAM) runs out of memory during the type-check
     // step of `next build`. Type-checking happens before deploy instead
