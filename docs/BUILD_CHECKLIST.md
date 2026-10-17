@@ -2349,3 +2349,22 @@ the tabs and filters at the top.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F11 — No "More Than Just a Place" on Home (2026-10-17)
+
+**What the owner asked:** remove the section "More Than Just a Place" (Build
+Friendships, Get Mentorship, Find Support, Grow Your Future, "Join the
+community"): ApptMasters doesn't offer these, and shouldn't overpromise.
+
+**What changes:** the section is gone from the signed-out Home (its code too).
+The "Your safety, our priority" section stays: everything it lists exists
+(listings reviewed, private messaging, reporting, two-step sign-in).
+
+- [x] Type check passes · [x] Lint: no new errors (51)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100, signed out, Home): after
+Latest listings and How it works comes the safety section; no "More Than Just
+a Place".
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

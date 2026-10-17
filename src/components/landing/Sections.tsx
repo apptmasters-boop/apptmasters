@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import {
-  ArrowRightIcon, UsersIcon, HeartHandIcon, HomeIcon, SproutIcon, ShieldCheckIcon,
-  ClipboardCheckIcon, MessageIcon, FlagIcon, MailCheckIcon,
+  ArrowRightIcon, ShieldCheckIcon, ClipboardCheckIcon, MessageIcon, FlagIcon, MailCheckIcon,
 } from "./icons";
 
 export function SectionHeading({ title, subtitle, link }: { title: string; subtitle: string; link?: { href: string; label: string } }) {
@@ -23,52 +22,6 @@ export function SectionHeading({ title, subtitle, link }: { title: string; subti
 }
 
 type Icon = ComponentType<{ className?: string }>;
-
-const COMMUNITY: { title: string; body: string; icon: Icon; tile: string; card: string }[] = [
-  {
-    title: "Build Friendships", icon: UsersIcon,
-    body: "Connect with people from your community and make lasting friendships.",
-    tile: "bg-emerald-600", card: "bg-emerald-50/60 dark:bg-emerald-950/30",
-  },
-  {
-    title: "Get Mentorship", icon: HeartHandIcon,
-    body: "Learn from experienced community members about housing, finances, and more.",
-    tile: "bg-violet-400", card: "bg-violet-50/60 dark:bg-violet-950/30",
-  },
-  {
-    title: "Find Support", icon: HomeIcon,
-    body: "Get help with shared expenses, house rules, and any challenges that come up.",
-    tile: "bg-amber-400", card: "bg-amber-50/60 dark:bg-amber-950/30",
-  },
-  {
-    title: "Grow Your Future", icon: SproutIcon,
-    body: "Build your rental history, save money, and work toward your own place.",
-    tile: "bg-blue-500", card: "bg-sky-50/60 dark:bg-sky-950/30",
-  },
-];
-
-export function CommunityCards() {
-  return (
-    <section>
-      <SectionHeading
-        title="More Than Just a Place"
-        subtitle="You're not just finding a room. You're joining a community."
-        link={{ href: "/signup", label: "Join the community" }}
-      />
-      <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:gap-4 lg:grid-cols-4">
-        {COMMUNITY.map(({ title, body, icon: Icon, tile, card }) => (
-          <div key={title} className={`flex flex-col rounded-2xl border border-gray-100 p-5 ${card}`}>
-            <span className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${tile}`}>
-              <Icon className="h-5 w-5" />
-            </span>
-            <h3 className="mt-4 font-semibold text-gray-900">{title}</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{body}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 function SafetyItem({ icon: Icon, children }: { icon: Icon; children: ReactNode }) {
   return (

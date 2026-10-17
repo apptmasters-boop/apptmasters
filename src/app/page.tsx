@@ -18,7 +18,7 @@ import { useMe } from "@/components/market/useMe";
 import ListingCard, { type MarketListing } from "@/components/market/ListingCard";
 import QuickPickers from "@/components/market/QuickPickers";
 import SearchPanel from "@/components/landing/SearchPanel";
-import { SectionHeading, CommunityCards, SafetySection, CtaBand } from "@/components/landing/Sections";
+import { SectionHeading, SafetySection, CtaBand } from "@/components/landing/Sections";
 import HomeQuestionCard from "./listings/_components/HomeQuestionCard";
 import {
   ArrowRightIcon, ChevronRightIcon, HomeIcon, HomeUsersIcon, MessageIcon, PlusCircleIcon, SearchIcon, UsersIcon,
@@ -152,7 +152,6 @@ function VisitorHome() {
           </ol>
         </section>
 
-        <CommunityCards />
         <SafetySection />
       </main>
       <CtaBand />
