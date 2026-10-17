@@ -26,7 +26,8 @@ export default function MorePage() {
   }, []);
 
   const account: HubItem[] = [
-    { href: "/profile", label: "Profile & settings", description: "Your details, password, two-factor sign-in", icon: UserIcon },
+    { href: "/profile", label: "My profile", description: "Your details and your homes", icon: UserIcon },
+    { href: "/settings", label: "Settings", description: "Personal information, notifications, login & security", icon: SettingsIcon },
     { href: at("notifications"), label: "Notifications", description: "Everything that happened for you", icon: BellIcon },
   ];
   if (isSuperAdmin) {

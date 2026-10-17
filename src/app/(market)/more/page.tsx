@@ -11,34 +11,11 @@ import { apiFetch, clearToken } from "@/lib/api";
 import { useMe, forgetMe, initials } from "@/components/market/useMe";
 import { useSavedIds } from "@/components/market/saved";
 import { SearchHomeArt } from "@/components/market/Illustrations";
+import { Group, Row } from "@/components/market/SettingsList";
 import {
-  BellIcon, CameraIcon, ChevronRightIcon, HeartIcon, HelpCircleIcon, HomeIcon, ListIcon, LogOutIcon, MessageIcon, PlusCircleIcon,
-  SearchIcon, SettingsIcon, ShieldCheckIcon, UserIcon, UsersIcon, InfoIcon,
+  CameraIcon, ChevronRightIcon, HeartIcon, HelpCircleIcon, HomeIcon, ListIcon, LogOutIcon, MessageIcon, PlusCircleIcon,
+  SearchIcon, SettingsIcon, UsersIcon, InfoIcon,
 } from "@/components/landing/icons";
-
-function Row({ href, icon, label, badge, onClick, danger }: {
-  href?: string; icon: React.ReactNode; label: string; badge?: React.ReactNode; onClick?: () => void; danger?: boolean;
-}) {
-  const inner = (
-    <>
-      <span className={danger ? "text-red-600" : "text-gray-700 dark:text-gray-300"}>{icon}</span>
-      <span className={`flex-1 text-[15px] ${danger ? "text-red-600" : "text-gray-900 dark:text-white"}`}>{label}</span>
-      {badge}
-      <ChevronRightIcon className="h-5 w-5 text-gray-400" />
-    </>
-  );
-  const cls = "flex w-full items-center gap-4 px-4 py-3.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60";
-  return href ? <Link href={href} className={cls}>{inner}</Link> : <button type="button" onClick={onClick} className={cls}>{inner}</button>;
-}
-
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-6">
-      <h2 className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{title}</h2>
-      <div className="mt-2 divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">{children}</div>
-    </section>
-  );
-}
 
 function BigCard({ href, icon, title, text }: { href: string; icon: React.ReactNode; title: string; text: string }) {
   return (
@@ -115,7 +92,7 @@ export default function MorePage() {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">More</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">Manage your account and housing journey</p>
         </div>
-        <Link href="/profile" aria-label="Settings" className="rounded-full p-2 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"><SettingsIcon className="h-6 w-6" /></Link>
+        <Link href="/settings" aria-label="Settings" className="rounded-full p-2 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"><SettingsIcon className="h-6 w-6" /></Link>
       </div>
 
       <Link href="/profile" className="mt-5 flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:border-brand/40 dark:border-gray-800 dark:bg-gray-900">
@@ -176,9 +153,8 @@ export default function MorePage() {
       </Group>
 
       <Group title="Account">
-        <Row href="/profile" icon={<UserIcon className="h-5 w-5" />} label="Personal information" />
-        <Row href="/profile" icon={<BellIcon className="h-5 w-5" />} label="Notifications" />
-        <Row href="/profile" icon={<ShieldCheckIcon className="h-5 w-5" />} label="Privacy & security" />
+        {/* Personal information, Notifications and Login & security are inside Settings (fix F13, owner 2026-10-17). */}
+        <Row href="/settings" icon={<SettingsIcon className="h-5 w-5" />} label="Settings" />
         <Row href="/how-it-works" icon={<InfoIcon className="h-5 w-5" />} label="How It Works" />
         <Row href="/help" icon={<HelpCircleIcon className="h-5 w-5" />} label="Help & support" />
         <Row onClick={logOut} icon={<LogOutIcon className="h-5 w-5" />} label="Log out" danger />

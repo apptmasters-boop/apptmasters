@@ -110,7 +110,7 @@ export default function MemberProfilePage() {
         <div className="flex items-center gap-3">
           <NotificationBell apartmentId={apartmentId} />
           {isSelf && (
-            <Link href="/profile" className="text-xs text-blue-500 hover:underline font-medium">Edit profile</Link>
+            <Link href="/settings/personal-information" className="text-xs text-blue-500 hover:underline font-medium">Edit profile</Link>
           )}
         </div>
       </header>

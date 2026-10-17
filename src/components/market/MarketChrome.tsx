@@ -144,7 +144,7 @@ export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | u
                   <Link href="/saved" className={menuRow}>Saved<Count n={savedCount} /></Link>
                   {menuDivider}
                   <Link href="/profile" className={menuItem}>Profile</Link>
-                  <Link href="/profile" className={menuItem}>Settings &amp; notifications</Link>
+                  <Link href="/settings" className={menuItem}>Settings</Link>
                   {menuDivider}
                   <Link href="/apartment/create" className={menuItem}>Create a Home</Link>
                   <Link href="/apartment/join" className={menuItem}>Join a Home</Link>

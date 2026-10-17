@@ -15,10 +15,18 @@ export interface Me {
   systemRole: string;
   foundHomeAt: string | null;
   /** Homes they live in (not a join request still waiting). */
-  homes: { id: string; name: string }[];
+  homes: { id: string; name: string; role?: string }[];
   /** A join request is waiting for a household admin. */
   pending: boolean;
-  memberships: { status: string; apartment: { id: string; name: string } }[];
+  memberships: { status: string; role?: string; apartment: { id: string; name: string } }[];
+  /** For My Profile and Settings (fix F13). */
+  createdAt?: string;
+  emailVerified?: boolean;
+  twoFactorEnabled?: boolean;
+  roomAssignment?: string | null;
+  moveInDate?: string | null;
+  /** A JSON list of dietary keys, as stored. */
+  dietaryFlags?: string;
 }
 
 let cache: { token: string; promise: Promise<Me | null> } | null = null;
@@ -41,7 +49,7 @@ export function loadMe(): Promise<Me | null> {
           return {
             ...me,
             memberships,
-            homes: memberships.filter(m => m.status === "ACTIVE" || m.status === "VACATION").map(m => ({ id: m.apartment.id, name: m.apartment.name })),
+            homes: memberships.filter(m => m.status === "ACTIVE" || m.status === "VACATION").map(m => ({ id: m.apartment.id, name: m.apartment.name, role: m.role })),
             pending: memberships.some(m => m.status === "PENDING_APPROVAL"),
           } as Me;
         })
@@ -53,13 +61,23 @@ export function loadMe(): Promise<Me | null> {
 
 export function forgetMe() { cache = null; }
 
+const ME_CHANGED = "apptmasters:me-changed";
+
+/** After you change your name or photo (fix F13): the header and the page load them again. */
+export function refreshMe() {
+  cache = null;
+  window.dispatchEvent(new Event(ME_CHANGED));
+}
+
 /** `undefined` while loading, `null` for a visitor. */
 export function useMe(): Me | null | undefined {
   const [me, setMe] = useState<Me | null | undefined>(undefined);
   useEffect(() => {
     let current = true;
-    loadMe().then(m => { if (current) setMe(m); });
-    return () => { current = false; };
+    const load = () => { loadMe().then(m => { if (current) setMe(m); }); };
+    load();
+    window.addEventListener(ME_CHANGED, load);
+    return () => { current = false; window.removeEventListener(ME_CHANGED, load); };
   }, []);
   return me;
 }

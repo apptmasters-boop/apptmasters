@@ -1,6 +1,6 @@
 # Where we continue
 
-**Updated 2026-10-16, end of day.** Read this first, on any PC. Notes that
+**Updated 2026-10-17.** Read this first, on any PC. Notes that
 Claude Code keeps on one PC don't move to another PC; this file does.
 
 **On a new PC, tell Claude Code:** "Read `docs/HANDOFF.md` and continue
@@ -36,12 +36,39 @@ the top row everywhere, prices, every filter tested; approved), pre-launch P2
    version), so **ask the owner's OK before applying the SQL on the live site**.
 4. **P5 — Security review** before launch.
 
-**Fix F2 (2026-10-17): a simpler top bar on computers** (only the logo and Log
-in / Sign up, or the logo and your name with everything in its menu; a
-footer with How It Works · Help · Post a listing). Built and checked, **not
-deployed: the owner tests it on this PC (http://localhost:3100, sign in
-`owner@apptmasters.local` / `LocalTest-2026`, local test data only) and asks for
-the deploy.** P4 is on hold until the owner's front-end fixes are done.
+**The owner's front-end fixes F2–F13 (2026-10-17): built, checked and pushed,
+NOT deployed.** The owner's rule: "don't deploy it in the server when you
+finish, I will test it locally then will ask you deploy when done." They test
+each one on this PC, then say "deploy". Details and test steps: "Fixes asked by
+the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
+
+| Fix | What |
+|---|---|
+| F2 | A bare top bar: the logo and Log in / Sign up, or the logo and your name (everything in its menu) |
+| F3 | No "Anywhere" button on the results |
+| F4 | Enter searches in Filters → Location (ZIP codes too) |
+| F5 | "What matters to you?" moves into Filters; the listings come up |
+| F6 | The Home search box says "Location", "Enter a city, neighborhood or ZIP code" |
+| F7, F10 | The signed-out Home search is one Location box; every filter is on the results |
+| F8 | The Price button opens the price range (slider + Min / Max) |
+| F9 | One brand name everywhere: ApptMasters |
+| F11 | No "More Than Just a Place" section (we don't offer it) |
+| F12 | The footer keeps only Help; the local "N" button is hidden |
+| F13 | My Profile and Settings (Personal information, Notifications, Login & security, Dark mode) each have their own page |
+
+- **Local copy to test:** http://localhost:3100. Start the test database and
+  the app as in [`tests/README.md`](../tests/README.md) and
+  `scripts/dev/screenshots/README.md`. Local logins (test data only, never on
+  the live site): `owner@apptmasters.local` / `LocalTest-2026` (no Home), and
+  `resident@apptmasters.local` / `LocalTest-2026` (lives in "Maple House").
+  Seeds: `scripts/dev/screenshots/seed-owner-login.mjs` and
+  `seed-resident-login.mjs`.
+- **When the owner says "deploy":** no database change. On the server: pull,
+  `rm -rf .next/cache/turbopack`, build, `bash scripts/ops/verify-live.sh`.
+  Then run `SHOTS_BASE=https://apptmasters.com node
+  scripts/dev/screenshots/filters-ui-check.mjs`, and mark F2–F13 deployed in
+  the checklist and here.
+- **P4 is on hold** until the owner's front-end fixes are done.
 
 The owner may also send more fixes at any time; they go under "Fixes asked by
 the owner" in the checklist, one at a time, each tested and approved.
@@ -64,7 +91,7 @@ the owner" in the checklist, one at a time, each tested and approved.
 | 13e | Listing page | Approved 2026-10-16 |
 | 13f | Saved | Approved 2026-10-16 |
 | 13g | Messages (photos, conversation without the phone bar, desktop three panels) | Approved 2026-10-16 |
-| 13h | More, How It Works, Help, Create / Join a Home | Live, waiting for the owner's test |
+| 13h | More, How It Works, Help, Create / Join a Home | Approved 2026-10-16 |
 
 Owner decisions: the new look on the **whole app**; **profile photos** shown
 when a person added one; the **4 new details** added. Left out because the
@@ -91,7 +118,9 @@ marketplace messages, folders, saved searches, nearby places.
 - **Open questions:** keep or remove the SSH key named
   `claude-code-apptmasters` on the server; the friend's GitHub username (to
   invite them); the friend's own SSH key instead of sharing `appmasters.pem`;
-  the server size (1 GB, it swaps during builds).
+  the server size (1 GB, it swaps during builds); the two move-in dates (the
+  one on your profile, and the one each Home keeps for rent since Sprint 11b,
+  noticed during F13): keep both, or show the Home's one on the profile?
 - **Before public launch** (see [`ROADMAP.md`](ROADMAP.md)): nightly backups
   first, an AWS budget alert, `.env.local` in a password manager, signing out
   other sessions on a password change.

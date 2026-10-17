@@ -2388,3 +2388,65 @@ or Home, only "Help" (and © ApptMasters); no round N button.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F13 — Profile and Settings each get their own pages (2026-10-17)
+
+**What the owner asked:** the spec "Profile, Settings & Account Navigation
+Logic", and "notification, privacy, all are in setting". Ten links (the gear,
+View profile, Personal information, Notifications, Privacy & security on
+More; Profile and Settings & notifications in the name menu; the Home's More,
+a member's page, the dashboard) all opened one long `/profile` page.
+
+**What competitors do:** Airbnb keeps the profile (what others see) apart from
+Account settings, where Personal information, Login & security, Privacy &
+sharing and Notifications each have their own page, with a trail like
+"Account › Login & security". Zillow puts notifications under Account
+settings. The owner chose the name **Login & security** (Airbnb's), since
+the page has no privacy controls.
+
+**What changes** (front end only: no server or database change)
+
+| Page | Address | What's on it |
+|---|---|---|
+| My Profile | `/profile` | photo, name, email, member since, Edit; your Homes (or "No Home yet" with Create / Join); for people in a Home: room, move-in date, dietary needs |
+| Settings | `/settings` | Personal information, Notifications, Login & security; the Dark mode switch |
+| Personal information | `/settings/personal-information` | photo (saves as soon as it's uploaded), name, email (Verified / Resend); for people in a Home: room, move-in date, dietary needs; Save |
+| Notifications | `/settings/notifications` | Push and Email switches, each topic's Push and Email; every change saves right away |
+| Login & security | `/settings/security` | password, two-step sign-in and backup codes, recent sign-ins |
+
+- More: the gear and a new **Settings** row open Settings; Personal
+  information, Notifications and Privacy & security leave More (they're in
+  Settings). The profile card opens My Profile.
+- Name menu on computers: **Profile** and **Settings**.
+- The Home's More: **My profile** and **Settings** (was "Profile & settings").
+  A member's own page: "Edit profile" opens Personal information.
+- Going back: a Settings page goes back to Settings, Settings and My Profile to
+  More. On computers each page shows "Settings › …" at the top.
+- Noticed, not changed: the profile's move-in date is separate from the
+  move-in date each Home keeps for rent (Sprint 11b).
+
+- [x] Type check passes · [x] Tests pass (350) · [x] Lint: no new errors (down to 50)
+- [x] Browser check (`f13-check.mjs`: 36 checks, phone and computer, both local logins; `f2-check.mjs`)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Sign in with `owner@apptmasters.local` / `LocalTest-2026`, open **More**
+   (phone width, or `/more`). Account shows Settings, How It Works, Help &
+   support, Log out.
+2. Tap your profile card: **My Profile** shows your photo, name, email, member
+   since, and "No Home yet" with Create / Join. No password, no notifications.
+3. Tap the gear (or Settings): Personal information, Notifications, Login &
+   security, and the Dark mode switch.
+4. **Personal information:** change your name, Save: the name at the top
+   changes. Change it back.
+5. **Notifications:** switch off Email for Shopping, go back, open it again:
+   still off.
+6. **Login & security:** the password, two-step sign-in and recent sign-ins.
+7. Back arrows: a Settings page goes back to Settings, Settings to More. On a
+   computer, each Settings page shows "Settings › …" at the top.
+8. On a computer, the menu under your name: **Profile** opens My Profile,
+   **Settings** opens Settings.
+9. Sign in as `resident@apptmasters.local` / `LocalTest-2026`: My Profile shows
+   Maple House with room, move-in date and dietary needs.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
