@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { randomUUID } from "node:crypto";
 import { GET as search } from "@/app/api/listings/search/route";
-import { parseAmount, orderedPrices, parseFilters } from "@/lib/listingSearch";
+import { parseAmount, orderedPrices, parseFilters, activeChips } from "@/lib/listingSearch";
 import { prisma } from "@/lib/db";
 import { createUser, request } from "./helpers";
 
@@ -139,5 +139,26 @@ describe("typed amounts (Fix F1)", () => {
     expect(orderedPrices(2000, 1000)).toEqual({ minPrice: 1000, maxPrice: 2000 });
     expect(orderedPrices(null, 1000)).toEqual({ minPrice: null, maxPrice: 1000 });
     expect(parseFilters(new URLSearchParams("minPrice=3000&maxPrice=1000"))).toMatchObject({ minPrice: 1000, maxPrice: 3000 });
+  });
+});
+
+describe("What matters to you? (fix F5)", () => {
+  it("each choice finds only rooms to share whose roommates match it, with its proper name as the chip", async () => {
+    const owner = await createUser();
+    const town = `Lifestyletown-${randomUUID()}`;
+    const base = { status: "APPROVED", description: "d", city: town, price: 900, ownerId: owner.user.id };
+    const quiet = await prisma.listing.create({ data: { ...base, type: "ROOM_TO_SHARE", title: "quiet", roommateLifestyleTags: JSON.stringify(["quiet-household", "non-smoker"]) } });
+    const owl = await prisma.listing.create({ data: { ...base, type: "ROOM_TO_SHARE", title: "owl", roommateLifestyleTags: JSON.stringify(["night-owl"]) } });
+    // An apartment can't match, even with the same words saved.
+    await prisma.listing.create({ data: { ...base, type: "APARTMENT_FOR_RENT", title: "flat", roommateLifestyleTags: JSON.stringify(["quiet-household"]) } });
+    const ids = async (q: string) => (await (await search(request(`/api/listings/search?q=${town}&${q}`))).json()).listings.map((l: { id: string }) => l.id).sort();
+    expect(await ids("roommateLifestyleTag=quiet-household")).toEqual([quiet.id]);
+    expect(await ids("roommateLifestyleTag=non-smoker")).toEqual([quiet.id]);
+    expect(await ids("roommateLifestyleTag=night-owl")).toEqual([owl.id]);
+    expect(await ids("roommateLifestyleTag=student-friendly")).toEqual([]);
+    expect(await ids("kind=room&roommateLifestyleTag=quiet-household")).toEqual([quiet.id]);
+    expect(activeChips(parseFilters(new URLSearchParams("roommateLifestyleTag=quiet-household")))).toEqual([
+      { key: "lifestyle", label: "Quiet home", clear: { roommateLifestyleTag: "" } },
+    ]);
   });
 });

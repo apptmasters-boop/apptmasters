@@ -2194,3 +2194,37 @@ Show button.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F5 — "What matters to you?" moves into Filters; listings come up (2026-10-17)
+
+**What the owner asked** (signed-out Home): move the row "What matters to
+you? Quiet home · Non-smoker · Pet-friendly · Student-friendly · Early riser ·
+Night owl" into the filters, and pull the listings up.
+
+**What changes**
+- **Home (signed out, phone and computer):** the row is gone from under the
+  search box; **Latest listings** starts right after the search, with less
+  space above it.
+- **Filters window** (Find a Home): a new section **"What matters to you?"**
+  with the same 6 choices and their icons, plus Any. They describe the people
+  in a **room to share**, so choosing one also selects **Room** (as before
+  from Home), and choosing Apartment or House clears it. The chosen one shows
+  as a removable chip with its proper name (e.g. "Quiet home").
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 350 (new: each choice finds only rooms whose roommates match it;
+      the chip shows the proper name)
+- [x] Lint: no new errors (51)
+- [x] Browser check: choosing "Quiet home" in Filters gives the same results as the
+      search; Apartment clears it (phone and computer)
+- [x] Screens: signed-out Home (phone, computer), the Filters window
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Signed out, Home: no "What matters to you?" row; Latest listings right
+   after the search.
+2. Find a Home → Filters → **What matters to you?** → **Quiet home** → Show:
+   only rooms, with a "Quiet home ×" chip. Tap the chip to remove it.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

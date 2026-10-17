@@ -147,6 +147,10 @@ for (const [size, viewport] of [["computer", { width: 1536, height: 1000 }], ["p
   await filtersWindow(pill("No broker fee"), "no broker fee", p => p.get("noBrokerFee") === "1");
   await filtersWindow(pill("No application fee"), "no application fee", p => p.get("noApplicationFee") === "1");
   await filtersWindow(pill("Last 7 days"), "listed in the last 7 days", p => p.get("listedWithin") === "7");
+  // What matters to you? (fix F5): a roommate choice also selects Room.
+  await filtersWindow(pill("Quiet home"), "Quiet home", p => p.get("roommateLifestyleTag") === "quiet-household" && p.get("kind") === "room");
+  await filtersWindow(async () => { await clickButton("Night owl", dialog); await clickButton("Apartment", dialog); },
+    "Apartment clears the roommate choice", p => p.get("kind") === "apartment" && !p.get("roommateLifestyleTag"));
   await filtersWindow(async () => {
     await clickButton("Furnished", dialog); await clickButton("Wi-Fi", dialog);
     // The "2" under Number of occupants (Bedrooms has a "2" too).

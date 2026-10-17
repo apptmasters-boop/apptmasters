@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { PinIcon, HomeIcon, DollarIcon, SearchIcon, UsersIcon } from "./icons";
-import { TYPE_OPTIONS, LIFESTYLE_OPTIONS, BUDGET_OPTIONS, OCCUPANT_OPTIONS, searchToQuery, type ListingSearch } from "./options";
+import { TYPE_OPTIONS, BUDGET_OPTIONS, OCCUPANT_OPTIONS, searchToQuery, type ListingSearch } from "./options";
 
 function Field({ icon, label, htmlFor, className = "", children }: {
   icon: ReactNode; label: string; htmlFor: string; className?: string; children: ReactNode;
@@ -20,20 +20,9 @@ function Field({ icon, label, htmlFor, className = "", children }: {
 
 const inputClass = "w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none";
 
-function Chip({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: ReactNode; children: ReactNode }) {
-  return (
-    <button type="button" onClick={onClick} aria-pressed={active}
-      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-[13px] font-medium transition-colors ${
-        active ? "border-brand bg-brand text-white" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"}`}>
-      {icon}
-      {children}
-    </button>
-  );
-}
-
 export default function SearchPanel() {
   const router = useRouter();
-  const [s, setS] = useState<ListingSearch>({ city: "", type: "", maxPrice: "", occupants: "", roommateLifestyleTag: "" });
+  const [s, setS] = useState<ListingSearch>({ city: "", type: "", maxPrice: "", occupants: "" });
   const set = (patch: Partial<ListingSearch>) => setS(prev => ({ ...prev, ...patch }));
 
   function submit(e?: React.FormEvent) {
@@ -52,7 +41,7 @@ export default function SearchPanel() {
         </Field>
         <Field icon={<HomeIcon className="h-5 w-5" />} label="Looking for" htmlFor="lp-type">
           <select id="lp-type" value={s.type}
-            onChange={e => set({ type: e.target.value, ...(e.target.value !== "ROOM_TO_SHARE" ? { roommateLifestyleTag: "" } : {}) })}
+            onChange={e => set({ type: e.target.value })}
             className={`${inputClass} cursor-pointer`}>
             <option value="">Any place</option>
             {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -75,19 +64,6 @@ export default function SearchPanel() {
         </button>
       </form>
 
-      <div className="mt-6">
-        <h2 className="text-base font-semibold text-gray-900">What matters to you?</h2>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {LIFESTYLE_OPTIONS.map(({ value, label, icon: Icon }) => (
-            <Chip key={value} active={s.roommateLifestyleTag === value} icon={<Icon className="h-4 w-4" />}
-              onClick={() => s.roommateLifestyleTag === value
-                ? set({ roommateLifestyleTag: "" })
-                : set({ roommateLifestyleTag: value, type: "ROOM_TO_SHARE" })}>
-              {label}
-            </Chip>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

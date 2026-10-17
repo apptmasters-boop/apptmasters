@@ -1,7 +1,5 @@
 import type { ComponentType } from "react";
-import {
-  BedIcon, BuildingIcon, QuietIcon, NoSmokeIcon, PawIcon, CapIcon, SunriseIcon, MoonIcon,
-} from "./icons";
+import { BedIcon, BuildingIcon } from "./icons";
 
 type Icon = ComponentType<{ className?: string }>;
 
@@ -15,17 +13,6 @@ export const TYPE_LABELS: Record<string, string> = {
   ROOM_TO_SHARE: "Room to share",
   APARTMENT_FOR_RENT: "Apartment for rent",
 };
-
-// Keys match LIFESTYLE_OPTIONS in listings/_components/ListingForm.tsx.
-// The API only filters by lifestyle tag for ROOM_TO_SHARE listings.
-export const LIFESTYLE_OPTIONS: { value: string; label: string; icon: Icon }[] = [
-  { value: "quiet-household", label: "Quiet home", icon: QuietIcon },
-  { value: "non-smoker", label: "Non-smoker", icon: NoSmokeIcon },
-  { value: "pet-friendly", label: "Pet-friendly", icon: PawIcon },
-  { value: "student-friendly", label: "Student-friendly", icon: CapIcon },
-  { value: "early-riser", label: "Early riser", icon: SunriseIcon },
-  { value: "night-owl", label: "Night owl", icon: MoonIcon },
-];
 
 export const BUDGET_OPTIONS = [
   { value: "", label: "Any budget" },
@@ -42,7 +29,6 @@ export interface ListingSearch {
   maxPrice: string;
   /** How many people will live there (MARKETPLACE_FLOW.md §3, §5). */
   occupants: string;
-  roommateLifestyleTag: string;
 }
 
 export const OCCUPANT_OPTIONS = [
@@ -57,11 +43,8 @@ export const OCCUPANT_OPTIONS = [
 export function searchToQuery(s: ListingSearch): string {
   const params = new URLSearchParams();
   if (s.city.trim()) params.set("q", s.city.trim());
-  // A lifestyle tag only applies to rooms, so it implies that type.
-  const type = s.roommateLifestyleTag ? "ROOM_TO_SHARE" : s.type;
-  if (type) params.set("type", type);
+  if (s.type) params.set("type", s.type);
   if (s.maxPrice) params.set("maxPrice", s.maxPrice);
   if (s.occupants) params.set("occupants", s.occupants);
-  if (s.roommateLifestyleTag) params.set("roommateLifestyleTag", s.roommateLifestyleTag);
   return params.toString();
 }

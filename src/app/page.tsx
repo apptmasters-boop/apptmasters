@@ -118,7 +118,7 @@ function VisitorHome() {
     <>
       {/* Opened from the "Have you found your new home?" email while signed out: sign in to answer. */}
       <div className="mx-auto max-w-[96rem] px-4 pt-4 empty:hidden sm:px-6 lg:px-8"><HomeQuestionCard /></div>
-      <section className="bg-gray-50 pb-10 dark:bg-gray-950">
+      <section className="bg-gray-50 pb-2 dark:bg-gray-950">
         <div className="relative h-[300px] sm:h-[340px] md:h-[420px]">
           <Image src="/landing/hero.png" alt="Housemates talking in a bright city apartment" fill sizes="100vw"
             loading="eager" fetchPriority="high" className="object-cover object-[50%_58%] md:object-[50%_45%]" />
@@ -136,7 +136,7 @@ function VisitorHome() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-[96rem] space-y-12 px-4 py-10 sm:px-6 md:space-y-16 md:py-14 lg:px-8">
+      <main className="mx-auto max-w-[96rem] space-y-12 px-4 pb-10 pt-6 sm:px-6 md:space-y-16 md:pb-14 md:pt-8 lg:px-8">
         <VisitorLatest />
 
         <section>

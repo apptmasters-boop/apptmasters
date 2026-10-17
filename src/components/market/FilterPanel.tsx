@@ -11,11 +11,11 @@ import { useEffect, useState } from "react";
 import {
   EMPTY_FILTERS, filtersToParams, KINDS, LEASE_FILTERS, LISTED_WITHIN, SIZES, orderedPrices, parseAmount, type SearchFilters,
 } from "@/lib/listingSearch";
-import { ROOM_TYPES, type AmenityKey } from "@/lib/listingFields";
+import { LIFESTYLE_TAGS, ROOM_TYPES, type AmenityKey } from "@/lib/listingFields";
 import {
-  AccessibleIcon, BathIcon, BedIcon, BoltIcon, CalendarIcon, CarIcon, DishwasherIcon, ElevatorIcon, FlameIcon, HomeIcon,
-  NoSmokeIcon, PawIcon, PinIcon, ReceiptIcon, RulerIcon, SearchIcon, ShowerIcon, SlidersIcon, SnowflakeIcon, SofaIcon, TagIcon,
-  UsersIcon, WasherIcon, WifiIcon, XIcon,
+  AccessibleIcon, BathIcon, BedIcon, BoltIcon, CalendarIcon, CapIcon, CarIcon, DishwasherIcon, ElevatorIcon, FlameIcon, HeartHandIcon,
+  HomeIcon, MoonIcon, NoSmokeIcon, PawIcon, PinIcon, QuietIcon, ReceiptIcon, RulerIcon, SearchIcon, ShowerIcon, SlidersIcon,
+  SnowflakeIcon, SofaIcon, SunriseIcon, TagIcon, UsersIcon, WasherIcon, WifiIcon, XIcon,
 } from "@/components/landing/icons";
 
 type IconType = (p: { className?: string }) => React.ReactNode;
@@ -36,6 +36,11 @@ const OPTIONS: { key: AmenityKey | "laundry"; label: string; icon: IconType }[] 
   { key: "accessible", label: "Accessible", icon: AccessibleIcon },
 ];
 const KIND_LABELS: Record<string, string> = { apartment: "Apartment", room: "Room", house: "House" };
+/** "What matters to you?" (fix F5, moved here from the signed-out Home). */
+const LIFESTYLE_ICONS: Record<string, IconType> = {
+  "quiet-household": QuietIcon, "non-smoker": NoSmokeIcon, "pet-friendly": PawIcon,
+  "student-friendly": CapIcon, "early-riser": SunriseIcon, "night-owl": MoonIcon,
+};
 
 export function Pill({ active, onClick, children, className = "" }: { active: boolean; onClick: () => void; children: React.ReactNode; className?: string }) {
   return (
@@ -173,7 +178,12 @@ export default function FilterPanel({ value, onApply, onClose }: {
     ? set({ laundry: !draft.laundry })
     : set({ amenities: draft.amenities.includes(key) ? draft.amenities.filter(a => a !== key) : [...draft.amenities, key] });
   // The tabs' kind replaces the older "whole place or room" and property-type filters.
-  const setKind = (kind: SearchFilters["kind"]) => set({ kind, type: "", propertyType: "", roomType: kind === "room" ? draft.roomType : "" });
+  const setKind = (kind: SearchFilters["kind"]) => set({
+    kind, type: "", propertyType: "", roomType: kind === "room" ? draft.roomType : "",
+    roommateLifestyleTag: kind === "room" || kind === "" ? draft.roommateLifestyleTag : "",
+  });
+  // A roommate choice describes a room to share, so it selects Room too.
+  const setLifestyle = (tag: string) => set(tag ? { roommateLifestyleTag: tag, kind: "room", type: "", propertyType: "" } : { roommateLifestyleTag: "" });
   const kinds: [SearchFilters["kind"], string][] = [["", "All"], ...KINDS.map(k => [k.value, KIND_LABELS[k.value]] as [SearchFilters["kind"], string])];
   const apply = () => onApply({ ...draft, ...orderedPrices(draft.minPrice, draft.maxPrice) });
 
@@ -242,6 +252,17 @@ export default function FilterPanel({ value, onApply, onClose }: {
           onClear={draft.amenities.length || draft.laundry ? () => set({ amenities: [], laundry: false }) : undefined}>
           <div className="flex flex-wrap gap-2">
             {OPTIONS.map(({ key, label, icon: Icon }) => <Pill key={key} active={optionOn(key)} onClick={() => toggleOption(key)}><Icon className="h-5 w-5" />{label}</Pill>)}
+          </div>
+        </Section>
+
+        <Section icon={HeartHandIcon} title="What matters to you?" hint="Rooms to share: how the people there live"
+          onClear={draft.roommateLifestyleTag ? () => setLifestyle("") : undefined}>
+          <div className="flex flex-wrap gap-2">
+            <Pill active={!draft.roommateLifestyleTag} onClick={() => setLifestyle("")}>Any</Pill>
+            {LIFESTYLE_TAGS.map(t => {
+              const Icon = LIFESTYLE_ICONS[t.value];
+              return <Pill key={t.value} active={draft.roommateLifestyleTag === t.value} onClick={() => setLifestyle(t.value)}><Icon className="h-5 w-5" />{t.label}</Pill>;
+            })}
           </div>
         </Section>
 

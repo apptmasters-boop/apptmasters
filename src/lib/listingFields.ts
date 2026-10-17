@@ -13,6 +13,19 @@ export const PROPERTY_TYPES = [
   { value: "STUDIO", label: "Studio" },
 ] as const;
 
+/**
+ * What the people in a room to share are like (the listing form's roommate
+ * preferences). "What matters to you?" in the Filters (fix F5) searches on one.
+ */
+export const LIFESTYLE_TAGS = [
+  { value: "quiet-household", label: "Quiet home" },
+  { value: "non-smoker", label: "Non-smoker" },
+  { value: "pet-friendly", label: "Pet-friendly" },
+  { value: "student-friendly", label: "Student-friendly" },
+  { value: "early-riser", label: "Early riser" },
+  { value: "night-owl", label: "Night owl" },
+] as const;
+
 export const ROOM_TYPES = [
   { value: "PRIVATE_ROOM", label: "Private room" },
   { value: "SHARED_ROOM", label: "Shared room" },

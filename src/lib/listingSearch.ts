@@ -10,7 +10,7 @@
  * A listing with no "available from" date counts as available now.
  */
 import type { Prisma } from "@/generated/prisma/client";
-import { AMENITIES, PROPERTY_TYPES, ROOM_TYPES, type AmenityKey } from "@/lib/listingFields";
+import { AMENITIES, LIFESTYLE_TAGS, PROPERTY_TYPES, ROOM_TYPES, type AmenityKey } from "@/lib/listingFields";
 
 export type SortOrder = "newest" | "price_asc" | "price_desc";
 export const SORTS: { value: SortOrder; label: string }[] = [
@@ -201,7 +201,10 @@ export function activeChips(f: SearchFilters): FilterChip[] {
   if (f.noBrokerFee) add("noBrokerFee", "No broker fee", { noBrokerFee: false });
   if (f.noApplicationFee) add("noApplicationFee", "No application fee", { noApplicationFee: false });
   if (f.listedWithin) add("listedWithin", LISTED_WITHIN.find(l => l.value === f.listedWithin)?.label ?? `Last ${f.listedWithin} days`, { listedWithin: null });
-  if (f.roommateLifestyleTag) add("lifestyle", f.roommateLifestyleTag.replace(/-/g, " "), { roommateLifestyleTag: "" });
+  if (f.roommateLifestyleTag) {
+    const label = LIFESTYLE_TAGS.find(t => t.value === f.roommateLifestyleTag)?.label ?? f.roommateLifestyleTag.replace(/-/g, " ");
+    add("lifestyle", label, { roommateLifestyleTag: "" });
+  }
   return chips;
 }
 

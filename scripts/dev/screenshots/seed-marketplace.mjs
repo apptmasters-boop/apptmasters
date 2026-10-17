@@ -32,6 +32,10 @@ for (const l of listings) {
       l.broker ?? null, l.app ?? null, l.lease ?? null, l.avail ? new Date(`${l.avail}T00:00:00Z`) : null, ago(l.age)]);
   for (let i = 0; i < 3; i++) await db.query(`INSERT INTO "ListingPhoto" (id, url, position, "listingId") VALUES ($1, '/landing/hero.png', $2, $3)`, [`${l.id}-p${i}`, i, l.id]);
 }
+// Roommate lifestyle on the rooms ("What matters to you?" in Filters, fix F5).
+await db.query(`UPDATE "Listing" SET "roommateLifestyleTags" = $2 WHERE id = $1`, ["shot-l2", JSON.stringify(["quiet-household", "non-smoker", "student-friendly"])]);
+await db.query(`UPDATE "Listing" SET "roommateLifestyleTags" = $2 WHERE id = $1`, ["shot-l4", JSON.stringify(["night-owl", "pet-friendly"])]);
+await db.query(`UPDATE "Listing" SET "roommateLifestyleTags" = $2 WHERE id = $1`, ["shot-l6", JSON.stringify(["quiet-household", "early-riser"])]);
 // The details added in Sprint 13d.
 await db.query(`UPDATE "Listing" SET "squareFeet" = 850, "airConditioning" = true, "heatIncluded" = true, dishwasher = true WHERE id = 'shot-l1'`);
 await db.query(`INSERT INTO "SavedListing" (id, "userId", "listingId") VALUES ('shot-s1','shot-me','shot-l1'), ('shot-s2','shot-me','shot-l3'), ('shot-s3','shot-me','shot-l2'), ('shot-s4','shot-me','shot-l5')`);
