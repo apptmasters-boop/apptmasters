@@ -8,41 +8,39 @@ from there."
 
 ## Right now
 
-- **Approved:** 13a (the pictures' font and frame everywhere), on 2026-10-16.
-  The owner's reply was "13b approved", read as 13a approved and the go-ahead
-  for 13b.
-- **Sprint 13 is done** (all 8 steps approved on 2026-10-16). The owner chose
-  not to do 12f (map) for now and to move on to the **pre-launch** steps
-  ([`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "Pre-launch").
-- **P1 — Nightly backups: set up, waiting for the owner's test.** Owner's
-  choice: the copy outside the server is a **private GitHub repository,
-  `apptmasters-backups`, encrypted**, no extra fees (not S3). 3 nights on the
-  server, 7 nights on GitHub, an email to the site admins if a night fails,
-  the job at 7:30 UTC in the server's crontab. First backup and a restore
-  check from GitHub passed on 2026-10-16. Everything is in
-  [`BACKUPS.md`](BACKUPS.md).
-- **Fix F1 (owner, 2026-10-16) approved:** filters on the
-  top row on every screen (no left panel on computers), Min/Max price fixed,
-  every filter tested (`tests/filters-every.test.ts`,
-  `scripts/dev/screenshots/filters-ui-check.mjs`, which also runs against the
-  live site with `SHOTS_BASE=https://apptmasters.com`). The owner may send
-  more fixes; they go under "Fixes asked by the owner" in the checklist.
-- **P2 (AWS budget alert at $15/month) approved 2026-10-16. P3 (the owner saves
-  `.env.local` and `appmasters.pem` in a password manager) is with the owner:
-  instructions in the checklist, nothing is shown in the chat.**
-- **Next step:** check the next morning's backup log line (`last backup` in
-  `verify-live.sh`), the owner tests P1 and replies **"P1 approved"**; then
-  **P2** (AWS budget alert: the owner pastes one command), **P3** (the owner
-  saves `.env.local`, which now holds the backup passphrase, in a password
-  manager: **important**, without it the GitHub backups can't be opened),
-  **P4** (a password change signs out other devices), **P5** (security review).
+**Done on 2026-10-16:** Sprint 13 (all 8 steps approved), fix F1 (filters on
+the top row everywhere, prices, every filter tested; approved), pre-launch P2
+(AWS budget alert at $15 a month; approved).
+
+**Where we continue (in this order):**
+1. **P1 — Nightly backups:** check that the first automatic run worked: on
+   the server `tail -n 3 ~/backups/nightly/backup.log` shows `OK 2026-10-17 …
+   github=yes` (also the "last backup" line of `scripts/ops/verify-live.sh`),
+   and the private repository `apptmasters-boop/apptmasters-backups` has a
+   `2026-10-17` folder. Then the owner replies **"P1 approved"**. Everything
+   about backups: [`BACKUPS.md`](BACKUPS.md). (Owner's choice: GitHub,
+   encrypted, no S3, no extra fees.)
+2. **P3 — Settings in a password manager:** with the owner. They keep
+   `appmasters.pem` and use **Google Password Manager** (protected by the
+   Google sign-in key on their phone). Steps in
+   [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md), "P3": they copy the backup
+   password and the settings file with `ssh … | Set-Clipboard` in a separate
+   PowerShell window. **Never show those values in the chat.** Wait for
+   **"P3 approved"**.
+3. **P4 — A password change signs out other devices:** plan and test steps in
+   the checklist first; it needs a small database change (a per-user token
+   version), so **ask the owner's OK before applying the SQL on the live site**.
+4. **P5 — Security review** before launch.
+
+The owner may also send more fixes at any time; they go under "Fixes asked by
+the owner" in the checklist, one at a time, each tested and approved.
+
 - **Local test database:** if tests time out on this PC but pass on GitHub,
   recreate it ([`tests/README.md`](../tests/README.md); done on 2026-10-16 at
   about 4,500 test households).
-- **The rule for Sprint 13:** one step at a time. Each step is built,
-  compared with the owner's picture in [`mockups/`](mockups/) at phone and
-  desktop size, checked, deployed, and tested by the owner. The next step
-  starts only after the owner approves.
+- **How every step runs:** plan and test steps in the checklist first, build,
+  compare screens with [`mockups/`](mockups/) when it's a screen, run the
+  checks, deploy, and the owner tests and approves before the next step.
 
 ## Sprint 13 steps
 
@@ -66,13 +64,13 @@ marketplace messages, folders, saved searches, nearby places.
 ## Waiting for the owner
 
 - **Tests / sign-offs:** 11a ("Have you found your new home?"), 11b (Create /
-  Join a Home), 12a–12e (Find a Home), 13h. Sprints 1–10 and 13a–13g are
-  approved.
+  Join a Home), 12a–12e (Find a Home), P1, P3. Approved: Sprints 1–10, all of
+  Sprint 13, fix F1, P2.
 - **Daily "Have you found your new home?" email:** needs the owner's OK to add
   the server's daily job (`0 14 * * *`, 10 am New York, calling
   `/api/cron/home-search`). It's a server configuration change, so ask first.
-- **Map service** for 12f (map and radius search), plus Search history and
-  the notification bell for people without a home.
+- **12f** (map and radius search, Search history, the notification bell for
+  people without a home): on hold at the owner's request (2026-10-16).
 - **After the owner's 11a test:** put test accounts A and B's real sign-up
   dates back. On the server, run the file
   `~/backups/2026-10-16/restore-test-signup-dates.sql` with
