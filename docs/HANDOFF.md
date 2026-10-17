@@ -36,6 +36,13 @@ the top row everywhere, prices, every filter tested; approved), pre-launch P2
    version), so **ask the owner's OK before applying the SQL on the live site**.
 4. **P5 — Security review** before launch.
 
+**Fix F2 (2026-10-17): a simpler top bar on computers** (only the logo and Log
+in / Sign up, or the logo and your name with everything in its menu; a
+footer with How It Works · Help · Post a listing). Built and checked, **not
+deployed: the owner tests it on this PC (http://localhost:3100, sign in
+`owner@apptmasters.local` / `LocalTest-2026`, local test data only) and asks for
+the deploy.** P4 is on hold until the owner's front-end fixes are done.
+
 The owner may also send more fixes at any time; they go under "Fixes asked by
 the owner" in the checklist, one at a time, each tested and approved.
 

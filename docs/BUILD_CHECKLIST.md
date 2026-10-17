@@ -2100,3 +2100,43 @@ checked.
 
 **Sign-off:** [x] Approved on 2026-10-16 · Issues found: none reported
 
+### F2 — A simpler top bar on computers (2026-10-17)
+
+**What the owner saw** (computer, top bar): the search icon and the links Home
+· Find a Home · How It Works · More are redundant (the logo already goes
+Home; the search icon repeats Find a Home).
+
+**What changes** (owner's choices)
+- **Signed out:** the top bar is just the **logo, Log in and Sign up**.
+- **Signed in:** just the **logo and your name**. Everything else is in the
+  menu under your name: Find a Home, Messages (with the number unread), Saved
+  (with the number saved), Profile, Settings & notifications, Create a Home,
+  Join a Home, My listings, Post a listing, How It Works, Help, Sign out. A
+  **red dot** on your photo when a message is unread.
+- **A small footer** at the bottom of the Find a Home pages: How It Works ·
+  Help · Post a listing (not inside a conversation, which uses the whole
+  screen).
+- **Phones don't change** (the logo bar only on Home, the bottom bar).
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 349
+- [x] Lint: no new errors (51)
+- [x] Screens checked on a computer (signed out, signed in, menu open) and a phone
+- [x] Every link in the name menu and the footer opens its page
+      (`scripts/dev/screenshots/f2-check.mjs`)
+- [ ] CI green on GitHub
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests it on this PC first
+      (http://localhost:3100) and asks for the deploy (2026-10-17)**
+
+**Your test on apptmasters.com** (computer)
+1. Signed out: the top bar shows only the logo, Log in and Sign up. At the
+   bottom of the page: How It Works · Help · Post a listing.
+2. Signed in: the top bar shows only the logo and your name. Click your name:
+   Find a Home, Messages (with the number of unread conversations), Saved
+   (with the number saved), Profile … Sign out. With an unread message, a red
+   dot on your photo (on phones too).
+3. On a phone, nothing changed.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

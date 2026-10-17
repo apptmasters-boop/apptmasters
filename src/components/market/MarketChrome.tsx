@@ -4,9 +4,13 @@
  * in docs/mockups/): one header on every Find a Home page, a bottom bar on
  * phones, and the save that a visitor started before signing in.
  *
- *   Visitor           Home · Find a Home · How It Works · More · Log in · Sign up
- *   Signed in         Home · Find a Home · Messages · Saved · How It Works · More · avatar
+ *   Visitor           logo · Log in · Sign up
+ *   Signed in         logo · your name (its menu holds Find a Home, Messages, Saved, the rest)
  *   Phone bar         Home · Saved · Messages · More (visitors: Home · Find a Home · Saved · More)
+ *   Footer            How It Works · Help · Post a listing
+ *
+ * The owner asked for the bare top bar on 2026-10-17 (Fix F2): the links were
+ * redundant with the logo, the search and the phone bar.
  *
  * On phones the logo bar shows on Home only; every other page starts with its
  * own title, as in the designs (Sprint 13a).
@@ -20,7 +24,7 @@ import { apiFetch, clearToken } from "@/lib/api";
 import { HomeSidebar, HomeBottomBar, useChatUnread } from "@/components/home/HomeNav";
 import { Logo } from "@/components/landing/SiteChrome";
 import { useMe, forgetMe, initials, type Me } from "./useMe";
-import { loadSaved, completeSaveIntent } from "./saved";
+import { loadSaved, completeSaveIntent, useSavedIds } from "./saved";
 import {
   ArrowLeftIcon, ChevronDownIcon, HeartIcon, HomeIcon, MessageIcon, MoreIcon, SearchIcon,
 } from "@/components/landing/icons";
@@ -99,69 +103,56 @@ export function BackLink({ href, label = "Back", className = "" }: { href: strin
   );
 }
 
+/** A number beside a menu item: red for unread messages, gray for a count. */
+function Count({ n, alert = false }: { n: number; alert?: boolean }) {
+  if (n <= 0) return null;
+  return <span className={`ml-auto rounded-full px-2 text-xs font-semibold ${alert ? "bg-red-500 text-white" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"}`}>{n}</span>;
+}
+const menuRow = `${menuItem} flex items-center gap-2`;
+const menuDivider = <div className="my-1.5 border-t border-gray-100 dark:border-gray-800" role="separator" />;
+
 export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | undefined; unread: number; onPhone?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
-  const signedIn = !!me;
-  const links = [
-    { href: "/", label: "Home" },
-    { href: "/listings", label: "Find a Home" },
-    ...(signedIn ? [{ href: "/listings/inbox", label: "Messages" }, { href: "/saved", label: "Saved" }] : []),
-    { href: "/how-it-works", label: "How It Works" },
-  ];
-  const inMessages = pathname.startsWith("/listings/inbox") || /^\/listings\/[^/]+\/messages/.test(pathname);
-  const active = (href: string) =>
-    href === "/" ? pathname === "/"
-      : href === "/listings/inbox" ? inMessages
-      : href === "/listings" ? !inMessages && (pathname === "/listings" || /^\/listings\/(?!inbox|mine|new)/.test(pathname))
-      : pathname.startsWith(href);
+  const savedCount = useSavedIds().size;
 
   return (
     <header className={`sticky top-0 z-30 border-b border-gray-200/80 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95 ${onPhone ? "" : "hidden lg:block"}`}>
       <div className="mx-auto flex h-16 max-w-[96rem] items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-10">
-          <MarketLogo />
-          <nav className="hidden items-center gap-7 lg:flex" aria-label="Main">
-            {links.map(l => (
-              <Link key={l.href} href={l.href}
-                className={`relative py-5 text-sm font-medium transition-colors ${active(l.href) ? "text-gray-900 dark:text-white" : "text-gray-600 hover:text-gray-900 dark:text-gray-400"}`}>
-                {l.label}
-                {l.href === "/listings/inbox" && unread > 0 && <span className="absolute -right-2.5 top-4 h-2 w-2 rounded-full bg-red-500" aria-label={`${unread} unread`} />}
-                {active(l.href) && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-brand" />}
-              </Link>
-            ))}
-            <Dropdown label="More">
-              {signedIn ? (
-                <>
-                  <Link href="/apartment/create" className={menuItem}>Create a Home</Link>
-                  <Link href="/apartment/join" className={menuItem}>Join a Home</Link>
-                  <Link href="/listings/mine" className={menuItem}>My listings</Link>
-                  <Link href="/listings/new" className={menuItem}>Post a listing</Link>
-                  <Link href="/help" className={menuItem}>Help</Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/listings/new" className={menuItem}>Post a listing</Link>
-                  <Link href="/help" className={menuItem}>Help</Link>
-                </>
-              )}
-            </Dropdown>
-          </nav>
-        </div>
+        <MarketLogo />
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/listings" aria-label="Search" className="hidden rounded-xl border border-gray-200 p-2.5 text-gray-700 hover:bg-gray-50 sm:block dark:border-gray-700 dark:text-gray-200">
-            <SearchIcon className="h-5 w-5" />
-          </Link>
           {me === undefined ? (
             <span className="h-9 w-24" aria-hidden />
           ) : me ? (
             <>
-              <Link href="/more" className="lg:hidden" aria-label="Your account"><Avatar me={me} /></Link>
+              <Link href="/more" className="relative lg:hidden" aria-label="Your account">
+                <Avatar me={me} />
+                {unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500" aria-label={`${unread} unread`} />}
+              </Link>
               <div className="hidden lg:block">
-                <Dropdown label={<span className="flex items-center gap-2"><Avatar me={me} /><span className="max-w-32 truncate text-gray-800 dark:text-gray-100">{me.name.split(" ")[0]}</span></span>}>
+                <Dropdown label={
+                  <span className="flex items-center gap-2">
+                    <span className="relative">
+                      <Avatar me={me} />
+                      {unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500" aria-label={`${unread} unread`} />}
+                    </span>
+                    <span className="max-w-32 truncate text-gray-800 dark:text-gray-100">{me.name.split(" ")[0]}</span>
+                  </span>
+                }>
+                  <Link href="/listings" className={menuRow}>Find a Home</Link>
+                  <Link href="/listings/inbox" className={menuRow}>Messages<Count n={unread} alert /></Link>
+                  <Link href="/saved" className={menuRow}>Saved<Count n={savedCount} /></Link>
+                  {menuDivider}
                   <Link href="/profile" className={menuItem}>Profile</Link>
                   <Link href="/profile" className={menuItem}>Settings &amp; notifications</Link>
-                  <Link href="/more" className={menuItem}>More</Link>
+                  {menuDivider}
+                  <Link href="/apartment/create" className={menuItem}>Create a Home</Link>
+                  <Link href="/apartment/join" className={menuItem}>Join a Home</Link>
+                  <Link href="/listings/mine" className={menuItem}>My listings</Link>
+                  <Link href="/listings/new" className={menuItem}>Post a listing</Link>
+                  {menuDivider}
+                  <Link href="/how-it-works" className={menuItem}>How It Works</Link>
+                  <Link href="/help" className={menuItem}>Help</Link>
                   <button type="button" onClick={() => signOut(router)} className={`${menuItem} w-full text-left text-red-600`}>Sign out</button>
                 </Dropdown>
               </div>
@@ -181,6 +172,23 @@ export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | u
         </div>
       </div>
     </header>
+  );
+}
+
+/** The bottom of every Find a Home page (Fix F2): what used to be in the top bar. */
+export function MarketFooter() {
+  const link = "hover:text-gray-900 hover:underline dark:hover:text-white";
+  return (
+    <footer className="mt-10 border-t border-gray-200 dark:border-gray-800">
+      <div className="mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-gray-500 sm:px-6 lg:px-8 dark:text-gray-400">
+        <nav aria-label="More" className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Link href="/how-it-works" className={link}>How It Works</Link>
+          <Link href="/help" className={link}>Help</Link>
+          <Link href="/listings/new" className={link}>Post a listing</Link>
+        </nav>
+        <span>© {new Date().getFullYear()} ApptMasters</span>
+      </div>
+    </footer>
   );
 }
 
@@ -266,6 +274,7 @@ export function MarketShell({ children }: { children: React.ReactNode }) {
       <div className={home ? `${inConversation ? "" : "pb-16"} md:pb-0 md:pl-64` : inConversation ? "" : "pb-20 lg:pb-0"}>
         <MarketHeader me={me} unread={unread} onPhone={pathname === "/"} />
         {children}
+        {!inConversation && <MarketFooter />}
       </div>
       {!home && !inConversation && <MarketBottomNav me={me} unread={unread} />}
       <Toast message={toast} />

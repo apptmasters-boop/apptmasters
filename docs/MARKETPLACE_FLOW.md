@@ -219,6 +219,11 @@ There is no mandatory onboarding questionnaire immediately after signup.
 
 ## 13. Header Logic Before and After Login
 
+> **Owner's change (2026-10-17, fix F2):** on computers the top bar is only the
+> logo and Log in / Sign up (signed out) or the logo and your name (signed in);
+> Find a Home, Messages, Saved and the rest are in the menu under your name, and
+> How It Works, Help and Post a listing are in a small footer.
+
 **Visitor header**
 
 - Home
