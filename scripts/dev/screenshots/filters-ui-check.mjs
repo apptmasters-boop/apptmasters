@@ -72,9 +72,11 @@ for (const [size, viewport] of [["computer", { width: 1536, height: 1000 }], ["p
   await countsMatch("no filter");
 
   // The quick buttons on top.
+  // The Price button opens the same price range as Filters (fix F8).
   await clickStartsWith("Any price");
-  await page.type("input[aria-label='Minimum rent']", "1,000");
-  await page.type("input[aria-label='Maximum rent']", "$2,000");
+  ok(!!(await page.$("#quick-picker input[aria-label='Maximum price slider']")), "the Price button opens the price range");
+  await page.type("#quick-picker input[aria-label='Minimum price']", "1,000");
+  await page.type("#quick-picker input[aria-label='Maximum price']", "$2,000");
   await clickButton("Show");
   await wait(800);
   ok(params().get("minPrice") === "1000" && params().get("maxPrice") === "2000", `price box: ${params().toString()}`);
@@ -86,11 +88,21 @@ for (const [size, viewport] of [["computer", { width: 1536, height: 1000 }], ["p
 
   await open();
   await clickStartsWith("Any price");
-  await page.type("input[aria-label='Minimum rent']", "3000");
-  await page.type("input[aria-label='Maximum rent']", "500");
+  await page.type("#quick-picker input[aria-label='Minimum price']", "3000");
+  await page.type("#quick-picker input[aria-label='Maximum price']", "500");
   await clickButton("Show");
   await wait(800);
   ok(params().get("minPrice") === "500" && params().get("maxPrice") === "3000", `min above max swapped: ${params().toString()}`);
+
+  // Dragging the right handle (here with the keyboard: 60 steps of $50 down from $5,000+).
+  await open();
+  await clickStartsWith("Any price");
+  await page.focus("#quick-picker input[aria-label='Maximum price slider']");
+  for (let i = 0; i < 60; i++) await page.keyboard.press("ArrowLeft");
+  await clickButton("Show");
+  await wait(800);
+  ok(params().get("maxPrice") === "2000" && !params().get("minPrice"), `slider to $2,000: ${params().toString()}`);
+  await countsMatch("slider up to $2,000");
 
   await open();
   await clickStartsWith("People"); await clickButton("2"); await wait(800);

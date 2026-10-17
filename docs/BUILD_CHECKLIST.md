@@ -2280,3 +2280,30 @@ on their top row, and the signed-in Home already uses one box.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F8 — The Price button opens the price range (2026-10-17)
+
+**What the owner asked:** the "Any price" button should work like the Price
+range in Filters.
+
+**What changes:** the **Price** button (results' top row, and the signed-in
+Home) opens the same **price range** as Filters: two handles, the amounts
+above them, Min / Max boxes (commas and "$" are fine), and **Show**. The quick
+"up to $1,000 / $1,500 …" buttons are replaced by it. "Any price" removes the
+price.
+
+**Automatic checks (developer)**
+- [x] Type check passes (tests: 350)
+- [x] Lint: no new errors (51)
+- [x] Browser check: the slider and the boxes in the Price picker give the same results as
+      the search (phone and computer)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Find a Home → **Any price**: the price range opens (two handles, $0 to
+   $5,000+, Min / Max). Drag the right handle to about $2,000 → **Show**: the
+   button says "Up to $2,000" and the results match.
+2. Open it again, type Min 500 and Max 1,000 → **Show**: "$500 – $1,000".
+   Open it again → **Any price**: the price is removed.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

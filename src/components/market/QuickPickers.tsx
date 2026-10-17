@@ -8,12 +8,12 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { orderedPrices, parseAmount, type SearchFilters } from "@/lib/listingSearch";
+import { orderedPrices, type SearchFilters } from "@/lib/listingSearch";
+import PriceRange from "./PriceRange";
 import { BedIcon, CalendarIcon, ChevronDownIcon, PinIcon, SlidersIcon, TagIcon, UsersIcon, XIcon } from "@/components/landing/icons";
 
 export type PickerKey = "place" | "people" | "price" | "bedrooms" | "moveIn";
 
-const PRICES = [1000, 1500, 2000, 2500, 3000, 4000];
 const BEDROOMS: [string, string][] = [["0", "Studio"], ["1", "1"], ["2", "2"], ["3+", "3+"]];
 const PEOPLE: [number, string][] = [[1, "1"], [2, "2"], [3, "3"], [4, "4"], [5, "5+"]];
 
@@ -73,9 +73,8 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
   const [open, setOpen] = useState<PickerKey | null>(null);
   const [place, setPlace] = useState(filters.q);
   const [date, setDate] = useState(filters.moveIn);
-  // Typed amounts stay as typed ("1,500") until Show (Fix F1).
-  const [minText, setMinText] = useState(filters.minPrice?.toString() ?? "");
-  const [maxText, setMaxText] = useState(filters.maxPrice?.toString() ?? "");
+  // The price range's draft until Show (fix F8: the same range as in Filters).
+  const [price, setPrice] = useState({ min: filters.minPrice, max: filters.maxPrice });
 
   useEffect(() => {
     if (!open) return;
@@ -87,8 +86,7 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
   function toggle(key: PickerKey) {
     setPlace(filters.q);
     setDate(filters.moveIn);
-    setMinText(filters.minPrice?.toString() ?? "");
-    setMaxText(filters.maxPrice?.toString() ?? "");
+    setPrice({ min: filters.minPrice, max: filters.maxPrice });
     setOpen(o => (o === key ? null : key));
   }
   function pick(patch: Partial<SearchFilters>) {
@@ -98,7 +96,7 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
 
   const icons: Record<PickerKey, typeof TagIcon> = { place: PinIcon, people: UsersIcon, price: TagIcon, bedrooms: BedIcon, moveIn: CalendarIcon };
   const titles: Record<PickerKey, string> = {
-    place: "City, neighborhood, or ZIP code", people: "How many people will live there?", price: "Rent per month",
+    place: "City, neighborhood, or ZIP code", people: "How many people will live there?", price: "Price range per month",
     bedrooms: "Bedrooms", moveIn: "Move-in date",
   };
   const filtersInner = (
@@ -155,35 +153,10 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
           )}
 
           {open === "price" && (
-            <>
-              {/* Min and Max as typed ("1,500", "$900"); a Min above the Max is swapped (Fix F1). */}
-              <form onSubmit={e => { e.preventDefault(); pick(orderedPrices(parseAmount(minText), parseAmount(maxText))); }} className="flex items-end gap-2">
-                <label className="min-w-0 flex-1">
-                  <span className="mb-1 block text-xs font-medium text-gray-500">Min</span>
-                  <span className="relative block">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
-                    <input inputMode="numeric" value={minText} onChange={e => setMinText(e.target.value)} placeholder="No min" aria-label="Minimum rent" className={`${field} w-full pl-6`} />
-                  </span>
-                </label>
-                <label className="min-w-0 flex-1">
-                  <span className="mb-1 block text-xs font-medium text-gray-500">Max</span>
-                  <span className="relative block">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
-                    <input inputMode="numeric" value={maxText} onChange={e => setMaxText(e.target.value)} placeholder="No max" aria-label="Maximum rent" className={`${field} w-full pl-6`} />
-                  </span>
-                </label>
-                <button type="submit" className={goButton}>Show</button>
-              </form>
-              <p className="mb-2 mt-4 text-xs font-medium text-gray-500">Or up to</p>
-              <div className="grid grid-cols-3 gap-2">
-                {PRICES.map(p => (
-                  <button key={p} type="button" onClick={() => pick({ minPrice: null, maxPrice: p })}
-                    className={option(filters.maxPrice === p && filters.minPrice === null)}>
-                    {money(p)}
-                  </button>
-                ))}
-              </div>
-            </>
+            <form onSubmit={e => { e.preventDefault(); pick(orderedPrices(price.min, price.max)); }}>
+              <PriceRange min={price.min} max={price.max} onChange={(min, max) => setPrice({ min, max })} />
+              <button type="submit" className={`${goButton} mt-4 w-full`}>Show</button>
+            </form>
           )}
 
           {open === "bedrooms" && (
