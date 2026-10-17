@@ -13,11 +13,15 @@ the top row everywhere, prices, every filter tested; approved), pre-launch P2
 (AWS budget alert at $15 a month; approved).
 
 **Where we continue (in this order):**
-1. **P1 — Nightly backups:** check that the first automatic run worked: on
-   the server `tail -n 3 ~/backups/nightly/backup.log` shows `OK 2026-10-17 …
+1. **P1 — Nightly backups:** the first automatic run (2026-10-17) didn't happen:
+   none of the scheduled jobs could run, their log file was missing
+   (`BACKUPS.md`). Fixed on 2026-10-17 with the owner's OK; the rent
+   reminders, cleaning penalties and cleanups now run too. Check that the
+   automatic run worked: on
+   the server `tail -n 3 ~/backups/nightly/backup.log` shows `OK 2026-10-18 …
    github=yes` (also the "last backup" line of `scripts/ops/verify-live.sh`),
    and the private repository `apptmasters-boop/apptmasters-backups` has a
-   `2026-10-17` folder. Then the owner replies **"P1 approved"**. Everything
+   `2026-10-18` folder. Then the owner replies **"P1 approved"**. Everything
    about backups: [`BACKUPS.md`](BACKUPS.md). (Owner's choice: GitHub,
    encrypted, no S3, no extra fees.)
 2. **P3 — Settings in a password manager:** with the owner. They keep

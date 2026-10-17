@@ -1943,7 +1943,11 @@ the nightly job; the separate private repository, encrypted.
       table count the same as live, 20 of 20 files, temporary database deleted
 - [x] Nightly job added to the server's crontab (7:30 UTC; the previous crontab
       saved as `~/backups/crontab.before-2026-10-16-backups`)
-- [ ] The first nightly run (next morning) logged OK
+- [ ] The first nightly run (next morning) logged OK. **2026-10-17: it didn't run.**
+      No scheduled job could run, because their log file couldn't be created
+      (details in `BACKUPS.md`, "The scheduled jobs' log"). Fixed with the
+      owner's OK; the backup tested in cron's own environment (made the
+      2026-10-17 backup); the 2026-10-18 nightly run is the real check.
 
 **Your test**
 1. On GitHub, open the private repository **apptmasters-backups**: a folder

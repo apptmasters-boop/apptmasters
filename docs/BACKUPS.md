@@ -78,6 +78,21 @@ mistake in the data).
 On a brand-new server, first install the app as in [`README.md`](../README.md)
 ("Deploy"), with the `.env.local` from the password manager.
 
+## The scheduled jobs' log (found 2026-10-17)
+
+Every scheduled job on the server ends with `>> /var/log/apptmasters-cron.log`.
+That file didn't exist, and the server's user (`ubuntu`) may not create files in
+`/var/log`, so the shell refused to start **every** job: the first nightly
+backup (2026-10-17) and, since they were set up, the hourly voice-file
+cleanup, the unconfirmed sign-up cleanup, the rent reminders and the cleaning
+penalties. Cron discarded the error ("No MTA installed").
+
+Fix (owner's OK, 2026-10-17): the file was created and given to `ubuntu`:
+`sudo install -o ubuntu -g ubuntu -m 644 /dev/null /var/log/apptmasters-cron.log`.
+The backup line was then run in cron's minimal environment and worked.
+`scripts/ops/verify-live.sh` now prints the state of that log, and says so if
+it's missing.
+
 ## How it was set up (2026-10-16)
 
 1. The private repository `apptmasters-boop/apptmasters-backups` was created.

@@ -37,6 +37,8 @@ echo "GET /api/saved: $(code -H "$AUTH" http://localhost:3000/api/saved)"
 echo "GET /api/listings/inbox: $(code -H "$AUTH" http://localhost:3000/api/listings/inbox)"
 echo "public site: $(code https://apptmasters.com/)"
 echo "last backup: $(tail -n 1 ~/backups/nightly/backup.log 2>/dev/null || echo none yet)"
+# Scheduled jobs write here; if the file is missing they cannot run at all (2026-10-17).
+[ -w /var/log/apptmasters-cron.log ] && echo "scheduled jobs log: $(wc -l < /var/log/apptmasters-cron.log) lines, last: $(tail -n 1 /var/log/apptmasters-cron.log | cut -c1-80)" \n  || echo "scheduled jobs log: MISSING or not writable: the scheduled jobs are NOT running (see docs/BACKUPS.md)"
 
 NEW=$(( $(wc -l < "$ERRLOG") - BEFORE ))
 echo "new error-log lines: $NEW"
