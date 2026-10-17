@@ -2228,3 +2228,20 @@ Night owl" into the filters, and pull the listings up.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F6 — The Home search box label (2026-10-17)
+
+**What the owner asked:** "Where are you going?" isn't the right wording.
+
+**What changes** (signed-out Home): the box is labeled **Location**, with
+**"Enter a city, neighborhood or ZIP code"** inside. Not "address": a search by
+street address isn't possible, since addresses stay private until the
+advertiser shares them in Messages.
+
+- [x] Type check passes · [x] Lint: no new errors
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC:** signed out, Home: the first box says Location /
+"Enter a city, neighborhood or ZIP code"; type 11216 and press Enter.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

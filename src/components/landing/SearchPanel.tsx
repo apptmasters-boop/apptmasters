@@ -35,9 +35,9 @@ export default function SearchPanel() {
     <div>
       <form onSubmit={submit}
         className="grid gap-2.5 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl shadow-black/5 sm:grid-cols-2 md:grid-cols-[1.5fr_1fr_1fr_1fr_auto] md:p-4">
-        <Field icon={<PinIcon className="h-5 w-5" />} label="Where are you going?" htmlFor="lp-city" className="sm:col-span-2 md:col-span-1">
+        <Field icon={<PinIcon className="h-5 w-5" />} label="Location" htmlFor="lp-city" className="sm:col-span-2 md:col-span-1">
           <input id="lp-city" value={s.city} onChange={e => set({ city: e.target.value })}
-            placeholder="City, neighborhood or ZIP" className={inputClass} autoComplete="address-level2" />
+            placeholder="Enter a city, neighborhood or ZIP code" className={inputClass} autoComplete="address-level2" />
         </Field>
         <Field icon={<HomeIcon className="h-5 w-5" />} label="Looking for" htmlFor="lp-type">
           <select id="lp-type" value={s.type}
