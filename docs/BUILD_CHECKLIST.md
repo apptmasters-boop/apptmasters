@@ -2307,3 +2307,24 @@ price.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F9 — One brand name: ApptMasters (2026-10-17)
+
+**What the owner saw:** the name switched between "ApptMasters" and
+"Apartment Masters" across pages.
+
+**What changes:** every place the site said "Apartment Masters" now says
+**ApptMasters** (13 places in 11 files): Sign up and Log in, the email
+confirmation page and email, Create a Home ("Found it on ApptMasters?", "…who
+already use ApptMasters?"), a listing's Lease and fees note, the signed-out More
+page, the email sent when a join request is declined, and one error message.
+Nothing on the site says "Apartment Masters" any more.
+
+- [x] Type check passes · [x] Tests pass (350) · [x] Lint: no new errors (51)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100): Sign up and Log in say
+"ApptMasters"; signed out, More's section is titled ApptMasters; a listing's
+"Lease and fees" note says "…outside ApptMasters".
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

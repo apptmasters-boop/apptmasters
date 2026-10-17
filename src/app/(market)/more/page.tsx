@@ -97,7 +97,7 @@ export default function MorePage() {
             <Link href="/login?returnTo=/" className="flex-1 rounded-xl border border-gray-300 bg-white py-3 text-center text-sm font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">Log in</Link>
           </div>
         </div>
-        <Group title="Apartment Masters">
+        <Group title="ApptMasters">
           <Row href="/listings" icon={<SearchIcon className="h-5 w-5" />} label="Search apartments and rooms" />
           <Row href="/how-it-works" icon={<InfoIcon className="h-5 w-5" />} label="How It Works" />
           <Row href="/listings/new" icon={<PlusCircleIcon className="h-5 w-5" />} label="Post a listing" />

@@ -188,7 +188,7 @@ export async function buildHomeFeed(apartmentId: string, userId: string, role: s
   if (editRequests > 0) {
     items.push({ id: "expense-edits", priority: 3, href: `${base}/finance`, title: `${editRequests} expense ${editRequests === 1 ? "change" : "changes"} waiting for your vote` });
   }
-  // No landlord on Apartment Masters: household admins pass new repair requests on (Sprint 8, owner's decision).
+  // No landlord on ApptMasters: household admins pass new repair requests on (Sprint 8, owner's decision).
   if (isAdmin) {
     const home = await prisma.apartment.findUnique({ where: { id: apartmentId }, select: { managerId: true } });
     if (!home?.managerId) {

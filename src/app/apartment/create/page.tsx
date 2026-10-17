@@ -111,7 +111,7 @@ export default function CreateHomePage() {
         <SetupCard title="1. Basic information" subtitle="You can always update these details later.">
           <div className="space-y-4">
             {found.length > 0 && (
-              <Field id="found" label="Found it on Apartment Masters?" optional hint="Pick the listing you messaged its owner about: its title and city fill in.">
+              <Field id="found" label="Found it on ApptMasters?" optional hint="Pick the listing you messaged its owner about: its title and city fill in.">
                 <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500"><HomeIcon className="h-5 w-5" /></span>
                 <select id="found" value={listingId} onChange={e => pickListing(e.target.value)} className={`${inputClass} pl-11`}>
                   <option value="">No, I found it elsewhere</option>
@@ -220,7 +220,7 @@ export default function CreateHomePage() {
       </div>
 
       <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-        Moving in with roommates who already use Apartment Masters?{" "}
+        Moving in with roommates who already use ApptMasters?{" "}
         <Link href="/apartment/join" className="font-semibold text-brand hover:underline dark:text-emerald-300">Join their home</Link>
       </p>
     </SetupPage>

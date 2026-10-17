@@ -17,7 +17,7 @@ const PASSWORD_RULES = [
 
 const HERO = {
   heroTitle: "Create your account",
-  heroText: <><p>Join Apartment Masters and find your next home.</p><p className="mt-4">Safe. Simple. Community-driven.</p></>,
+  heroText: <><p>Join ApptMasters and find your next home.</p><p className="mt-4">Safe. Simple. Community-driven.</p></>,
 };
 
 /** Shown after sign-up: the account only works once the emailed link is clicked. */
@@ -81,7 +81,7 @@ function SignupForm() {
   if (pendingEmail) return <CheckYourEmail email={pendingEmail} />;
 
   return (
-    <AuthShell title="Create your account" subtitle="Start your journey with Apartment Masters" {...HERO}>
+    <AuthShell title="Create your account" subtitle="Start your journey with ApptMasters" {...HERO}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <FormError>{error}</FormError>}
         <AuthField icon={<UserIcon className="h-5 w-5" />} label="Full name"

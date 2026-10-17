@@ -72,7 +72,7 @@ export function verificationEmail(name: string, verifyUrl: string) {
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
       <h2 style="color:#1d5c4b;margin-bottom:8px">Confirm your email</h2>
       <p style="color:#374151">Hi ${esc(name)},</p>
-      <p style="color:#374151">Thanks for signing up for Apartment Masters! Click the button below to confirm your email address and finish creating your account. This link expires in <strong>24 hours</strong>.</p>
+      <p style="color:#374151">Thanks for signing up for ApptMasters! Click the button below to confirm your email address and finish creating your account. This link expires in <strong>24 hours</strong>.</p>
       <a href="${esc(verifyUrl)}" style="display:inline-block;margin:24px 0;background:#1d5c4b;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600">
         Confirm my email
       </a>

@@ -313,7 +313,7 @@ export default function ListingDetailPage() {
                 <div className="mt-2 rounded-2xl border border-gray-200 bg-white px-4 py-1 dark:border-gray-800 dark:bg-gray-900">
                   {terms.map(([label, value]) => <Row key={label} label={label} value={value} />)}
                 </div>
-                <p className="mt-2 text-xs text-gray-500">The lease and payments are arranged with the advertiser, outside Apartment Masters.</p>
+                <p className="mt-2 text-xs text-gray-500">The lease and payments are arranged with the advertiser, outside ApptMasters.</p>
               </section>
             )}
 

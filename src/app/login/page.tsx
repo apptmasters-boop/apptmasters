@@ -139,7 +139,7 @@ function LoginForm() {
   }
 
   return (
-    <AuthShell title="Welcome back" subtitle="Sign in to your Apartment Masters account"
+    <AuthShell title="Welcome back" subtitle="Sign in to your ApptMasters account"
       heroTitle="Find a safe place with people you can trust."
       heroText={<p>Temporary housing. Real community.<br />A path to your independence.</p>}>
       <form onSubmit={handleSubmit} className="space-y-4">

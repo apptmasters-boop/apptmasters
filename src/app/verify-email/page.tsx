@@ -40,7 +40,7 @@ function VerifyEmail() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const hero = {
-    heroTitle: "Welcome to Apartment Masters",
+    heroTitle: "Welcome to ApptMasters",
     heroText: <p>Temporary housing. Real community.<br />A path to your independence.</p>,
   };
 

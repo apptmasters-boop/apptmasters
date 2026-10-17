@@ -61,7 +61,7 @@ export type HomeAnswer = "LOOKING" | "FOUND";
 export async function answerHomeQuestion(userId: string, answer: HomeAnswer, now = new Date()) {
   const p = await findPerson(userId);
   if (!p) return { error: "Not found", status: 404 } as const;
-  if ((await factsFor(p)).hasHome) return { error: "You already have a home on Apartment Masters", status: 409 } as const;
+  if ((await factsFor(p)).hasHome) return { error: "You already have a home on ApptMasters", status: 409 } as const;
   await prisma.user.update({
     where: { id: userId },
     // "Still looking" also takes back an earlier "I found a place".

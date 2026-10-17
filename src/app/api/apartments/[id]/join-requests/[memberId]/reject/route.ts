@@ -30,7 +30,7 @@ export async function POST(
   // The person waiting hears back (Join status, Sprint 11b): the request is gone, so they'd otherwise never know.
   const title = `Your request to join ${target.apartment.name}`;
   sendEmail(target.user.email, title, notificationEmail(
-    title, "The household admin didn't approve this request. You can keep looking for a place on Apartment Masters.",
+    title, "The household admin didn't approve this request. You can keep looking for a place on ApptMasters.",
     `${appUrl}/listings`, "Find a home",
   )).catch(() => {});
 

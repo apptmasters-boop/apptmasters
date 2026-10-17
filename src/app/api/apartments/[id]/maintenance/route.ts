@@ -75,7 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const what = `${request.submittedBy.name} reported "${parsed.data.title}"${parsed.data.location ? ` (${parsed.data.location})` : ""}.`;
   if (request.apartment.manager?.email) {
-    // The landlord is on Apartment Masters: they're told and answer in their portal.
+    // The landlord is on ApptMasters: they're told and answer in their portal.
     await sendEmail(
       request.apartment.manager.email,
       `New maintenance request: ${parsed.data.title}`,
