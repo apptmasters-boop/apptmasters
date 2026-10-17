@@ -1,4 +1,4 @@
-// Fix F7: the signed-out Home search: All / Rooms / Whole places + one Location box.
+// Fixes F7 and F10: the signed-out Home search is one Location box and Search; every filter is on the results.
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
@@ -13,33 +13,30 @@ const ok = (c, m) => { console.log(`${c ? "ok  " : "FAIL"} ${m}`); if (!c) failu
 await page.goto(`${BASE}/login`, { waitUntil: "networkidle2" }); await page.evaluate(() => localStorage.clear());
 await page.setViewport({ width: 1536, height: 1000 });
 
-async function homeSearch(choice, text) {
-  await page.goto(`${BASE}/`, { waitUntil: "networkidle2" });
-  await page.waitForSelector("#lp-city");
-  if (choice) await page.evaluate(t => [...document.querySelectorAll("[role=radio]")].find(b => b.textContent.trim() === t)?.click(), choice);
-  if (text) { await page.type("#lp-city", text); await page.keyboard.press("Enter"); }
-  else await page.evaluate(() => [...document.querySelectorAll("button[type=submit]")].find(b => b.textContent.trim() === "Search")?.click());
-  await wait(2000);
-  return new URL(page.url());
-}
-ok(!(await page.goto(`${BASE}/`, { waitUntil: "networkidle2" }).then(() => page.$("#lp-people, #lp-budget, #lp-type"))), "no People, budget or Looking-for fields");
-let u = await homeSearch("Rooms", "Brooklyn");
-ok(u.searchParams.get("q") === "Brooklyn" && u.searchParams.get("kind") === "room", `Rooms + Brooklyn: ${u.search}`);
-ok(await page.evaluate(() => [...document.querySelectorAll("[role=tab]")].find(t => t.getAttribute("aria-selected") === "true")?.textContent.startsWith("Rooms")), "the Rooms tab is active");
-const types = await page.evaluate(() => [...document.querySelectorAll("article")].filter(a => a.offsetParent).map(a => a.innerText));
-ok(types.length > 0 && types.every(t => /room/i.test(t)), `only rooms (${types.length} cards)`);
-u = await homeSearch("Whole places", "");
-ok(u.searchParams.get("type") === "APARTMENT_FOR_RENT" && !u.searchParams.get("q"), `Whole places: ${u.search}`);
-ok(!!(await page.$("button[aria-label='Remove Whole places']")), "a removable Whole places chip shows");
-u = await homeSearch("", "11216");
-ok(u.searchParams.get("q") === "11216" && !u.searchParams.get("kind") && !u.searchParams.get("type"), `All + ZIP + Enter: ${u.search}`);
+await page.goto(`${BASE}/`, { waitUntil: "networkidle2" });
+await page.waitForSelector("#lp-city");
+const extra = await page.evaluate(() => {
+  const form = document.querySelector("#lp-city").closest("form");
+  return { radios: form.querySelectorAll("[role=radio]").length, selects: form.querySelectorAll("select").length, inputs: form.querySelectorAll("input").length };
+});
+ok(extra.radios === 0 && extra.selects === 0 && extra.inputs === 1, `only the Location box (${JSON.stringify(extra)})`);
+
+await page.type("#lp-city", "Brooklyn"); await page.keyboard.press("Enter"); await wait(2000);
+let u = new URL(page.url());
+ok(u.pathname === "/listings" && u.search === "?q=Brooklyn", `Brooklyn + Enter: ${u.pathname}${u.search}`);
 
 await page.goto(`${BASE}/`, { waitUntil: "networkidle2" });
-await page.screenshot({ path: fileURLToPath(new URL("home-d.png", OUT)), clip: { x: 0, y: 300, width: 1536, height: 420 } });
+await page.evaluate(() => [...document.querySelectorAll("button[type=submit]")].find(b => b.textContent.trim() === "Search")?.click());
+await wait(2000);
+u = new URL(page.url());
+ok(u.pathname === "/listings" && u.search === "", `empty Search opens all listings: ${u.pathname}${u.search}`);
+
+await page.goto(`${BASE}/`, { waitUntil: "networkidle2" });
+await page.screenshot({ path: fileURLToPath(new URL("home-d.png", OUT)), clip: { x: 0, y: 300, width: 1536, height: 360 } });
 await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
 await page.goto(`${BASE}/`, { waitUntil: "networkidle2" });
 await page.evaluate(() => window.scrollTo(0, 200)); await wait(500);
 await page.screenshot({ path: fileURLToPath(new URL("home-m.png", OUT)) });
 await browser.close();
-console.log(failures ? `${failures} CHECK(S) FAILED` : "ALL F7 CHECKS PASSED");
+console.log(failures ? `${failures} CHECK(S) FAILED` : "ALL HOME SEARCH CHECKS PASSED");
 process.exit(failures ? 1 : 0);

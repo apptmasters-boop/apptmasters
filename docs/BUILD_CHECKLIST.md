@@ -2328,3 +2328,24 @@ Nothing on the site says "Apartment Masters" any more.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F10 — Only the Location box on the signed-out Home (2026-10-17)
+
+**What the owner asked:** remove All · Rooms · Whole places from the Home
+search (added in F7): "all the filters should be inside".
+
+**What changes:** the signed-out Home search is **one Location box and
+Search**. Every filter, the kind of place included, is on the results page:
+the All · Apartments · Rooms · Houses tabs, the top row (People, Price,
+Bedrooms, Move-in date) and Filters.
+
+- [x] Type check passes · [x] Lint: no new errors (51)
+- [x] Browser check (`f7-check.mjs`, `zip-enter-check.mjs`): only the Location box;
+      Enter or Search opens the results (all listings when empty)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100, signed out, Home): one
+Location box and Search; type Brooklyn and press Enter: the results, with
+the tabs and filters at the top.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
