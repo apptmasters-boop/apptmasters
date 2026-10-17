@@ -2245,3 +2245,38 @@ advertiser shares them in Messages.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F7 — A simpler search on the signed-out Home (2026-10-17)
+
+**The owner's question:** keep Looking for · People · Monthly budget in the
+Home search, or move them to the results?
+
+**What others do:** Zillow, Apartments.com and Trulia start with one location
+box and keep the filters on the results; SpareRoom (roommates) asks rooms vs
+flatmates next to the location; a Booking.com A/B test found one search bar
+beats two. Our results already have People, Price, Bedrooms and Move-in date
+on their top row, and the signed-in Home already uses one box.
+
+**What changes** (owner's choice)
+- The signed-out Home search is **All · Rooms · Whole places** above **one
+  Location box** with Search. People and Monthly budget are gone from it
+  (they're on the results' top row).
+- Rooms opens the results on the **Rooms** tab; Whole places shows a "Whole
+  places ×" chip (apartments and houses); All shows everything.
+
+**Automatic checks (developer)**
+- [x] Type check passes
+- [x] Tests pass: 350
+- [x] Lint: no new errors (51)
+- [x] Browser check (`f7-check.mjs`, `zip-enter-check.mjs`): each choice opens the right
+      results; a ZIP code + Enter still searches
+- [x] Screens: signed-out Home, computer and phone
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100, signed out, Home)
+1. The search shows All · Rooms · Whole places above one Location box, with
+   no People or budget.
+2. Choose **Rooms**, type Brooklyn, press Enter: only rooms, the Rooms tab
+   active; People and Price are on the results' top row.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
