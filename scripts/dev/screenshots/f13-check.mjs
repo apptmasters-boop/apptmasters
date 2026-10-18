@@ -40,6 +40,9 @@ const account = await page.evaluate(() => {
 });
 console.log("More › Account:", account.join(" | "));
 ok(JSON.stringify(account) === JSON.stringify(["Settings", "How It Works", "Help & support", "Log out"]), "Account: Settings, How It Works, Help & support, Log out");
+const groups = () => page.$$eval("main section h2", hs => hs.map(h => h.textContent.trim()));
+ok(!(await groups()).includes("Messages"), "no Messages group without a Home: the phone bar has it (fix F14)");
+ok(await page.$eval('nav[aria-label="Main"]', n => [...n.querySelectorAll("a")].some(a => a.getAttribute("href") === "/listings/inbox")), "the phone bar has Messages");
 const moreText = await text();
 ok(!/Personal information|Privacy & security/.test(moreText), "Personal information and Privacy & security are not on More");
 ok(await page.$eval('main a[aria-label="Settings"]', a => a.getAttribute("href")) === "/settings", "the gear opens /settings");
@@ -150,6 +153,8 @@ ok((await text()).includes("Photo saved."), "Photo saved.");
 await go("/profile");
 ok(/\?v=\d+$/.test(await page.$eval("main img", i => i.getAttribute("src")) ?? ""), "My Profile shows the new photo after a reload");
 await page.evaluate(() => fetch("/api/users/profile", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token") ?? sessionStorage.getItem("token")}` }, body: JSON.stringify({ photo: "" }) }));
+await go("/more");
+ok((await groups()).includes("Messages"), "in a Home, More keeps Messages: the household bar has no Messages tab (fix F14)");
 await go("/apartment/local-home-maple/more");
 const homeMore = await page.$$eval("a", as => as.map(a => a.getAttribute("href")));
 ok(homeMore.includes("/profile") && homeMore.includes("/settings"), "the Home's More has My profile and Settings");

@@ -2449,3 +2449,26 @@ the page has no privacy controls.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F14 — No Messages row on More for people without a Home (2026-10-17)
+
+**What the owner asked:** for someone who doesn't live in a Home, the Messages
+row on More repeats the Messages tab of the phone bar: remove it.
+
+**What changes:** on More, the "Messages" group shows only for people who live
+in a Home. Their phone bar (Home, Household, Money, Chat, More) has no
+Messages tab, so More stays their way to marketplace messages. Everyone else
+uses the phone bar's Messages (with its red dot), or Messages in the menu under
+their name on a computer.
+
+- [x] Type check passes · [x] Lint: no new errors (50) · [x] Browser check (`f13-check.mjs`: no group without a Home, kept for the resident)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Sign in with `owner@apptmasters.local` / `LocalTest-2026` (no Home), open
+   **More**: Search & listings, then Account; no Messages group. The phone bar
+   still has Messages with its red dot.
+2. Sign in as `resident@apptmasters.local` / `LocalTest-2026` (lives in Maple
+   House), open `/more`: the Messages row is still there.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

@@ -147,10 +147,13 @@ export default function MorePage() {
         <Row href="/listings/new" icon={<PlusCircleIcon className="h-5 w-5" />} label="Post a listing" />
       </Group>
 
-      <Group title="Messages">
-        <Row href="/listings/inbox" icon={<MessageIcon className="h-5 w-5" />} label="Messages"
-          badge={unread > 0 ? <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-semibold text-white">{unread}</span> : null} />
-      </Group>
+      {/* Without a Home, the phone bar already has Messages (fix F14, owner 2026-10-17); the household bar doesn't. */}
+      {!seeking && (
+        <Group title="Messages">
+          <Row href="/listings/inbox" icon={<MessageIcon className="h-5 w-5" />} label="Messages"
+            badge={unread > 0 ? <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-semibold text-white">{unread}</span> : null} />
+        </Group>
+      )}
 
       <Group title="Account">
         {/* Personal information, Notifications and Login & security are inside Settings (fix F13, owner 2026-10-17). */}
