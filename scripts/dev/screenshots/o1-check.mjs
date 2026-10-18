@@ -53,41 +53,41 @@ await fill(email("none"));
 await submit(); await wait(800);
 ok((await text()).includes("Choose what brings you to ApptMasters.") && !(await text()).includes("Check your email"), "Create account without a choice: asked to choose, nothing sent");
 
-// 2. Rent out a place → Post a listing.
-await choose("Rent out a place");
-ok(await chosen() === "RENT_OUT", "Rent out a place chosen");
+// 2. I have a place to rent out → Post a listing.
+await choose("I have a place to rent out");
+ok(await chosen() === "RENT_OUT", "I have a place to rent out chosen");
 await page.evaluate(() => { const i = document.querySelector('input[type="email"]'); i.value = ""; });
 await page.click('input[type="email"]', { clickCount: 3 }); await page.keyboard.press("Backspace");
 await page.type('input[type="email"]', email("rent"));
 await shot("signup-chosen-m");
 let landed = await signUpAndConfirm(email("rent"));
-ok(landed.pathname === "/listings/new", `Rent out → after confirming: ${landed.pathname}`);
+ok(landed.pathname === "/listings/new", `I have a place to rent out → after confirming: ${landed.pathname}`);
 
-// 3. Set up my home → Create a Home.
+// 3. I already have a place → Create a Home.
 await signOut();
 await page.goto(`${BASE}/signup`, { waitUntil: "networkidle2" });
-await choose("Set up my home"); await fill(email("home"));
+await choose("I already have a place"); await fill(email("home"));
 landed = await signUpAndConfirm(email("home"));
-ok(landed.pathname === "/apartment/create", `Set up my home → after confirming: ${landed.pathname}`);
+ok(landed.pathname === "/apartment/create", `I already have a place → after confirming: ${landed.pathname}`);
 ok((await text()).includes("Join their home"), "Create a Home offers Join their home");
 
-// 4. Find a place to live → Home.
+// 4. I'm looking for a place → Home.
 await signOut();
 await page.goto(`${BASE}/signup`, { waitUntil: "networkidle2" });
-await choose("Find a place to live"); await fill(email("find"));
+await choose("I'm looking for a place"); await fill(email("find"));
 landed = await signUpAndConfirm(email("find"));
-ok(landed.pathname === "/", `Find a place → after confirming: ${landed.pathname}`);
+ok(landed.pathname === "/", `I'm looking for a place → after confirming: ${landed.pathname}`);
 
 // 5. Pre-selected from where they came from.
 await signOut();
 await page.goto(`${BASE}/listings/new`, { waitUntil: "networkidle2" });
 await page.waitForFunction(() => location.pathname === "/signup", { timeout: 30_000 }).catch(() => {});
-ok(await chosen() === "RENT_OUT", "Post a listing → Rent out a place already chosen");
+ok(await chosen() === "RENT_OUT", "Post a listing → I have a place to rent out already chosen");
 await page.goto(`${BASE}/apartment/create`, { waitUntil: "networkidle2" });
 await page.waitForFunction(() => location.pathname === "/signup", { timeout: 30_000 }).catch(() => {});
-ok(new URL(page.url()).pathname === "/signup" && await chosen() === "HAVE_HOME", "Create a Home sends visitors to sign up, with Set up my home chosen");
+ok(new URL(page.url()).pathname === "/signup" && await chosen() === "HAVE_HOME", "Create a Home sends visitors to sign up, with I already have a place chosen");
 await page.goto(`${BASE}/signup?returnTo=${encodeURIComponent("/listings/shot-l1?save=shot-l1")}`, { waitUntil: "networkidle2" });
-ok(await chosen() === "FIND_HOME", "Saving a listing → Find a place to live already chosen");
+ok(await chosen() === "FIND_HOME", "Saving a listing → I'm looking for a place already chosen");
 await fill(email("save"));
 landed = await signUpAndConfirm(email("save"));
 ok(landed.pathname === "/listings/shot-l1", `after confirming, back on the listing they saved: ${landed.pathname}`);
@@ -99,7 +99,7 @@ const t = await text();
 ok(t.includes("Already have a place?"), "the visitor Home shows Already have a place?");
 await page.evaluate(() => [...document.querySelectorAll("a")].find(a => a.textContent.trim() === "Create a home")?.click());
 await page.waitForFunction(() => location.pathname === "/signup", { timeout: 60_000 }).catch(() => {});
-ok(await chosen() === "HAVE_HOME", "its Create a home leads to sign up with Set up my home chosen");
+ok(await chosen() === "HAVE_HOME", "its Create a home leads to sign up with I already have a place chosen");
 await page.goto(`${BASE}/`, { waitUntil: "networkidle2" });
 await page.evaluate(() => [...document.querySelectorAll("h2")].find(h => h.textContent.includes("Already have a place?"))?.scrollIntoView({ block: "center" }));
 await wait(500);

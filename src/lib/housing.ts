@@ -48,7 +48,7 @@ export function landingPath(me: MeForLanding): string {
  * Where to go right after signing in. Same as landingPath, except that people who
  * signed up to rent a place out start on their listings (step O1, 2026-10-18). Home
  * itself stays open to them: it redirects by landingPath, not by this.
- * ("Set up my home" sets foundHomeAt, so landingPath already handles it.)
+ * ("I already have a place" sets foundHomeAt, so landingPath already handles it.)
  */
 export function signInPath(me: MeForLanding): string {
   const path = landingPath(me);

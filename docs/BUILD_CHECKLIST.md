@@ -2608,29 +2608,29 @@ room"; SpareRoom asks offering or seeking when you post.
 ### O1 — "What brings you to ApptMasters?" on the sign-up form (2026-10-18)
 
 **What changes**
-- **The sign-up form** starts with three choices (required):
-  - **Find a place to live:** a room or an apartment.
-  - **Set up my home:** I already have a place and want to manage it with my
-    roommates.
-  - **Rent out a place:** a room in my home, or an apartment I own.
+- **The sign-up form** starts with three choices (required). The owner chose
+  "I…" sentences on 2026-10-18, because "Set up my home" read unclear:
+  - **I'm looking for a place:** a room or an apartment.
+  - **I already have a place:** share rent, expenses and chores with my
+    roommates (matches the Home card "Already have a place?").
+  - **I have a place to rent out:** a room in my home, or an apartment I own.
 - **Pre-selected from what the person was doing** (changeable):
-  - Saving or contacting a listing → Find a place.
-  - "Already have a place?" → Set up my home.
-  - "Post a listing" → Rent out.
+  - Saving or contacting a listing → I'm looking for a place.
+  - "Already have a place?" → I already have a place.
+  - "Post a listing" → I have a place to rent out.
   - The plain "Sign up" → nothing chosen; they must pick.
 - **After confirming the email:**
   - The action in progress still wins.
-  - Otherwise: Find a place → Home; Set up my home → Create a Home (it links
-    "Join their home"); Rent out → Post a listing.
-- **Set up my home** also counts as "I found a place": later sign-ins open
+  - Otherwise: looking → Home; already have a place → Create a Home (it
+    links "Join their home"); rent out → Post a listing.
+- **I already have a place** also counts as "I found a place": later sign-ins open
   Create a Home until they're in one, and the "Have you found your new home?"
   email isn't sent.
-- **Rent out:** later sign-ins open **My listings**, and the "found your home"
+- **I have a place to rent out:** later sign-ins open **My listings**, and the "found your home"
   email isn't sent. My listings, when empty, says "Manage a building with
   tenants? Ask us for the landlord tools" (an email to apptmasters@gmail.com,
   the contact already on Privacy and Terms). Help gets the same answer.
-- **The Home page for visitors** gets the "Already have a place? Set up your
-  home" card; Create a Home sends visitors to sign up (it used to send them to
+- **The Home page for visitors** gets the "Already have a place?" card; Create a Home sends visitors to sign up (it used to send them to
   log in).
 - **Admin → Users** shows each account's answer.
 - **Older accounts** have no answer and work as before.
@@ -2648,15 +2648,15 @@ owner's yes**. Until then O1 can't be deployed.
 **Your test on this PC** (http://localhost:3100, signed out)
 1. Click **Sign up** at the top: the three choices come first, and Create
    account asks you to choose one.
-2. Sign up with a new email and **Rent out a place**. The local copy doesn't
+2. Sign up with a new email and **I have a place to rent out**. The local copy doesn't
    send email, so get the confirmation link with
    `node scripts/dev/screenshots/confirm-link.mjs <your email>` and open it:
    you land on **Post a listing**.
-3. Do the same with **Set up my home** → **Create a Home**; and with **Find a
-   place to live** → Home.
+3. Do the same with **I already have a place** → **Create a Home**; and with
+   **I'm looking for a place** → Home.
 4. On the Home page (signed out), the **Already have a place?** card leads to
-   sign-up with "Set up my home" already chosen.
-5. Open a listing, press **Save**, then Sign up: "Find a place to live" is
+   sign-up with "I already have a place" already chosen.
+5. Open a listing, press **Save**, then Sign up: "I'm looking for a place" is
    already chosen, and after confirming you're back on the listing.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____

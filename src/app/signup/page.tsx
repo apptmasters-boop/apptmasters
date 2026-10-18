@@ -54,11 +54,11 @@ function CheckYourEmail({ email }: { email: string }) {
   );
 }
 
-/** "What brings you to ApptMasters?" (step O1, owner 2026-10-18). */
+/** "What brings you to ApptMasters?" (step O1, owner 2026-10-18; "I…" sentences, owner's wording choice). */
 const CHOICES: { value: Intent; title: string; text: string; icon: (p: { className?: string }) => React.ReactNode }[] = [
-  { value: "FIND_HOME", title: "Find a place to live", text: "A room or an apartment", icon: SearchIcon },
-  { value: "HAVE_HOME", title: "Set up my home", text: "I already have a place and want to manage it with my roommates", icon: HomeUsersIcon },
-  { value: "RENT_OUT", title: "Rent out a place", text: "A room in my home, or an apartment I own", icon: KeyHouseIcon },
+  { value: "FIND_HOME", title: "I'm looking for a place", text: "A room or an apartment", icon: SearchIcon },
+  { value: "HAVE_HOME", title: "I already have a place", text: "Share rent, expenses and chores with my roommates", icon: HomeUsersIcon },
+  { value: "RENT_OUT", title: "I have a place to rent out", text: "A room in my home, or an apartment I own", icon: KeyHouseIcon },
 ];
 
 function IntentChoice({ value, onChange, missing }: { value: Intent | null; onChange: (v: Intent) => void; missing: boolean }) {

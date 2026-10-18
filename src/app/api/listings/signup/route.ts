@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
   }
   const { name, email, password, returnTo, intent } = parsed.data;
-  // "Set up my home" means they found a place: the 11a rules then lead them to Create a
+  // "I already have a place" means they found one: the 11a rules then lead them to Create a
   // Home and never ask "Have you found your new home?" (src/lib/housing.ts).
   const answer = { intent, foundHomeAt: intent === "HAVE_HOME" ? new Date() : null };
 
