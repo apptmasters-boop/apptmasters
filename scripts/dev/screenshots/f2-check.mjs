@@ -61,6 +61,14 @@ await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
 await go("/"); await shot("home-m");
 await go("/listings"); await shot("results-m");
 ok(await page.$eval("header", h => getComputedStyle(h).display === "none"), "phone: no logo bar on Find a Home");
+// Fix F16: no footer on phones, on any page that has it.
+for (const p of ["/", "/listings", "/saved", "/more", "/settings", "/profile", "/help", "/how-it-works"]) {
+  await go(p);
+  ok(await page.evaluate(() => [...document.querySelectorAll("footer")].every(f => getComputedStyle(f).display === "none")), `phone: no footer on ${p} (F16)`);
+}
+await page.setViewport({ width: 1536, height: 1000 });
+await go("/settings");
+ok(await page.evaluate(() => { const f = document.querySelector("footer"); return !!f && getComputedStyle(f).display !== "none"; }), "computer: the footer is still there (F16)");
 await browser.close();
 console.log(failures ? `${failures} CHECK(S) FAILED` : "ALL F2 CHECKS PASSED");
 process.exit(failures ? 1 : 0);

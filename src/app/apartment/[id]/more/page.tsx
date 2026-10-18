@@ -6,7 +6,7 @@ import { HubPage, HubSection, type HubItem } from "@/components/home/HubPage";
 import { useApartment } from "@/components/home/useApartment";
 import {
   WrenchIcon, ScaleIcon, CalendarIcon, ChartIcon, StarIcon, ClipboardCheckIcon, SearchDocIcon,
-  BellIcon, SearchIcon, HomeIcon, UserIcon, SettingsIcon, LogOutIcon, MessageIcon, ShieldCheckIcon,
+  BellIcon, SearchIcon, HomeIcon, UserIcon, SettingsIcon, LogOutIcon, MessageIcon, ShieldCheckIcon, HelpCircleIcon,
 } from "@/components/landing/icons";
 
 // More tab (PRODUCT_LOGIC §17): secondary navigation, grouped. Also holds the
@@ -29,6 +29,8 @@ export default function MorePage() {
     { href: "/profile", label: "My profile", description: "Your details and your homes", icon: UserIcon },
     { href: "/settings", label: "Settings", description: "Personal information, notifications, login & security", icon: SettingsIcon },
     { href: at("notifications"), label: "Notifications", description: "Everything that happened for you", icon: BellIcon },
+    // Phones have no footer since fix F16: Help is here.
+    { href: "/help", label: "Help & support", description: "Answers to the questions people ask most", icon: HelpCircleIcon },
   ];
   if (isSuperAdmin) {
     account.push({ href: "/admin", label: "Admin", description: "Platform administration", icon: SettingsIcon });

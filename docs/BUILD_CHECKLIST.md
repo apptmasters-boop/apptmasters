@@ -2498,3 +2498,31 @@ check leaves one payment waiting: Jordan says they paid the resident $10.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F16 — No footer on phones (2026-10-18)
+
+**What the owner asked:** "We don't need to see this on the mobile version.
+Remove it in all the pages": the footer (Help · © 2026 ApptMasters).
+
+**What changes**
+- The footer shows **only on computers** (the same width where the top bar
+  shows the name menu). On phones, every page ends with its own content,
+  then the phone bar. It's one shared footer, so this covers every page that
+  had it (Home, Find a Home, a listing, Saved, More, Settings, My Profile, Help,
+  How It Works).
+- Help stays one tap away on phones: More → **Help & support**. People who
+  live in a Home use the Home's More, which had no Help: it now has **Help &
+  support** under Account.
+
+- [x] Type check passes · [x] Lint: no new errors (50) · [x] Browser check (`f2-check.mjs`: no footer on 8 pages on a phone, still there on a computer; `f13-check.mjs`: Help & support on the Home's More)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. On a phone-sized window (or your phone on the same Wi-Fi), scroll to the
+   bottom of Home, Find a Home, Settings and More: no "Help · © 2026
+   ApptMasters".
+2. On a computer: the footer is still at the bottom.
+3. Sign in as `resident@apptmasters.local` / `LocalTest-2026`, open the Home's
+   **More** (phone bar): Account has **Help & support**.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

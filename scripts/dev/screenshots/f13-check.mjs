@@ -158,6 +158,7 @@ ok((await groups()).includes("Messages"), "in a Home, More keeps Messages: the h
 await go("/apartment/local-home-maple/more");
 const homeMore = await page.$$eval("a", as => as.map(a => a.getAttribute("href")));
 ok(homeMore.includes("/profile") && homeMore.includes("/settings"), "the Home's More has My profile and Settings");
+ok(homeMore.includes("/help"), "the Home's More has Help & support (phones have no footer, F16)");
 
 await browser.close();
 console.log(failures ? `${failures} CHECK(S) FAILED` : "ALL F13 CHECKS PASSED");

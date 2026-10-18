@@ -9,9 +9,9 @@ from there."
 
 ## Next time, start here
 
-1. **F15 (Money, "What's next" only when something waits):** built, NOT
-   deployed. The owner tests it on this PC (steps in the checklist, "F15"),
-   then says "deploy".
+1. **F15 (Money, "What's next" only when something waits) and F16 (no footer
+   on phones):** built, NOT deployed. The owner tests them on this PC (steps in
+   the checklist), then says "deploy".
 2. **F2–F14 are live:** wait for the owner's sign-off on apptmasters.com
    ("F2–F14 approved", or the ones that need changes).
 3. **P1 backups:** the 2026-10-18 automatic backup runs at 07:30 UTC. Check it
@@ -87,6 +87,7 @@ asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 | F13 | My Profile and Settings (Personal information, Notifications, Login & security, Dark mode) each have their own page |
 | F14 | No Messages row on More for people without a Home (the phone bar has it). **Live 2026-10-18 (55fd4ec)** |
 | F15 | Money: the "What's next" box shows only when something is waiting (no "Nothing waiting for you"). **Built and pushed, NOT deployed yet: the owner tests on this PC first** (third local login: `roommate@apptmasters.local`, Jordan Roommate in Maple House) |
+| F16 | No footer on phones (computers keep it); Help & support added to the Home's More. **Built and pushed, NOT deployed yet: the owner tests on this PC first** |
 
 - **Local copy to test:** see "Starting the local copy" above.
 - **Deploying the next fixes:** same recipe. On the server: pull, `rm -rf

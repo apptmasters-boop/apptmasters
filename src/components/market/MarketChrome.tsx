@@ -7,7 +7,7 @@
  *   Visitor           logo · Log in · Sign up
  *   Signed in         logo · your name (its menu holds Find a Home, Messages, Saved, the rest)
  *   Phone bar         Home · Saved · Messages · More (visitors: Home · Find a Home · Saved · More)
- *   Footer            Help
+ *   Footer            Help (computers only)
  *
  * The owner asked for the bare top bar on 2026-10-17 (Fix F2): the links were
  * redundant with the logo, the search and the phone bar.
@@ -175,11 +175,14 @@ export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | u
   );
 }
 
-/** The bottom of every Find a Home page (fix F2; only Help since fix F12, owner 2026-10-17). */
+/**
+ * The bottom of every Find a Home page, on computers only (fix F2; only Help
+ * since F12; not on phones since F16, owner 2026-10-18: phones reach Help from More).
+ */
 export function MarketFooter() {
   const link = "hover:text-gray-900 hover:underline dark:hover:text-white";
   return (
-    <footer className="mt-10 border-t border-gray-200 dark:border-gray-800">
+    <footer className="mt-10 hidden border-t border-gray-200 lg:block dark:border-gray-800">
       <div className="mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-gray-500 sm:px-6 lg:px-8 dark:text-gray-400">
         <Link href="/help" className={link}>Help</Link>
         <span>© {new Date().getFullYear()} ApptMasters</span>
