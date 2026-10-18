@@ -2461,7 +2461,7 @@ uses the phone bar's Messages (with its red dot), or Messages in the menu under
 their name on a computer.
 
 - [x] Type check passes · [x] Lint: no new errors (50) · [x] Browser check (`f13-check.mjs`: no group without a Home, kept for the resident)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-18 (55fd4ec, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. Sign in with `owner@apptmasters.local` / `LocalTest-2026` (no Home), open
