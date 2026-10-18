@@ -35,7 +35,8 @@ export default function CreateHomePage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!getToken()) { router.replace(`/login?returnTo=${encodeURIComponent("/apartment/create")}`); return; }
+    // Visitors are most likely new: sign up, with "Set up my home" already chosen (step O1).
+    if (!getToken()) { router.replace(`/signup?returnTo=${encodeURIComponent("/apartment/create")}`); return; }
     let current = true;
     async function load() {
       const [meRes, inboxRes] = await Promise.all([apiFetch("/api/auth/me"), apiFetch("/api/listings/inbox")]);

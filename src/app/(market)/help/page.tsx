@@ -11,6 +11,7 @@ const QUESTIONS: [string, React.ReactNode][] = [
   ["Why can't I see the exact address?", "For the advertiser's privacy, listings show the neighborhood and city. They share the exact address in your conversation when they're ready."],
   ["What does \"Up to 4 people\" mean?", "How many people can live in the place, as the advertiser declares it. When you search for a number of occupants, only listings that state at least that many show up."],
   ["I found a place. What now?", <><Link href="/apartment/create" className="font-semibold text-brand hover:underline">Create a Home</Link> to share rent, expenses, cleaning and shopping with your roommates, or <Link href="/apartment/join" className="font-semibold text-brand hover:underline">join one</Link> with the invite code a roommate gave you.</>],
+  ["I'm a landlord with tenants. Can I manage my building here?", <>Yes. The landlord tools (buildings and units, rent, your tenants&apos; repair requests) are opened on request: email us at <a href="mailto:apptmasters@gmail.com?subject=Landlord%20tools" className="font-semibold text-brand hover:underline">apptmasters@gmail.com</a>. To advertise a room or an apartment, you don&apos;t need them: just <Link href="/listings/new" className="font-semibold text-brand hover:underline">post a listing</Link>.</>],
   ["How do I stay safe?", "Visit before you pay anything, never send money to someone you haven't met, and keep your conversations on ApptMasters. If something feels wrong, use \"Report this listing\" on the listing."],
 ];
 

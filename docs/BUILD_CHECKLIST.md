@@ -2584,3 +2584,80 @@ conversation about a listing that Jordan marked rented.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+## Who signs up, and where they go (owner, 2026-10-18)
+
+**The owner's question:** where to send people who sign up to find a home,
+to list or manage a place, or who got a place elsewhere? Should sign-up ask?
+
+**Assessment:**
+- **Seekers:** served well.
+- **Listers:** served partly. Fine via "Post a listing"; the plain "Sign up"
+  lands them on the house-hunting Home.
+- **People who found a place elsewhere:** served worst. The visitor Home has
+  no "I already have a place" entry, and the app treats them as seekers.
+- **Landlord tools** (`/manager`) stay invite-only.
+
+**Competitors:** Roomies starts sign-up from "Find a room" or "List your
+room"; SpareRoom asks offering or seeking when you post.
+
+**Owner's choices:**
+- A **required question on the sign-up form**.
+- **Remember the answer:** one small database field (`User.intent`), applied
+  on the live site together with L2's change, only after the owner's yes.
+
+### O1 — "What brings you to ApptMasters?" on the sign-up form (2026-10-18)
+
+**What changes**
+- **The sign-up form** starts with three choices (required):
+  - **Find a place to live:** a room or an apartment.
+  - **Set up my home:** I already have a place and want to manage it with my
+    roommates.
+  - **Rent out a place:** a room in my home, or an apartment I own.
+- **Pre-selected from what the person was doing** (changeable):
+  - Saving or contacting a listing → Find a place.
+  - "Already have a place?" → Set up my home.
+  - "Post a listing" → Rent out.
+  - The plain "Sign up" → nothing chosen; they must pick.
+- **After confirming the email:**
+  - The action in progress still wins.
+  - Otherwise: Find a place → Home; Set up my home → Create a Home (it links
+    "Join their home"); Rent out → Post a listing.
+- **Set up my home** also counts as "I found a place": later sign-ins open
+  Create a Home until they're in one, and the "Have you found your new home?"
+  email isn't sent.
+- **Rent out:** later sign-ins open **My listings**, and the "found your home"
+  email isn't sent. My listings, when empty, says "Manage a building with
+  tenants? Ask us for the landlord tools" (an email to apptmasters@gmail.com,
+  the contact already on Privacy and Terms). Help gets the same answer.
+- **The Home page for visitors** gets the "Already have a place? Set up your
+  home" card; Create a Home sends visitors to sign up (it used to send them to
+  log in).
+- **Admin → Users** shows each account's answer.
+- **Older accounts** have no answer and work as before.
+- **Fixed along the way:** a resent confirmation link, or one without a
+  destination, used to end on the old `/dashboard` page. It now starts where the
+  answer does, or where signing in normally lands.
+
+**Database:** one new empty column `User.intent`. On this PC it's in the test
+database. On the live site it goes in with L2's change, **only after the
+owner's yes**. Until then O1 can't be deployed.
+
+- [x] Type check · [x] Tests (360, 8 new) · [x] Lint: no new errors (50) · [x] Browser check (`o1-check.mjs`: 19 checks, every answer and every entry point)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first; needs the database change**
+
+**Your test on this PC** (http://localhost:3100, signed out)
+1. Click **Sign up** at the top: the three choices come first, and Create
+   account asks you to choose one.
+2. Sign up with a new email and **Rent out a place**. The local copy doesn't
+   send email, so get the confirmation link with
+   `node scripts/dev/screenshots/confirm-link.mjs <your email>` and open it:
+   you land on **Post a listing**.
+3. Do the same with **Set up my home** → **Create a Home**; and with **Find a
+   place to live** → Home.
+4. On the Home page (signed out), the **Already have a place?** card leads to
+   sign-up with "Set up my home" already chosen.
+5. Open a listing, press **Save**, then Sign up: "Find a place to live" is
+   already chosen, and after confirming you're back on the listing.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

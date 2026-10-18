@@ -217,6 +217,13 @@ should return to that listing and continue contacting the advertiser.
 
 There is no mandatory onboarding questionnaire immediately after signup.
 
+> **Owner's change (2026-10-18, step O1):** the sign-up form now asks one
+> required question, "What brings you to ApptMasters?" (Find a place to live ·
+> Set up my home · Rent out a place). It comes pre-selected from what the
+> person was doing (saving or contacting a listing → Find a place; "Already
+> have a place?" → Set up my home; "Post a listing" → Rent out), and the
+> action in progress still wins after sign-up. No other questions.
+
 ## 13. Header Logic Before and After Login
 
 > **Owner's change (2026-10-17, fix F2):** on computers the top bar is only the

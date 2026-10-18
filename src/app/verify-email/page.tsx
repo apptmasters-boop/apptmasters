@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, setToken } from "@/lib/api";
+import { apiFetch, setToken, goToLandingPage } from "@/lib/api";
 import { safeReturnTo } from "@/lib/returnTo";
 import AuthShell from "@/components/auth/AuthShell";
 import { CheckIcon } from "@/components/landing/icons";
@@ -11,7 +11,8 @@ import { CheckIcon } from "@/components/landing/icons";
 function VerifyEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = safeReturnTo(searchParams.get("returnTo"), "/dashboard");
+  // No destination in the link: the usual sign-in landing (it used to be the old /dashboard; step O1).
+  const next = safeReturnTo(searchParams.get("returnTo"), "");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -35,7 +36,7 @@ function VerifyEmail() {
       }
       setToken(data.token);
       setStatus("success");
-      setTimeout(() => router.replace(next), 2000);
+      setTimeout(() => { if (next) router.replace(next); else goToLandingPage(router); }, 2000);
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -60,7 +61,8 @@ function VerifyEmail() {
             <CheckIcon className="h-7 w-7" />
           </div>
           <p className="text-sm text-gray-700">You&apos;re signed in. Taking you there now…</p>
-          <Link href={next} className="inline-block text-sm font-semibold text-brand hover:underline">Continue</Link>
+          <button type="button" onClick={() => { if (next) router.replace(next); else goToLandingPage(router); }}
+            className="inline-block text-sm font-semibold text-brand hover:underline">Continue</button>
         </div>
       </AuthShell>
     );

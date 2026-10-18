@@ -1,4 +1,4 @@
-import { landingPath } from "@/lib/housing";
+import { signInPath } from "@/lib/housing";
 
 /**
  * The login token lives in localStorage when the user chose "Remember me"
@@ -24,13 +24,14 @@ export function clearToken() {
 
 /**
  * Sends a just-signed-in user to the right place: their Home, the listings
- * (home seekers), the manager portal or Admin. The rule is landingPath() in
- * src/lib/housing.ts; /dashboard ("Your homes") is the fallback.
+ * (home seekers), their listings (signed up to rent out), the manager portal or
+ * Admin. The rule is signInPath() in src/lib/housing.ts; /dashboard ("Your homes")
+ * is the fallback.
  */
 export async function goToLandingPage(router: { replace: (path: string) => void }) {
   const res = await apiFetch("/api/auth/me").catch(() => null);
   if (!res?.ok) { router.replace("/dashboard"); return; }
-  router.replace(landingPath(await res.json()));
+  router.replace(signInPath(await res.json()));
 }
 
 export async function apiFetch(path: string, options: RequestInit = {}) {

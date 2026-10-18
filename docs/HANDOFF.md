@@ -10,9 +10,14 @@ from there."
 ## Next time, start here
 
 1. **F15 (Money, "What's next" only when something waits), F16 (no footer on
-   phones) and L1 (conversations keep working after a listing closes):** built,
-   NOT deployed. The owner tests them on this PC (steps in the checklist), then
-   says "deploy".
+   phones), L1 (conversations keep working after a listing closes) and O1 (the
+   sign-up question):** built, NOT deployed. The owner tests them on this PC
+   (steps in the checklist), then says "deploy".
+   - **O1 needs the new column `User.intent` on the live site:**
+     - Write the SQL at deploy time, following `prisma/manual-sql/README.md`.
+     - Put it in one file with L2's changes if L2 is ready.
+     - Apply it only after the owner's explicit yes.
+     - Without it, deploy F15, F16 and L1, and hold O1.
    - **Listing lifecycle:** the owner chose the lighter plan on 2026-10-18 (the
      review and plan are in the checklist, "Listing lifecycle").
    - **Next steps:**
@@ -98,6 +103,7 @@ asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 | F15 | Money: the "What's next" box shows only when something is waiting (no "Nothing waiting for you"). **Built and pushed, NOT deployed yet: the owner tests on this PC first** (third local login: `roommate@apptmasters.local`, Jordan Roommate in Maple House) |
 | F16 | No footer on phones (computers keep it); Help & support added to the Home's More. **Built and pushed, NOT deployed yet: the owner tests on this PC first** |
 | L1 | Conversations keep working after a listing closes: name, photo, card with "No longer available", replies both ways; a short "No longer available" page with Find similar. **Built and pushed, NOT deployed yet** (browser check `l1-check.mjs`, leaves a test conversation about "Sunny room near the park") |
+| O1 | Sign-up asks "What brings you to ApptMasters?" (Find a place · Set up my home · Rent out), required, pre-selected from where people came from; each answer lands right; the visitor Home gets "Already have a place?". **Built and pushed, NOT deployed: needs the new column `User.intent` on the live site (in the same SQL as L2, only after the owner's yes)** (browser check `o1-check.mjs`; local confirmation links: `node scripts/dev/screenshots/confirm-link.mjs <email>`) |
 
 - **Local copy to test:** see "Starting the local copy" above.
 - **Deploying the next fixes:** same recipe. On the server: pull, `rm -rf

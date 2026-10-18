@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/api";
 import { activeMemberships } from "@/lib/housing";
+import { INTENT_LABELS, isIntent } from "@/lib/intent";
 
 interface User {
   id: string; name: string; email: string; systemRole: string; createdAt: string;
+  intent: string | null; // the sign-up answer (step O1)
   _count: { memberships: number };
 }
 interface Apartment {
@@ -280,6 +282,7 @@ export default function AdminPage() {
                     <th className="text-left px-5 py-3 font-medium text-gray-600">User</th>
                     <th className="text-left px-5 py-3 font-medium text-gray-600">Role</th>
                     <th className="text-left px-5 py-3 font-medium text-gray-600">Apts</th>
+                    <th className="text-left px-5 py-3 font-medium text-gray-600">Signed up to</th>
                     <th className="text-left px-5 py-3 font-medium text-gray-600">Joined</th>
                     <th className="px-5 py-3" />
                   </tr>
@@ -297,6 +300,7 @@ export default function AdminPage() {
                         </span>
                       </td>
                       <td className="px-5 py-3 text-gray-600">{u._count.memberships}</td>
+                      <td className="px-5 py-3 text-xs text-gray-600">{isIntent(u.intent) ? INTENT_LABELS[u.intent] : <span className="text-gray-300">—</span>}</td>
                       <td className="px-5 py-3 text-gray-400 text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3 justify-end">

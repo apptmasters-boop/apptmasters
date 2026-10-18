@@ -26,5 +26,10 @@ export async function sendVerificationLink(user: { id: string; name: string; ema
   const next = safeReturnTo(returnTo, "");
   if (next) url.searchParams.set("returnTo", next);
 
+  // The local copy sends no email: print the link so sign-up can be tested there
+  // (scripts/dev/screenshots/confirm-link.mjs finds it). Never on the live site.
+  const emailOff = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.startsWith("re_your_");
+  if (process.env.NODE_ENV !== "production" && emailOff) console.info(`[email] confirmation link for ${user.email}: ${url}`);
+
   await sendEmail(user.email, "Confirm your ApptMasters email", verificationEmail(user.name, url.toString()));
 }

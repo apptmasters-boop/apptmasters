@@ -139,6 +139,9 @@ function VisitorHome() {
       <main className="mx-auto max-w-[96rem] space-y-12 px-4 pb-10 pt-6 sm:px-6 md:space-y-16 md:pb-14 md:pt-8 lg:px-8">
         <VisitorLatest />
 
+        {/* People who found a place elsewhere have a way in too (step O1, owner 2026-10-18). */}
+        <div className="lg:max-w-2xl"><AlreadyHavePlace /></div>
+
         <section>
           <SectionHeading title="How it works" subtitle="From finding a place to living well together." link={{ href: "/how-it-works", label: "Learn more" }} />
           <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

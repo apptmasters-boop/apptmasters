@@ -18,7 +18,7 @@ vi.mock("@/lib/email", async importOriginal => {
 });
 
 import { sendEmail } from "@/lib/email";
-import { homeQuestionDueAt, homeQuestionEmailDue, landingPath, type HomeSearchFacts } from "@/lib/housing";
+import { homeQuestionDueAt, homeQuestionEmailDue, landingPath, signInPath, type HomeSearchFacts } from "@/lib/housing";
 import { runHomeQuestion } from "@/lib/homeSearch";
 import { GET as askRoute, POST as answerRoute } from "@/app/api/users/home-search/route";
 import { POST as cronRoute } from "@/app/api/cron/home-search/route";
@@ -109,6 +109,15 @@ describe("GET and POST /api/users/home-search", () => {
     });
     await prisma.listingMessage.create({ data: { content: "Is it free?", listingId: listing.id, senderId: s.user.id, receiverId: owner.user.id, createdAt: daysAgo(8) } });
     expect(await ask(s.token)).toBe(true);
+  });
+
+  it("doesn't ask people who signed up to rent a place out (step O1)", async () => {
+    const lister = await seeker(30);
+    await prisma.user.update({ where: { id: lister.user.id }, data: { intent: "RENT_OUT" } });
+    expect(await ask(lister.token)).toBe(false);
+    const finder = await seeker(30);
+    await prisma.user.update({ where: { id: finder.user.id }, data: { intent: "FIND_HOME" } });
+    expect(await ask(finder.token)).toBe(true);
   });
 
   it("doesn't ask managers or people who live in a home", async () => {
@@ -235,3 +244,21 @@ describe("the daily job", () => {
     expect(Date.now() - started).toBeGreaterThanOrEqual(500);
   });
 });
+
+describe("signInPath (step O1)", () => {
+  const person = (over: Record<string, unknown> = {}) => ({ systemRole: "USER", foundHomeAt: null, intent: null, memberships: [], ...over });
+
+  it("people who signed up to rent out start on their listings; Home stays open to them", () => {
+    expect(signInPath(person({ intent: "RENT_OUT" }))).toBe("/listings/mine");
+    expect(landingPath(person({ intent: "RENT_OUT" }))).toBe("/"); // Home doesn't send them away
+  });
+
+  it("everyone else lands as before", () => {
+    expect(signInPath(person({ intent: "FIND_HOME" }))).toBe("/");
+    expect(signInPath(person())).toBe("/");
+    expect(signInPath(person({ intent: "HAVE_HOME", foundHomeAt: new Date() }))).toBe("/apartment/create");
+    expect(signInPath(person({ intent: "RENT_OUT", memberships: [{ status: "ACTIVE", apartment: { id: "h1" } }] }))).toBe("/apartment/h1");
+    expect(signInPath(person({ intent: "RENT_OUT", systemRole: "MANAGER" }))).toBe("/manager");
+  });
+});
+

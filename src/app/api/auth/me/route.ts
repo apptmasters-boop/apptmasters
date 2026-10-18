@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
     select: {
       id: true, name: true, email: true, photo: true, systemRole: true, createdAt: true,
       roomAssignment: true, moveInDate: true, dietaryFlags: true, twoFactorEnabled: true, emailVerified: true, foundHomeAt: true,
+      intent: true, // the sign-up answer (step O1)
       memberships: {
         include: { apartment: true },
         where: { status: { not: "MOVED_OUT" } },

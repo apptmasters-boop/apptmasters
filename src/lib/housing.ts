@@ -15,6 +15,8 @@ export type HousingState = "HOME_SEEKER" | "FOUND_A_HOME" | "HOME_MEMBER";
 export interface MeForLanding {
   systemRole: string;
   foundHomeAt?: string | Date | null;
+  /** The sign-up answer (step O1); empty for older accounts. */
+  intent?: string | null;
   memberships: { status: string; apartment: { id: string } }[];
 }
 
@@ -40,6 +42,17 @@ export function landingPath(me: MeForLanding): string {
   if (me.systemRole === "SUPER_ADMIN") return "/admin";
   // Looking for a home: Home, with search, saved listings and Create / Join a Home (Sprint 12).
   return "/";
+}
+
+/**
+ * Where to go right after signing in. Same as landingPath, except that people who
+ * signed up to rent a place out start on their listings (step O1, 2026-10-18). Home
+ * itself stays open to them: it redirects by landingPath, not by this.
+ * ("Set up my home" sets foundHomeAt, so landingPath already handles it.)
+ */
+export function signInPath(me: MeForLanding): string {
+  const path = landingPath(me);
+  return path === "/" && me.intent === "RENT_OUT" ? "/listings/mine" : path;
 }
 
 // ---------------------------------------------------------------------------

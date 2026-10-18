@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
 
   const users = await prisma.user.findMany({
     select: {
-      id: true, name: true, email: true, systemRole: true, createdAt: true,
+      id: true, name: true, email: true, systemRole: true, createdAt: true, intent: true, // the sign-up answer (step O1)
       _count: { select: { memberships: true } },
     },
     orderBy: { createdAt: "desc" },

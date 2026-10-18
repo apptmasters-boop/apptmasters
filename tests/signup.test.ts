@@ -7,6 +7,8 @@ import { randomUUID } from "node:crypto";
 import { POST as signup } from "@/app/api/listings/signup/route";
 import { POST as login } from "@/app/api/auth/login/route";
 import { POST as verifyEmail } from "@/app/api/auth/verify-email/route";
+import { POST as resendLink } from "@/app/api/auth/resend-verification/route";
+import { intentFromReturnTo, afterSignup } from "@/lib/intent";
 import { prisma } from "@/lib/db";
 import { esc } from "@/lib/email";
 import { safeReturnTo } from "@/lib/returnTo";
@@ -17,9 +19,16 @@ const newEmail = () => `signup-${randomUUID()}@example.com`;
 const sent = () => (globalThis as unknown as { sentEmails: { to: string; subject: string; html: string }[] }).sentEmails;
 
 const signUp = (body: Record<string, unknown>) =>
-  signup(request("/api/listings/signup", { method: "POST", body: { name: "New Person", password: PASSWORD, ...body } }));
+  signup(request("/api/listings/signup", { method: "POST", body: { name: "New Person", password: PASSWORD, intent: "FIND_HOME", ...body } }));
 const logIn = (email: string, password = PASSWORD) =>
   login(request("/api/auth/login", { method: "POST", body: { email, password } }));
+
+/** Where the newest confirmation link emailed to `email` leads after confirming. */
+function linkReturnTo(email: string) {
+  const mail = [...sent()].reverse().find(m => m.to === email);
+  const href = mail?.html.match(/href="([^"]+verify-email[^"]+)"/)?.[1]?.replace(/&amp;/g, "&");
+  return href ? new URL(href).searchParams.get("returnTo") : null;
+}
 
 /** The token from the newest confirmation link emailed to `email`. */
 function linkTokenFor(email: string) {
@@ -95,6 +104,58 @@ describe("POST /api/listings/signup", () => {
     await signUp({ email, returnTo: "https://evil.example/login" });
     const mail = [...sent()].reverse().find(m => m.to === email)!;
     expect(mail.html).not.toContain("evil.example");
+  });
+});
+
+describe("What brings you to ApptMasters? (step O1)", () => {
+  it("is required, and only the three answers are accepted", async () => {
+    const missing = await signUp({ email: newEmail(), intent: undefined });
+    expect(missing.status).toBe(400);
+    expect((await missing.json()).error).toBe("Choose what brings you to ApptMasters");
+    expect((await signUp({ email: newEmail(), intent: "LANDLORD" })).status).toBe(400);
+  });
+
+  it("is saved; Set up my home also counts as I found a place", async () => {
+    const home = newEmail(), rent = newEmail(), find = newEmail();
+    await signUp({ email: home, intent: "HAVE_HOME" });
+    await signUp({ email: rent, intent: "RENT_OUT" });
+    await signUp({ email: find, intent: "FIND_HOME" });
+    const [h, r, f] = await Promise.all([home, rent, find].map(email => prisma.user.findUniqueOrThrow({ where: { email } })));
+    expect([h.intent, r.intent, f.intent]).toEqual(["HAVE_HOME", "RENT_OUT", "FIND_HOME"]);
+    expect(h.foundHomeAt).toBeInstanceOf(Date);
+    expect(r.foundHomeAt).toBeNull();
+    expect(f.foundHomeAt).toBeNull();
+  });
+
+  it("the link goes back to what they were doing when it fits the answer, else to the answer's start", async () => {
+    const saver = newEmail(), changed = newEmail(), home = newEmail(), plain = newEmail();
+    await signUp({ email: saver, intent: "FIND_HOME", returnTo: "/listings/abc?save=abc" });
+    await signUp({ email: changed, intent: "RENT_OUT", returnTo: "/listings/abc" });
+    await signUp({ email: home, intent: "HAVE_HOME" });
+    await signUp({ email: plain, intent: "FIND_HOME", returnTo: "/" });
+    expect(linkReturnTo(saver)).toBe("/listings/abc?save=abc");
+    expect(linkReturnTo(changed)).toBe("/listings/new");
+    expect(linkReturnTo(home)).toBe("/apartment/create");
+    expect(linkReturnTo(plain)).toBe("/");
+  });
+
+  it("a resent link starts where the answer does", async () => {
+    const email = newEmail();
+    await signUp({ email, intent: "RENT_OUT" });
+    expect((await resendLink(request("/api/auth/resend-verification", { method: "POST", body: { email } }))).status).toBe(200);
+    expect(linkReturnTo(email)).toBe("/listings/new");
+  });
+
+  it("pre-selects the answer from the page they signed up from", () => {
+    expect(intentFromReturnTo("/?save=abc")).toBe("FIND_HOME");
+    expect(intentFromReturnTo("/listings/abc/messages")).toBe("FIND_HOME");
+    expect(intentFromReturnTo("/listings?q=Brooklyn")).toBe("FIND_HOME");
+    expect(intentFromReturnTo("/listings/new")).toBe("RENT_OUT");
+    expect(intentFromReturnTo("/apartment/create")).toBe("HAVE_HOME");
+    expect(intentFromReturnTo("/apartment/join?code=AB12")).toBe("HAVE_HOME");
+    expect(intentFromReturnTo("/")).toBeNull();
+    expect(intentFromReturnTo("")).toBeNull();
+    expect(afterSignup("FIND_HOME", "https://evil.example/listings/x")).toBe("/");
   });
 });
 

@@ -70,6 +70,10 @@ export default function MyListingsPage() {
           <p className="text-4xl mb-3">🏠</p>
           <p className="text-gray-600 font-medium mb-1">No listings yet</p>
           <p className="text-sm text-gray-400">Post an apartment or a room to share.</p>
+          {/* Landlord tools stay invite-only (step O1, owner 2026-10-18). */}
+          <p className="mt-4 text-xs text-gray-500">
+            Manage a building with tenants? <a href="mailto:apptmasters@gmail.com?subject=Landlord%20tools" className="font-semibold text-brand hover:underline">Ask us for the landlord tools</a>
+          </p>
         </div>
       ) : (
         <div className="space-y-3">

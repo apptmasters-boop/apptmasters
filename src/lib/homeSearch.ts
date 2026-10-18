@@ -24,7 +24,7 @@ export const AFTER_FOUND_PATH = "/apartment/create";
 
 const personSelect = {
   id: true, email: true, systemRole: true, notifPrefs: true,
-  createdAt: true, foundHomeAt: true, stillLookingAt: true, homeAskedAt: true,
+  createdAt: true, foundHomeAt: true, stillLookingAt: true, homeAskedAt: true, intent: true,
   memberships: { select: { status: true, movedOutAt: true } },
   _count: { select: { listings: true } },
 } as const;
@@ -43,7 +43,9 @@ async function factsFor(p: Person): Promise<HomeSearchFacts> {
   });
   return {
     createdAt: p.createdAt, foundHomeAt: p.foundHomeAt, stillLookingAt: p.stillLookingAt,
-    hasHome, leftHomeAt, firstContactAt: first?.createdAt ?? null, postsListings: p._count.listings > 0,
+    hasHome, leftHomeAt, firstContactAt: first?.createdAt ?? null,
+    // Signed up to rent a place out (step O1) counts like having posted: offering, not looking.
+    postsListings: p._count.listings > 0 || p.intent === "RENT_OUT",
   };
 }
 
