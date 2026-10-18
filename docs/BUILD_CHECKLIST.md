@@ -2125,9 +2125,8 @@ Home; the search icon repeats Find a Home).
 - [x] Screens checked on a computer (signed out, signed in, menu open) and a phone
 - [x] Every link in the name menu and the footer opens its page
       (`scripts/dev/screenshots/f2-check.mjs`)
-- [ ] CI green on GitHub
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests it on this PC first
-      (http://localhost:3100) and asks for the deploy (2026-10-17)**
+- [x] CI green on GitHub
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on apptmasters.com** (computer)
 1. Signed out: the top bar shows only the logo, Log in and Sign up. At the
@@ -2159,7 +2158,7 @@ redundant.
 - [x] Lint: no new errors (51)
 - [x] Browser check: no Anywhere button; the place set in Filters; the chip removes it
       (phone and computer, `filters-ui-check.mjs`)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. Find a Home: the top row starts with Filters, then People; no "Anywhere".
@@ -2185,7 +2184,7 @@ Show button.
 - [x] Lint: no new errors (51)
 - [x] Browser check (`zip-enter-check.mjs`): a ZIP code + Enter searches in all three places (Home
       signed out, Home signed in, Filters → Location)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. Find a Home → Filters → Location: type **11216**, press **Enter**: the
@@ -2218,7 +2217,7 @@ Night owl" into the filters, and pull the listings up.
 - [x] Browser check: choosing "Quiet home" in Filters gives the same results as the
       search; Apartment clears it (phone and computer)
 - [x] Screens: signed-out Home (phone, computer), the Filters window
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. Signed out, Home: no "What matters to you?" row; Latest listings right
@@ -2238,7 +2237,7 @@ street address isn't possible, since addresses stay private until the
 advertiser shares them in Messages.
 
 - [x] Type check passes · [x] Lint: no new errors
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC:** signed out, Home: the first box says Location /
 "Enter a city, neighborhood or ZIP code"; type 11216 and press Enter.
@@ -2270,7 +2269,7 @@ on their top row, and the signed-in Home already uses one box.
 - [x] Browser check (`f7-check.mjs`, `zip-enter-check.mjs`): each choice opens the right
       results; a ZIP code + Enter still searches
 - [x] Screens: signed-out Home, computer and phone
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100, signed out, Home)
 1. The search shows All · Rooms · Whole places above one Location box, with
@@ -2296,7 +2295,7 @@ price.
 - [x] Lint: no new errors (51)
 - [x] Browser check: the slider and the boxes in the Price picker give the same results as
       the search (phone and computer)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. Find a Home → **Any price**: the price range opens (two handles, $0 to
@@ -2320,7 +2319,7 @@ page, the email sent when a join request is declined, and one error message.
 Nothing on the site says "Apartment Masters" any more.
 
 - [x] Type check passes · [x] Tests pass (350) · [x] Lint: no new errors (51)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100): Sign up and Log in say
 "ApptMasters"; signed out, More's section is titled ApptMasters; a listing's
@@ -2341,7 +2340,7 @@ Bedrooms, Move-in date) and Filters.
 - [x] Type check passes · [x] Lint: no new errors (51)
 - [x] Browser check (`f7-check.mjs`, `zip-enter-check.mjs`): only the Location box;
       Enter or Search opens the results (all listings when empty)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100, signed out, Home): one
 Location box and Search; type Brooklyn and press Enter: the results, with
@@ -2360,7 +2359,7 @@ The "Your safety, our priority" section stays: everything it lists exists
 (listings reviewed, private messaging, reporting, two-step sign-in).
 
 - [x] Type check passes · [x] Lint: no new errors (51)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100, signed out, Home): after
 Latest listings and How it works comes the safety section; no "More Than Just
@@ -2381,7 +2380,7 @@ a Place".
   (`next.config.ts`, `devIndicators: false`).
 
 - [x] Type check passes · [x] Lint: no new errors (51) · [x] Browser check (`f2-check.mjs`)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100): at the bottom of Find a Home
 or Home, only "Help" (and © ApptMasters); no round N button.
@@ -2426,7 +2425,7 @@ the page has no privacy controls.
 
 - [x] Type check passes · [x] Tests pass (350) · [x] Lint: no new errors (down to 50)
 - [x] Browser check (`f13-check.mjs`: 36 checks, phone and computer, both local logins; `f2-check.mjs`)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-17 (8fc6ba6, F2–F13 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. Sign in with `owner@apptmasters.local` / `LocalTest-2026`, open **More**

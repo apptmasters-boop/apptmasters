@@ -36,11 +36,13 @@ the top row everywhere, prices, every filter tested; approved), pre-launch P2
    version), so **ask the owner's OK before applying the SQL on the live site**.
 4. **P5 — Security review** before launch.
 
-**The owner's front-end fixes F2–F13 (2026-10-17): built, checked and pushed,
-NOT deployed.** The owner's rule: "don't deploy it in the server when you
-finish, I will test it locally then will ask you deploy when done." They test
-each one on this PC, then say "deploy". Details and test steps: "Fixes asked by
-the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
+**The owner's front-end fixes F2–F13 (2026-10-17): LIVE.** The owner tested
+them on this PC and said "deploy". Deployed 2026-10-17 (8fc6ba6): build OK,
+`verify-live.sh` all 200, live filters check and Home search check passed.
+Waiting for the owner's sign-off on apptmasters.com. The owner's rule for
+future fixes: "don't deploy it in the server when you finish, I will test it
+locally then will ask you deploy when done." Details and test steps: "Fixes
+asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 
 | Fix | What |
 |---|---|
@@ -63,11 +65,11 @@ the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
   `resident@apptmasters.local` / `LocalTest-2026` (lives in "Maple House").
   Seeds: `scripts/dev/screenshots/seed-owner-login.mjs` and
   `seed-resident-login.mjs`.
-- **When the owner says "deploy":** no database change. On the server: pull,
-  `rm -rf .next/cache/turbopack`, build, `bash scripts/ops/verify-live.sh`.
-  Then run `SHOTS_BASE=https://apptmasters.com node
-  scripts/dev/screenshots/filters-ui-check.mjs`, and mark F2–F13 deployed in
-  the checklist and here.
+- **Deploying the next fixes:** same recipe. On the server: pull, `rm -rf
+  .next/cache/turbopack`, build, `bash scripts/ops/verify-live.sh`. Then run
+  `SHOTS_BASE=https://apptmasters.com node
+  scripts/dev/screenshots/filters-ui-check.mjs` (and `f7-check.mjs`; both run
+  signed out and change nothing).
 - **P4 is on hold** until the owner's front-end fixes are done.
 
 The owner may also send more fixes at any time; they go under "Fixes asked by
