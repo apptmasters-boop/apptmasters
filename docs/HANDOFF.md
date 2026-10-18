@@ -57,6 +57,7 @@ asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 | F11 | No "More Than Just a Place" section (we don't offer it) |
 | F12 | The footer keeps only Help; the local "N" button is hidden |
 | F13 | My Profile and Settings (Personal information, Notifications, Login & security, Dark mode) each have their own page |
+| F14 | No Messages row on More for people without a Home (the phone bar has it). **Built and pushed (a877089), NOT deployed yet: the owner tests on this PC first** |
 
 - **Local copy to test:** http://localhost:3100. Start the test database and
   the app as in [`tests/README.md`](../tests/README.md) and
