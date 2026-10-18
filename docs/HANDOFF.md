@@ -1,10 +1,37 @@
 # Where we continue
 
-**Updated 2026-10-17.** Read this first, on any PC. Notes that
-Claude Code keeps on one PC don't move to another PC; this file does.
+**Updated 2026-10-18 (end of session; the owner said "save everything, we will
+continue later").** Read this first, on any PC. Notes that Claude Code keeps on
+one PC don't move to another PC; this file does.
 
 **On a new PC, tell Claude Code:** "Read `docs/HANDOFF.md` and continue
 from there."
+
+## Next time, start here
+
+1. **F15 (Money, "What's next" only when something waits):** built, NOT
+   deployed. The owner tests it on this PC (steps in the checklist, "F15"),
+   then says "deploy".
+2. **F2–F14 are live:** wait for the owner's sign-off on apptmasters.com
+   ("F2–F14 approved", or the ones that need changes).
+3. **P1 backups:** the 2026-10-18 automatic backup runs at 07:30 UTC. Check it
+   (below), then the owner says "P1 approved".
+4. Then P3 (with the owner), P4 (on hold until the front-end fixes are done),
+   P5. More fixes from the owner can come at any time.
+
+**Starting the local copy** (http://localhost:3100) on this PC, in Git Bash
+from the project folder:
+- Test database: `"/c/Program Files/PostgreSQL/16/bin/pg_ctl" -D
+  /c/Users/selle/develop/pgdata/apptmasters-test -l
+  /c/Users/selle/develop/pgdata/apptmasters-test.log -o "-p 5433" start`
+- App: `rm -rf .next/dev; DATABASE_URL=postgresql://postgres@localhost:5433/apptmasters_test
+  JWT_SECRET=shots-local-secret RESEND_API_KEY=re_your_disabled npx next dev -p 3100`
+- Local logins (test data only, never on the live site), all with the password
+  `LocalTest-2026`: `owner@apptmasters.local` (no Home),
+  `resident@apptmasters.local` and `roommate@apptmasters.local` (Maple House).
+  Seeds: `node scripts/dev/screenshots/seed-owner-login.mjs` and
+  `seed-resident-login.mjs` (it starts Maple House over; then
+  `f15-check.mjs` leaves one payment waiting for the F15 test).
 
 ## Right now
 
@@ -36,10 +63,11 @@ the top row everywhere, prices, every filter tested; approved), pre-launch P2
    version), so **ask the owner's OK before applying the SQL on the live site**.
 4. **P5 — Security review** before launch.
 
-**The owner's front-end fixes F2–F13 (2026-10-17): LIVE.** The owner tested
-them on this PC and said "deploy". Deployed 2026-10-17 (8fc6ba6): build OK,
-`verify-live.sh` all 200, live filters check and Home search check passed.
-Waiting for the owner's sign-off on apptmasters.com. The owner's rule for
+**The owner's front-end fixes F2–F14: LIVE; F15: built, not deployed.** The
+owner tested F2–F13 on this PC and said "deploy": deployed 2026-10-17
+(8fc6ba6), F14 on 2026-10-18 (55fd4ec); each time the build passed,
+`verify-live.sh` answered 200 everywhere, and the live filters and Home search
+checks passed. Waiting for the owner's sign-off on apptmasters.com. The owner's rule for
 future fixes: "don't deploy it in the server when you finish, I will test it
 locally then will ask you deploy when done." Details and test steps: "Fixes
 asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
@@ -60,13 +88,7 @@ asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 | F14 | No Messages row on More for people without a Home (the phone bar has it). **Live 2026-10-18 (55fd4ec)** |
 | F15 | Money: the "What's next" box shows only when something is waiting (no "Nothing waiting for you"). **Built and pushed, NOT deployed yet: the owner tests on this PC first** (third local login: `roommate@apptmasters.local`, Jordan Roommate in Maple House) |
 
-- **Local copy to test:** http://localhost:3100. Start the test database and
-  the app as in [`tests/README.md`](../tests/README.md) and
-  `scripts/dev/screenshots/README.md`. Local logins (test data only, never on
-  the live site): `owner@apptmasters.local` / `LocalTest-2026` (no Home), and
-  `resident@apptmasters.local` / `LocalTest-2026` (lives in "Maple House").
-  Seeds: `scripts/dev/screenshots/seed-owner-login.mjs` and
-  `seed-resident-login.mjs`.
+- **Local copy to test:** see "Starting the local copy" above.
 - **Deploying the next fixes:** same recipe. On the server: pull, `rm -rf
   .next/cache/turbopack`, build, `bash scripts/ops/verify-live.sh`. Then run
   `SHOTS_BASE=https://apptmasters.com node
