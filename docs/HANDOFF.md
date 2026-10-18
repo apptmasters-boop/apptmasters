@@ -17,7 +17,12 @@ from there."
      - Write the SQL at deploy time, following `prisma/manual-sql/README.md`.
      - Put it in one file with L2's changes if L2 is ready.
      - Apply it only after the owner's explicit yes.
-     - Without it, deploy F15, F16 and L1, and hold O1.
+   - **Careful:** `master` includes O1 since commit `7eaddd0`, and its code
+     reads that column. Building `master` on the server *before* the column
+     exists breaks sign-in.
+     - So either apply the column first (owner's yes),
+     - or deploy F15, F16 and L1 alone by checking out commit `2736ec7`
+       instead of `master`.
    - **Listing lifecycle:** the owner chose the lighter plan on 2026-10-18 (the
      review and plan are in the checklist, "Listing lifecycle").
    - **Next steps:**
