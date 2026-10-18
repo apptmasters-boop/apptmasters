@@ -2472,3 +2472,29 @@ their name on a computer.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F15 — Money: no "What's next" box when nothing is waiting (2026-10-18)
+
+**What the owner asked:** on Money → Overview, remove "What's next · Nothing
+waiting for you."
+
+**What changes:** the box shows **only when something needs you**: a roommate
+says they paid you (Confirm / I didn't receive it), your payment is waiting for
+their confirmation, or your rent share is due or overdue. When nothing is
+waiting, there's no box and no "Nothing waiting for you" line. Nothing else on
+Money changes.
+
+**Local test data:** `seed-resident-login.mjs` now also puts a roommate in Maple
+House (`roommate@apptmasters.local` / `LocalTest-2026`, Jordan Roommate). The
+check leaves one payment waiting: Jordan says they paid the resident $10.
+
+- [x] Type check passes · [x] Lint: no new errors (50) · [x] Browser check (`f15-check.mjs`: no box when nothing waits; the box with Confirm; gone after Confirm; the roommate's "Waiting for … to confirm")
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Sign in as `resident@apptmasters.local` / `LocalTest-2026`, open **Money**:
+   "What's next" shows "Jordan Roommate says they paid you", $10.00, with Confirm.
+2. Press **Confirm**: the box goes away (nothing is waiting any more). No
+   "Nothing waiting for you" line.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

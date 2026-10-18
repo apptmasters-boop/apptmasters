@@ -137,6 +137,7 @@ function Overview({ ledger, apartmentId, onChange }: { ledger: Ledger; apartment
   const who = (id: string) => names[id] ?? "Someone";
   const part = (label: string, n: number) => (n > 0 ? `${label}: you owe ${money(n)}` : n < 0 ? `${label}: you're owed ${money(n)}` : null);
   const parts = [part("Rent", rentNet), part("Shared expenses", expenseNet)].filter(Boolean);
+  const waiting = rentDue.length + confirm.length + toAnswer.length + sent.length > 0;
 
   return (
     <section className="mt-5 space-y-4">
@@ -159,71 +160,72 @@ function Overview({ ledger, apartmentId, onChange }: { ledger: Ledger; apartment
       )}
       {parts.length > 0 && <p className="px-1 text-sm text-gray-600">{parts.join(" · ")}</p>}
 
-      <div className="rounded-2xl border border-gray-200 bg-white">
-        <h2 className="border-b border-gray-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500">What&apos;s next</h2>
-        {toAnswer.length + sent.length > 0 && (
-          <ul className="divide-y divide-gray-50 border-b border-gray-100">
-            {toAnswer.map(p => (
-              <li key={p.id} className="px-4 py-3">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium text-gray-900">{who(p.from)} says they paid you</span>
-                    <span className="block text-xs text-gray-500">{METHODS[p.method] ?? p.method} · {p.items.join(", ")}{p.note ? ` · "${p.note}"` : ""}</span>
-                  </span>
-                  <span className="text-sm font-semibold text-gray-900">{money(p.amount)}</span>
-                </div>
-                <div className="mt-2 flex gap-2">
-                  <button onClick={() => answer(p.id, "confirm")} disabled={busy === p.id} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Confirm</button>
-                  <button onClick={() => answer(p.id, "decline")} disabled={busy === p.id} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium disabled:opacity-60">I didn&apos;t receive it</button>
-                </div>
-              </li>
-            ))}
-            {sent.map(p => (
-              <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium text-gray-900">Waiting for {who(p.to)} to confirm your payment</span>
-                  <span className="block text-xs text-gray-500">{money(p.amount)} · {METHODS[p.method] ?? p.method} · {day(p.createdAt)}</span>
-                </span>
-                <button onClick={() => answer(p.id, "cancel")} disabled={busy === p.id} className="text-xs font-medium text-red-600 hover:underline disabled:opacity-60">Cancel</button>
-              </li>
-            ))}
-          </ul>
-        )}
-        {error && <p className="px-4 py-2 text-sm text-red-600" role="alert">{error}</p>}
-        {rentDue.length === 0 && confirm.length === 0 && toAnswer.length + sent.length === 0 ? (
-          <p className="px-4 py-3 text-sm text-gray-500">Nothing waiting for you.</p>
-        ) : (
-          <ul className="divide-y divide-gray-50">
-            {rentDue.map(r => {
-              const late = !r.waiting && r.due < now;
-              return (
-                <li key={r.id}>
-                  <Link href={`/apartment/${apartmentId}/rent`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+      {/* Only when something needs you (fix F15, owner 2026-10-18: no "Nothing waiting for you"). */}
+      {(waiting || error) && (
+        <div className="rounded-2xl border border-gray-200 bg-white">
+          <h2 className="border-b border-gray-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500">What&apos;s next</h2>
+          {toAnswer.length + sent.length > 0 && (
+            <ul className={`divide-y divide-gray-50 ${rentDue.length + confirm.length > 0 ? "border-b border-gray-100" : ""}`}>
+              {toAnswer.map(p => (
+                <li key={p.id} className="px-4 py-3">
+                  <div className="flex items-start justify-between gap-3">
                     <span className="min-w-0">
-                      <span className="block text-sm font-medium text-gray-900">{r.label}: your share to {who(r.to)}</span>
-                      <span className={`block text-xs ${late ? "font-semibold text-red-600" : "text-gray-500"}`}>
-                        {r.waiting ? `Waiting for ${who(r.to)} to confirm` : late ? `Overdue since ${day(r.due)}` : `Due ${day(r.due)}`}
-                      </span>
+                      <span className="block text-sm font-medium text-gray-900">{who(p.from)} says they paid you</span>
+                      <span className="block text-xs text-gray-500">{METHODS[p.method] ?? p.method} · {p.items.join(", ")}{p.note ? ` · "${p.note}"` : ""}</span>
                     </span>
-                    <span className="text-sm font-semibold text-gray-900">{money(r.amount)}</span>
+                    <span className="text-sm font-semibold text-gray-900">{money(p.amount)}</span>
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <button onClick={() => answer(p.id, "confirm")} disabled={busy === p.id} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Confirm</button>
+                    <button onClick={() => answer(p.id, "decline")} disabled={busy === p.id} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium disabled:opacity-60">I didn&apos;t receive it</button>
+                  </div>
+                </li>
+              ))}
+              {sent.map(p => (
+                <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-gray-900">Waiting for {who(p.to)} to confirm your payment</span>
+                    <span className="block text-xs text-gray-500">{money(p.amount)} · {METHODS[p.method] ?? p.method} · {day(p.createdAt)}</span>
+                  </span>
+                  <button onClick={() => answer(p.id, "cancel")} disabled={busy === p.id} className="text-xs font-medium text-red-600 hover:underline disabled:opacity-60">Cancel</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {error && <p className="px-4 py-2 text-sm text-red-600" role="alert">{error}</p>}
+          {rentDue.length + confirm.length > 0 && (
+            <ul className="divide-y divide-gray-50">
+              {rentDue.map(r => {
+                const late = !r.waiting && r.due < now;
+                return (
+                  <li key={r.id}>
+                    <Link href={`/apartment/${apartmentId}/rent`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-gray-900">{r.label}: your share to {who(r.to)}</span>
+                        <span className={`block text-xs ${late ? "font-semibold text-red-600" : "text-gray-500"}`}>
+                          {r.waiting ? `Waiting for ${who(r.to)} to confirm` : late ? `Overdue since ${day(r.due)}` : `Due ${day(r.due)}`}
+                        </span>
+                      </span>
+                      <span className="text-sm font-semibold text-gray-900">{money(r.amount)}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+              {confirm.map(p => (
+                <li key={p.id}>
+                  <Link href={`/apartment/${apartmentId}/${p.source === "rent" ? "rent" : "finance"}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-gray-900">{who(p.from)} says they paid you</span>
+                      <span className="block text-xs text-gray-500">{p.label.replace(" (waiting for confirmation)", "")} · tap to confirm</span>
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">{money(p.amount)}</span>
                   </Link>
                 </li>
-              );
-            })}
-            {confirm.map(p => (
-              <li key={p.id}>
-                <Link href={`/apartment/${apartmentId}/${p.source === "rent" ? "rent" : "finance"}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium text-gray-900">{who(p.from)} says they paid you</span>
-                    <span className="block text-xs text-gray-500">{p.label.replace(" (waiting for confirmation)", "")} · tap to confirm</span>
-                  </span>
-                  <span className="text-sm font-semibold text-gray-900">{money(p.amount)}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3">
         <span className="text-sm text-gray-600">Shared fund</span>

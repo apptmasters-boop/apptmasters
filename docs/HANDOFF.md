@@ -58,6 +58,7 @@ asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 | F12 | The footer keeps only Help; the local "N" button is hidden |
 | F13 | My Profile and Settings (Personal information, Notifications, Login & security, Dark mode) each have their own page |
 | F14 | No Messages row on More for people without a Home (the phone bar has it). **Live 2026-10-18 (55fd4ec)** |
+| F15 | Money: the "What's next" box shows only when something is waiting (no "Nothing waiting for you"). **Built and pushed, NOT deployed yet: the owner tests on this PC first** (third local login: `roommate@apptmasters.local`, Jordan Roommate in Maple House) |
 
 - **Local copy to test:** http://localhost:3100. Start the test database and
   the app as in [`tests/README.md`](../tests/README.md) and
