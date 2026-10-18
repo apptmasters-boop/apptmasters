@@ -31,6 +31,22 @@ const editSchema = z.object({
 /** Only for the poster and admins. */
 const PRIVATE_FIELDS = ["address", "rejectionReason", "reviewedById", "reviewedAt"] as const;
 
+/** What a person who wrote about a closed listing still sees: enough for the conversation card. */
+function closedSummary(l: {
+  id: string; type: string; title: string; price: number; priceMax: number | null; city: string; state: string | null;
+  neighborhood: string | null; zipCode: string | null; bedrooms: number | null; bathrooms: number | null; maxOccupants: number | null;
+  propertyType: string | null; roomType: string | null; photos: { url: string }[];
+  owner: { id: string; name: string; createdAt: Date; photo: string | null };
+}) {
+  return {
+    id: l.id, type: l.type, title: l.title, price: l.price, priceMax: l.priceMax, city: l.city, state: l.state,
+    neighborhood: l.neighborhood, zipCode: l.zipCode, bedrooms: l.bedrooms, bathrooms: l.bathrooms, maxOccupants: l.maxOccupants,
+    propertyType: l.propertyType, roomType: l.roomType, photos: l.photos.slice(0, 1), owner: l.owner,
+    // One word for every reason it isn't public: seekers never see review labels.
+    status: "UNAVAILABLE",
+  };
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -49,7 +65,17 @@ export async function GET(
   const payload = getTokenFromRequest(req);
   const isOwner = payload?.userId === listing.ownerId;
   const isAdmin = !isOwner && payload ? await requireSuperAdmin(req) : null;
-  if (listing.status !== "APPROVED" && !isOwner && !isAdmin) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (listing.status !== "APPROVED" && !isOwner && !isAdmin) {
+    // Someone who already wrote about it keeps a short summary after it closes, so the
+    // conversation still shows who and what it was about (listing lifecycle L1, 2026-10-18).
+    // Never the address, the description or why it closed.
+    const talked = payload && await prisma.listingMessage.findFirst({
+      where: { listingId: id, OR: [{ senderId: payload.userId }, { receiverId: payload.userId }] },
+      select: { id: true },
+    });
+    if (!talked) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(closedSummary(listing));
+  }
 
   // The street address is shared in the conversation, not publicly (owner's decision, 2026-10-16);
   // the review fields are for the poster and admins.

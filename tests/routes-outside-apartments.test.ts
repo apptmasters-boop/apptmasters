@@ -5,6 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { DELETE as managerDeleteUser } from "@/app/api/manager/users/[id]/route";
 import { POST as sendListingMessage } from "@/app/api/listings/[id]/messages/route";
+import { GET as getListing } from "@/app/api/listings/[id]/route";
 import { prisma } from "@/lib/db";
 import { createUser, createApartment, request, routeParams } from "./helpers";
 
@@ -84,10 +85,61 @@ describe("POST /api/listings/[id]/messages", () => {
     expect((await send(seeker.token, listing.id, "Hello")).status).toBe(400);
   });
 
+  it("lets both people keep writing after the listing closes (listing lifecycle L1)", async () => {
+    const owner = await createUser();
+    const seeker = await createUser();
+    const listing = await approvedListing(owner.user.id);
+    expect((await send(seeker.token, listing.id, "Is it available?")).status).toBe(201);
+    await prisma.listing.update({ where: { id: listing.id }, data: { status: "REMOVED" } }); // marked rented
+    expect((await send(seeker.token, listing.id, "Oh, too bad. Thanks anyway!")).status).toBe(201);
+    expect((await send(owner.token, listing.id, "Thanks for asking!", seeker.user.id)).status).toBe(201);
+    // Someone new still can't start a conversation about it.
+    const newcomer = await createUser();
+    const refused = await send(newcomer.token, listing.id, "Hello");
+    expect(refused.status).toBe(400);
+    expect((await refused.json()).error).toBe("This listing is no longer available");
+  });
+
   it("caps message length", async () => {
     const owner = await createUser();
     const seeker = await createUser();
     const listing = await approvedListing(owner.user.id);
     expect((await send(seeker.token, listing.id, "x".repeat(4001))).status).toBe(400);
+  });
+});
+
+describe("GET /api/listings/[id] after the listing closes (listing lifecycle L1)", () => {
+  const read = (listingId: string, token?: string) =>
+    getListing(request(`/api/listings/${listingId}`, { token }), routeParams({ id: listingId }));
+
+  it("gives a short summary only to people who wrote about it; never the address, description or reason", async () => {
+    const owner = await createUser();
+    const seeker = await createUser();
+    const stranger = await createUser();
+    const listing = await prisma.listing.create({
+      data: {
+        type: "APARTMENT_FOR_RENT", status: "REMOVED", title: "Sunny 1BR", description: "Private details", address: "12 Hidden St",
+        price: 1500, city: "Closedville", bedrooms: 1, ownerId: owner.user.id,
+        photos: { create: [{ url: "/uploads/listings/a.jpg", position: 0 }, { url: "/uploads/listings/b.jpg", position: 1 }] },
+      },
+    });
+    await prisma.listingMessage.create({ data: { listingId: listing.id, senderId: seeker.user.id, receiverId: owner.user.id, content: "Is it available?" } });
+
+    const res = await read(listing.id, seeker.token);
+    expect(res.status).toBe(200);
+    const summary = await res.json();
+    expect(summary).toMatchObject({ id: listing.id, title: "Sunny 1BR", price: 1500, city: "Closedville", bedrooms: 1, status: "UNAVAILABLE" });
+    expect(summary.owner.id).toBe(owner.user.id);
+    expect(summary.photos).toHaveLength(1);
+    expect(summary).not.toHaveProperty("address");
+    expect(summary).not.toHaveProperty("description");
+    expect(summary.owner).not.toHaveProperty("email");
+
+    expect((await read(listing.id, stranger.token)).status).toBe(404);
+    expect((await read(listing.id)).status).toBe(404);
+    // The owner still sees all of it, with the real status.
+    const own = await (await read(listing.id, owner.token)).json();
+    expect(own.status).toBe("REMOVED");
+    expect(own.address).toBe("12 Hidden St");
   });
 });

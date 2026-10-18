@@ -38,6 +38,7 @@ function MessagesThread() {
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const conversations = useConversations(!!currentUserId);
   const filter = useConversationFilter(conversations);
@@ -80,8 +81,11 @@ function MessagesThread() {
     e.preventDefault();
     if (!content.trim() || sending) return;
     setSending(true);
+    setSendError(null);
     const res = await apiFetch(`/api/listings/${listingId}/messages${query}`, { method: "POST", body: JSON.stringify({ content }) });
     if (res.ok) { setContent(""); await loadMessages(); }
+    // Say why it didn't go (e.g. a new message about a listing that just closed); the text stays.
+    else setSendError((await res.json().catch(() => null))?.error ?? "Couldn't send. Try again.");
     setSending(false);
   }
 
@@ -97,6 +101,8 @@ function MessagesThread() {
       : undefined
     : listing ? { name: listing.owner.name, photo: listing.owner.photo, role: "Advertiser", since: listing.owner.createdAt } : undefined;
   const name = contact?.name ?? "";
+  // Closed after you started talking: the conversation goes on (listing lifecycle L1, 2026-10-18).
+  const closed = !!listing?.status && listing.status !== "APPROVED";
 
   const activeKey = `${listingId}:${otherId}`;
   const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
@@ -175,9 +181,15 @@ function MessagesThread() {
               <div ref={bottomRef} />
             </div>
 
+            {closed && messages.length > 0 && (
+              <p className="border-t border-gray-100 px-4 py-2 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                {myListing ? "This listing isn't in search right now. You can still reply here." : `This place is no longer available. You can still write to ${name.split(" ")[0] || "the advertiser"} here.`}
+              </p>
+            )}
+            {sendError && <p role="alert" className="border-t border-gray-100 px-4 pt-2 text-sm text-red-600 dark:border-gray-800">{sendError}</p>}
             <form onSubmit={send} className="flex items-end gap-2 border-t border-gray-100 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 dark:border-gray-800">
               <label htmlFor="message" className="sr-only">Message</label>
-              <textarea id="message" rows={1} placeholder="Type a message…" value={content} onChange={e => setContent(e.target.value)}
+              <textarea id="message" rows={1} placeholder="Type a message…" value={content} onChange={e => { setContent(e.target.value); setSendError(null); }}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}
                 className="max-h-32 min-h-12 flex-1 resize-none rounded-3xl border border-gray-200 bg-gray-50 px-4 py-3 text-[15px] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
               <button type="submit" disabled={sending || !content.trim()} aria-label="Send"

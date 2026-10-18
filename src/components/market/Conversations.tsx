@@ -191,6 +191,13 @@ export function ListingContext({ listing, variant, contact, mine = false }: {
   );
   const photo = listing.photos[0]?.url;
   const city = [listing.city, [listing.state, listing.zipCode].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  // Closed (rented, paused, under review…): the card stays, marked (listing lifecycle L1, 2026-10-18).
+  const closed = !!listing.status && listing.status !== "APPROVED";
+  const closedBadge = closed && (
+    <span className="inline-block rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-100">
+      {mine ? "Not in search right now" : "No longer available"}
+    </span>
+  );
 
   if (variant === "bar") {
     return (
@@ -202,7 +209,8 @@ export function ListingContext({ listing, variant, contact, mine = false }: {
           </span>
           <span className="min-w-0 flex-1 space-y-1">
             <span className="block truncate font-semibold text-gray-900 dark:text-white">{listing.title}</span>
-            <span className="block text-lg font-bold leading-tight text-brand dark:text-emerald-300">{priceText(listing)}</span>
+            {closedBadge}
+            <span className={`block text-lg font-bold leading-tight ${closed ? "text-gray-500 dark:text-gray-400" : "text-brand dark:text-emerald-300"}`}>{priceText(listing)}</span>
             {facts}
             <span className="flex items-center gap-1 truncate text-[13px] text-gray-600 dark:text-gray-300"><PinIcon className="h-4 w-4 shrink-0" />{city}</span>
           </span>
@@ -229,7 +237,8 @@ export function ListingContext({ listing, variant, contact, mine = false }: {
           {listing.photos.length > 1 && <span className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2.5 py-0.5 text-xs text-white">1/{listing.photos.length}</span>}
         </div>
         <div className="space-y-2 p-4">
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{priceText(listing)}</p>
+          {closedBadge}
+          <p className={`text-xl font-bold ${closed ? "text-gray-500 dark:text-gray-400" : "text-gray-900 dark:text-white"}`}>{priceText(listing)}</p>
           <p className="font-semibold text-gray-800 dark:text-gray-100">{listing.title}</p>
           <p className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300"><PinIcon className="h-4 w-4 shrink-0" />{placeText(listing)}</p>
           {facts}
@@ -259,10 +268,11 @@ export function ListingContext({ listing, variant, contact, mine = false }: {
 
       <div className="rounded-2xl border border-gray-200 bg-white px-4 py-2 dark:border-gray-800 dark:bg-gray-900">
         <p className="pb-1 pt-2 text-sm font-semibold text-gray-900 dark:text-white">Quick actions</p>
-        {!mine && (
+        {/* A closed listing can still leave Saved, but isn't saved or shared any more. */}
+        {!mine && (!closed || saved) && (
           <QuickAction icon={HeartIcon} onClick={() => toggleSaved(listing.id)}>{saved ? "Remove from Saved" : "Save listing"}</QuickAction>
         )}
-        <QuickAction icon={ShareIcon} onClick={share}>{copied ? "Link copied" : "Share listing"}</QuickAction>
+        {!closed && <QuickAction icon={ShareIcon} onClick={share}>{copied ? "Link copied" : "Share listing"}</QuickAction>}
         {!mine && <QuickAction icon={FlagIcon} href={`/listings/${listing.id}?report=1`} danger>Report this listing</QuickAction>}
       </div>
     </div>

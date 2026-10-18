@@ -9,9 +9,18 @@ from there."
 
 ## Next time, start here
 
-1. **F15 (Money, "What's next" only when something waits) and F16 (no footer
-   on phones):** built, NOT deployed. The owner tests them on this PC (steps in
-   the checklist), then says "deploy".
+1. **F15 (Money, "What's next" only when something waits), F16 (no footer on
+   phones) and L1 (conversations keep working after a listing closes):** built,
+   NOT deployed. The owner tests them on this PC (steps in the checklist), then
+   says "deploy".
+   - **Listing lifecycle:** the owner chose the lighter plan on 2026-10-18 (the
+     review and plan are in the checklist, "Listing lifecycle").
+   - **Next steps:**
+     - L2 Rented · Paused · Relist (one small SQL: ask the owner's explicit yes
+       before applying it on the live site; the owner decides what each of the 3
+       REMOVED live listings was).
+     - L3 photos: shrink in the browser before upload, reorder, choose the
+       cover.
 2. **F2–F14 are live:** wait for the owner's sign-off on apptmasters.com
    ("F2–F14 approved", or the ones that need changes).
 3. **P1 backups:** the 2026-10-18 automatic backup runs at 07:30 UTC. Check it
@@ -88,6 +97,7 @@ asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 | F14 | No Messages row on More for people without a Home (the phone bar has it). **Live 2026-10-18 (55fd4ec)** |
 | F15 | Money: the "What's next" box shows only when something is waiting (no "Nothing waiting for you"). **Built and pushed, NOT deployed yet: the owner tests on this PC first** (third local login: `roommate@apptmasters.local`, Jordan Roommate in Maple House) |
 | F16 | No footer on phones (computers keep it); Help & support added to the Home's More. **Built and pushed, NOT deployed yet: the owner tests on this PC first** |
+| L1 | Conversations keep working after a listing closes: name, photo, card with "No longer available", replies both ways; a short "No longer available" page with Find similar. **Built and pushed, NOT deployed yet** (browser check `l1-check.mjs`, leaves a test conversation about "Sunny room near the park") |
 
 - **Local copy to test:** see "Starting the local copy" above.
 - **Deploying the next fixes:** same recipe. On the server: pull, `rm -rf

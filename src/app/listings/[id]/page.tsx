@@ -14,6 +14,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, getToken } from "@/lib/api";
 import { useMe } from "@/components/market/useMe";
+import { BackLink } from "@/components/market/MarketChrome";
 import { SaveButton, priceText, availableText, type MarketListing } from "@/components/market/ListingCard";
 import { useSavedIds, toggleSaved, saveSignInPath } from "@/components/market/saved";
 import { amenityIcon } from "@/components/market/amenityIcons";
@@ -59,6 +60,46 @@ function Row({ label, value }: { label: string; value: string | null }) {
       <span className="text-gray-500 dark:text-gray-400">{label}</span>
       <span className="text-right font-medium text-gray-900 dark:text-white">{value}</span>
     </div>
+  );
+}
+
+/**
+ * A listing that closed after you wrote about it (listing lifecycle L1, 2026-10-18): what it
+ * was, that it's gone, your conversation, and similar places. The server sends only a summary.
+ */
+function ClosedListing({ listing, report, reportDialog }: { listing: ListingDetail; report: React.ReactNode; reportDialog: React.ReactNode }) {
+  const photo = listing.photos[0]?.url;
+  const kind = listing.type === "ROOM_TO_SHARE" ? "room" : listing.propertyType === "HOUSE" ? "house" : "apartment";
+  const similar = `/listings?${new URLSearchParams({ q: listing.city, kind })}`;
+  return (
+    <main className="mx-auto max-w-md px-4 pb-12 pt-6">
+      <BackLink href={`/listings/${listing.id}/messages`} label="Back to the conversation" className="mb-2" />
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+        <div className="aspect-[16/10] bg-gray-100 dark:bg-gray-800">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {photo ? <img src={photo} alt="" className="h-full w-full object-cover opacity-70" /> : <div className="flex h-full items-center justify-center text-gray-300"><HomeIcon className="h-10 w-10" /></div>}
+        </div>
+        <div className="space-y-1.5 p-4">
+          <span className="inline-block rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-100">No longer available</span>
+          <p className="font-semibold text-gray-900 dark:text-white">{listing.title}</p>
+          <p className="text-gray-500 dark:text-gray-400">{priceText(listing)} · {[listing.neighborhood, listing.city].filter(Boolean).join(", ")}</p>
+        </div>
+      </div>
+      <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+        This place isn&apos;t advertised any more. Your conversation with {listing.owner.name.split(" ")[0]} is still there.
+      </p>
+      <div className="mt-5 space-y-2">
+        <Link href={`/listings/${listing.id}/messages`} className="flex items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-dark">
+          <MessageIcon className="h-5 w-5" />Open the conversation
+        </Link>
+        <Link href={similar} className="block rounded-xl border-[1.5px] border-brand py-3 text-center text-sm font-semibold text-brand dark:text-emerald-300">
+          Find similar apartments
+        </Link>
+      </div>
+      {/* A scam can still be reported after it closes. */}
+      <div className="mt-6">{report}</div>
+      {reportDialog}
+    </main>
   );
 }
 
@@ -157,6 +198,30 @@ export default function ListingDetailPage() {
     );
   }
   if (!listing) return <main className="mx-auto max-w-5xl px-4 py-16 text-center text-sm text-gray-400">Loading…</main>;
+  const reportDialog = reportOpen && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" role="dialog" aria-modal="true" aria-label="Report this listing">
+      <div className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+        <h2 className="font-bold text-gray-900 dark:text-white">Report this listing</h2>
+        <select value={reportReason} onChange={e => setReportReason(e.target.value)} aria-label="Reason"
+          className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-950">
+          {REPORT_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+        </select>
+        <textarea placeholder="Details (optional)" value={reportNotes} onChange={e => setReportNotes(e.target.value)} rows={3}
+          className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-950" />
+        <div className="flex gap-2">
+          <button type="button" onClick={submitReport} disabled={reportSubmitting} className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+            {reportSubmitting ? "Sending…" : "Send report"}
+          </button>
+          <button type="button" onClick={() => setReportOpen(false)} className="flex-1 rounded-xl border border-gray-300 py-2.5 text-sm font-medium text-gray-700 dark:border-gray-700 dark:text-gray-200">Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+  if (listing.status === "UNAVAILABLE") {
+    return <ClosedListing listing={listing} report={reportMsg ? <p className="text-center text-xs text-gray-500">{reportMsg}</p> : (
+      <button type="button" onClick={() => setReportOpen(true)} className="mx-auto block text-xs text-gray-500 hover:text-red-600">Report this listing</button>
+    )} reportDialog={reportDialog} />;
+  }
 
   const isOwner = me?.id === listing.owner.id;
   const photos = listing.photos;
@@ -390,25 +455,7 @@ export default function ListingDetailPage() {
         <div className="mx-auto flex max-w-xl gap-3">{actions}</div>
       </div>
 
-      {reportOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" role="dialog" aria-modal="true" aria-label="Report this listing">
-          <div className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
-            <h2 className="font-bold text-gray-900 dark:text-white">Report this listing</h2>
-            <select value={reportReason} onChange={e => setReportReason(e.target.value)} aria-label="Reason"
-              className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-950">
-              {REPORT_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-            </select>
-            <textarea placeholder="Details (optional)" value={reportNotes} onChange={e => setReportNotes(e.target.value)} rows={3}
-              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-950" />
-            <div className="flex gap-2">
-              <button type="button" onClick={submitReport} disabled={reportSubmitting} className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-                {reportSubmitting ? "Sending…" : "Send report"}
-              </button>
-              <button type="button" onClick={() => setReportOpen(false)} className="flex-1 rounded-xl border border-gray-300 py-2.5 text-sm font-medium text-gray-700 dark:border-gray-700 dark:text-gray-200">Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {reportDialog}
     </main>
   );
 }

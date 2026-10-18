@@ -78,9 +78,16 @@ export async function POST(
     });
     if (!contacted) return NextResponse.json({ error: "Not found" }, { status: 404 });
   } else {
-    // New conversations only about listings that are publicly visible.
-    const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { status: true } });
-    if (listing?.status !== "APPROVED") return NextResponse.json({ error: "This listing is no longer available" }, { status: 400 });
+    // A reply in a conversation that exists always goes through, even after the listing
+    // closes (listing lifecycle L1, 2026-10-18); a NEW conversation needs a public listing.
+    const earlier = await prisma.listingMessage.findFirst({
+      where: { listingId, OR: [{ senderId: payload.userId, receiverId: otherUserId }, { senderId: otherUserId, receiverId: payload.userId }] },
+      select: { id: true },
+    });
+    if (!earlier) {
+      const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { status: true } });
+      if (listing?.status !== "APPROVED") return NextResponse.json({ error: "This listing is no longer available" }, { status: 400 });
+    }
   }
 
   const message = await prisma.listingMessage.create({

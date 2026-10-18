@@ -2526,3 +2526,61 @@ Remove it in all the pages": the footer (Help · © 2026 ApptMasters).
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+## Listing lifecycle (the owner's spec "ApptMasters Listing Lifecycle v2", 2026-10-18)
+
+The owner asked for a review: realistic for memory, storage, ease of use?
+Verdict: the goals are right. Memory is fine. Storage depends on photo size
+(about 2 MB each, never resized), not on the lifecycle. The spec's versions,
+advertising periods and property records are heavier than needed. **Owner's
+choice: the lighter plan**, one step at a time:
+- **L1:** conversations keep working after a listing closes (no database
+  change).
+- **L2:** Rented · Paused · Relist (one small SQL, with the owner's OK).
+- **L3:** photos shrink before upload; reorder; choose the cover.
+- **Later, maybe:** edits wait for review while the live version stays up;
+  "Still available?" emails.
+
+Same rule as the fixes: built and checked here, **not deployed until the
+owner tests on this PC and says "deploy"**.
+
+### L1 — Conversations keep working after a listing closes (2026-10-18)
+
+**The problem (found in the code):** once a listing is marked rented (or isn't
+public for another reason), the conversation page asks for the listing and gets
+"not found". The seeker loses the advertiser's name, photo and the apartment
+card. The seeker also can't reply any more: every message from them was
+refused unless the listing was public.
+
+**What changes** (no database change)
+- **Someone who already has a conversation** about a listing still gets a short
+  summary of it after it closes: title, price, city, bedrooms, the first photo,
+  the advertiser's name and photo. Not the address, the description or why it
+  closed. Anyone else still gets "not found".
+- **Replies always work** in a conversation that exists, for both people.
+  Only a **new** conversation needs a listing that's still available. If a new
+  message is refused, the reason shows and the typed text stays.
+- **The conversation** keeps the name, photo and apartment card, marks it **No
+  longer available**, and says you can still write to each other. "Save" and
+  "Share" leave the card; "Remove from Saved" and "Report" stay.
+- **"View listing" on a closed listing** opens a short page: the photo, title
+  and price, "No longer available", **Open the conversation** and **Find
+  similar apartments** (same city and kind of place).
+- Rented · Paused · Relist for owners comes in L2.
+
+- [x] Type check · [x] Tests (352, 2 new: replies after closing; who sees the summary) · [x] Lint: no new errors (50) · [x] Browser check (`l1-check.mjs`: 19 checks, phone and computer; an open listing unchanged)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100). The check leaves a
+conversation about a listing that Jordan marked rented.
+1. Sign in as `resident@apptmasters.local` / `LocalTest-2026`, open
+   **Messages**, then the conversation about "Sunny room near the park": Jordan's
+   name and photo (initials), the apartment card with **No longer available**,
+   and the earlier messages.
+2. Write a reply and send it: it goes through.
+3. Tap **View listing**: the short "No longer available" page, with Open the
+   conversation and Find similar apartments.
+4. Sign in as `roommate@apptmasters.local` (Jordan): the reply is there, and
+   Jordan can answer.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
