@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getTokenFromRequest, requireSuperAdmin } from "@/lib/auth";
 import { detailsSchema, detailsData } from "@/lib/listingFields";
+import { removeListingFiles } from "@/lib/uploads";
 
 const editSchema = z.object({
   type: z.enum(["APARTMENT_FOR_RENT", "ROOM_TO_SHARE"]),
@@ -31,9 +32,11 @@ const editSchema = z.object({
 /** Only for the poster and admins. */
 const PRIVATE_FIELDS = ["address", "rejectionReason", "reviewedById", "reviewedAt"] as const;
 
+const REMOVED_MESSAGE = "This listing was removed by ApptMasters and can't be edited.";
+
 /** What a person who wrote about a closed listing still sees: enough for the conversation card. */
 function closedSummary(l: {
-  id: string; type: string; title: string; price: number; priceMax: number | null; city: string; state: string | null;
+  id: string; type: string; status: string; title: string; price: number; priceMax: number | null; city: string; state: string | null;
   neighborhood: string | null; zipCode: string | null; bedrooms: number | null; bathrooms: number | null; maxOccupants: number | null;
   propertyType: string | null; roomType: string | null; photos: { url: string }[];
   owner: { id: string; name: string; createdAt: Date; photo: string | null };
@@ -42,8 +45,10 @@ function closedSummary(l: {
     id: l.id, type: l.type, title: l.title, price: l.price, priceMax: l.priceMax, city: l.city, state: l.state,
     neighborhood: l.neighborhood, zipCode: l.zipCode, bedrooms: l.bedrooms, bathrooms: l.bathrooms, maxOccupants: l.maxOccupants,
     propertyType: l.propertyType, roomType: l.roomType, photos: l.photos.slice(0, 1), owner: l.owner,
-    // One word for every reason it isn't public: seekers never see review labels.
-    status: "UNAVAILABLE",
+    // "Rented" is said (the conversation closes because of it, L2); any other reason is one
+    // word, so seekers never see review labels.
+    status: l.status === "RENTED" ? "RENTED" : "UNAVAILABLE",
+    summary: true,
   };
 }
 
@@ -101,16 +106,25 @@ export async function PATCH(
 
   const body = await req.json();
 
-  // Owner-initiated "mark as rented" — the only status transition a non-admin can make directly
-  if (body.action === "MARK_REMOVED") {
-    if (listing.status === "REMOVED") return NextResponse.json(listing);
-    const updated = await prisma.listing.update({ where: { id }, data: { status: "REMOVED" } });
+  // "Mark as rented" (listing lifecycle L2, owner 2026-10-18): it leaves search, its photos
+  // are deleted at once (every other detail stays, so it can be relisted with new photos),
+  // and its conversations close. The owner's rule: pictures and videos in those
+  // conversations are deleted and the text kept; they're text only today
+  // (ListingMessage.content), so there's nothing more to delete. MARK_REMOVED is the old name.
+  if (body.action === "MARK_RENTED" || body.action === "MARK_REMOVED") {
+    if (listing.status === "RENTED") return NextResponse.json(listing);
+    if (listing.status === "REMOVED") return NextResponse.json({ error: REMOVED_MESSAGE }, { status: 400 });
+    const photos = await prisma.listingPhoto.findMany({ where: { listingId: id }, select: { url: true } });
+    const [, updated] = await prisma.$transaction([
+      prisma.listingPhoto.deleteMany({ where: { listingId: id } }),
+      prisma.listing.update({ where: { id }, data: { status: "RENTED" } }),
+    ]);
+    await removeListingFiles(photos.map(p => p.url), id);
     return NextResponse.json(updated);
   }
 
-  if (listing.status === "REMOVED") {
-    return NextResponse.json({ error: "This listing was removed. Create a new listing to relist." }, { status: 400 });
-  }
+  // REMOVED is ApptMasters taking a listing down (admin): it can't come back by editing.
+  if (listing.status === "REMOVED") return NextResponse.json({ error: REMOVED_MESSAGE }, { status: 400 });
 
   const parsed = editSchema.safeParse(body);
   if (!parsed.success) {
@@ -118,10 +132,18 @@ export async function PATCH(
   }
   const data = parsed.data;
 
+  // Relisting a rented one: it was available "from" a date that may have passed while it was let.
+  const today = new Date().toISOString().slice(0, 10);
+  if (listing.status === "RENTED" && data.availableFrom && data.availableFrom.slice(0, 10) < today) {
+    return NextResponse.json({ error: "Choose a new \"available from\" date, or leave it empty for Available now." }, { status: 400 });
+  }
+
   // Editing an APPROVED listing sends it back for re-review; a PENDING or
   // REJECTED listing just updates in place (a REJECTED edit-and-save IS the resubmit flow).
-  const nextStatus = listing.status === "APPROVED" ? "PENDING" : listing.status === "REJECTED" ? "PENDING" : listing.status;
+  // Relisting a RENTED one (L2) is reviewed too: its photos are new.
+  const nextStatus = ["APPROVED", "REJECTED", "RENTED"].includes(listing.status) ? "PENDING" : listing.status;
 
+  const oldPhotos = await prisma.listingPhoto.findMany({ where: { listingId: id }, select: { url: true } });
   await prisma.listingPhoto.deleteMany({ where: { listingId: id } });
 
   const updated = await prisma.listing.update({
@@ -156,6 +178,8 @@ export async function PATCH(
     },
     include: { photos: { orderBy: { position: "asc" } } },
   });
+  // Photos taken out of the listing are deleted from the disk (L2).
+  await removeListingFiles(oldPhotos.map(p => p.url).filter(url => !data.photoUrls.includes(url)), id);
 
   return NextResponse.json(updated);
 }
@@ -175,6 +199,8 @@ export async function DELETE(
   const isAdmin = await requireSuperAdmin(req);
   if (!isOwner && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const photos = await prisma.listingPhoto.findMany({ where: { listingId: id }, select: { url: true } });
   await prisma.listing.delete({ where: { id } });
+  await removeListingFiles(photos.map(p => p.url), id); // its photos leave the disk too (L2)
   return NextResponse.json({ success: true });
 }

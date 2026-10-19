@@ -69,6 +69,15 @@ export async function POST(
   if (typeof content !== "string" || !content.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
   if (content.length > 4000) return NextResponse.json({ error: "Message is too long" }, { status: 400 });
 
+  // Conversations follow the listing (listing lifecycle L2, owner 2026-10-18): while it isn't
+  // in search (rented, or waiting for review) nobody writes, the owner included. Earlier
+  // messages stay readable; they open again once it's approved.
+  const status = (await prisma.listing.findUnique({ where: { id: listingId }, select: { status: true } }))?.status;
+  if (status !== "APPROVED") {
+    const error = status === "RENTED" ? "This place has been rented. The conversation is closed." : "This listing is no longer available";
+    return NextResponse.json({ error }, { status: 400 });
+  }
+
   if (senderIsOwner) {
     // Owners reply to people who contacted them; they can't open threads with
     // arbitrary user ids (that would let anyone with a listing message anyone).
@@ -77,17 +86,6 @@ export async function POST(
       select: { id: true },
     });
     if (!contacted) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  } else {
-    // A reply in a conversation that exists always goes through, even after the listing
-    // closes (listing lifecycle L1, 2026-10-18); a NEW conversation needs a public listing.
-    const earlier = await prisma.listingMessage.findFirst({
-      where: { listingId, OR: [{ senderId: payload.userId, receiverId: otherUserId }, { senderId: otherUserId, receiverId: payload.userId }] },
-      select: { id: true },
-    });
-    if (!earlier) {
-      const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { status: true } });
-      if (listing?.status !== "APPROVED") return NextResponse.json({ error: "This listing is no longer available" }, { status: 400 });
-    }
   }
 
   const message = await prisma.listingMessage.create({

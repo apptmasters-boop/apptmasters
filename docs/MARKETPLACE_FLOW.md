@@ -226,6 +226,18 @@ There is no mandatory onboarding questionnaire immediately after signup.
 > → rent out), and the action in progress still wins after sign-up. No other
 > questions.
 
+## 12b. Rented and relisting (owner, 2026-10-18, step L2)
+
+- **Mark as rented** hides the listing and **deletes its photos right away**.
+  The details (rooms, price, square feet, laundry, everything else) are kept,
+  so the person can **Relist** later by editing it and adding new photos.
+  Relisting goes through review.
+- **Conversations** about a rented listing stay readable but are closed: nobody
+  can send until it's relisted and approved.
+- **When an apartment is rented, pictures and videos in its conversations are
+  deleted and the text is kept.** These conversations are text only today; the
+  rule applies if pictures or videos are ever added.
+
 ## 13. Header Logic Before and After Login
 
 > **Owner's change (2026-10-17, fix F2):** on computers the top bar is only the

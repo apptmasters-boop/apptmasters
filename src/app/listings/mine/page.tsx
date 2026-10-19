@@ -16,6 +16,16 @@ const STATUS_STYLES: Record<string, string> = {
   APPROVED: "bg-green-50 text-green-700 border-green-200",
   REJECTED: "bg-red-50 text-red-700 border-red-200",
   REMOVED: "bg-gray-50 text-gray-500 border-gray-200",
+  RENTED: "bg-blue-50 text-blue-700 border-blue-200",
+};
+
+/** In words (listing lifecycle L2): "Removed" only ever means ApptMasters took it down. */
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: "Waiting for review",
+  APPROVED: "Active",
+  REJECTED: "Not approved",
+  REMOVED: "Removed by ApptMasters",
+  RENTED: "Rented",
 };
 
 export default function MyListingsPage() {
@@ -35,16 +45,17 @@ export default function MyListingsPage() {
     load();
   }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function markRemoved(id: string) {
-    if (!confirm("Mark this listing as rented/no longer available? You'll need a new listing to relist.")) return;
+  // Listing lifecycle L2 (owner, 2026-10-18): the photos go, the details stay for Relist.
+  async function markRented(id: string) {
+    if (!confirm("Mark this listing as rented? It will disappear from search, and its photos will be deleted. Your details are kept, so you can relist it later with new photos. Conversations about it close.")) return;
     setWorking(id);
-    await apiFetch(`/api/listings/${id}`, { method: "PATCH", body: JSON.stringify({ action: "MARK_REMOVED" }) });
+    await apiFetch(`/api/listings/${id}`, { method: "PATCH", body: JSON.stringify({ action: "MARK_RENTED" }) });
     setWorking(null);
     load();
   }
 
   async function deleteListing(id: string) {
-    if (!confirm("Delete this listing permanently? This can't be undone.")) return;
+    if (!confirm("Delete this listing permanently, with its photos? This can't be undone.")) return;
     setWorking(id);
     await apiFetch(`/api/listings/${id}`, { method: "DELETE" });
     setWorking(null);
@@ -88,22 +99,27 @@ export default function MyListingsPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Link href={`/listings/${l.id}`} className="font-semibold text-gray-900 hover:underline truncate">{l.title}</Link>
-                  <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${STATUS_STYLES[l.status]}`}>{l.status}</span>
+                  <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${STATUS_STYLES[l.status] ?? STATUS_STYLES.REMOVED}`}>{STATUS_LABELS[l.status] ?? l.status}</span>
                 </div>
                 <p className="text-sm text-gray-500">{l.city} · ${l.price.toLocaleString()}{l.priceMax ? `–$${l.priceMax.toLocaleString()}` : ""}/mo</p>
                 {l.status === "REJECTED" && l.rejectionReason && (
                   <p className="text-xs text-red-600 mt-1">{l.rejectionReason}</p>
                 )}
+                {l.status === "RENTED" && (
+                  <p className="text-xs text-gray-500 mt-1">Its photos were deleted. Relist it with new photos when it&apos;s available again.</p>
+                )}
                 <div className="flex gap-3 mt-2">
-                  {l.status !== "REMOVED" && (
-                    <Link href={`/listings/${l.id}/edit`} className="text-xs text-brand font-medium hover:underline">
-                      {l.status === "REJECTED" ? "Edit & resubmit" : "Edit"}
-                    </Link>
-                  )}
-                  {l.status !== "REMOVED" && (
-                    <button onClick={() => markRemoved(l.id)} disabled={working === l.id} className="text-xs text-gray-500 hover:underline disabled:opacity-50">
-                      Mark as rented
-                    </button>
+                  {l.status === "RENTED" ? (
+                    <Link href={`/listings/${l.id}/edit`} className="text-xs text-brand font-semibold hover:underline">Relist</Link>
+                  ) : l.status !== "REMOVED" && (
+                    <>
+                      <Link href={`/listings/${l.id}/edit`} className="text-xs text-brand font-medium hover:underline">
+                        {l.status === "REJECTED" ? "Edit & resubmit" : "Edit"}
+                      </Link>
+                      <button onClick={() => markRented(l.id)} disabled={working === l.id} className="text-xs text-gray-500 hover:underline disabled:opacity-50">
+                        Mark as rented
+                      </button>
+                    </>
                   )}
                   <button onClick={() => deleteListing(l.id)} disabled={working === l.id} className="text-xs text-red-400 hover:text-red-600 disabled:opacity-50">
                     Delete

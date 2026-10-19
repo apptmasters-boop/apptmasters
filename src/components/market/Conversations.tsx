@@ -119,7 +119,7 @@ function ListingMini({ c }: { c: Conversation }) {
         <span className="block truncate text-sm font-semibold text-gray-900 dark:text-white">{c.listingTitle}</span>
         <span className="block truncate text-[13px] text-gray-600 dark:text-gray-400">
           {[price, c.listingBedrooms !== null ? (c.listingBedrooms === 0 ? "Studio" : `${c.listingBedrooms} bd`) : null, c.listingCity].filter(Boolean).join(" · ")}
-          {c.listingStatus !== "APPROVED" && " · no longer available"}
+          {c.listingStatus !== "APPROVED" && (c.listingStatus === "RENTED" ? " · rented" : " · no longer available")}
         </span>
       </span>
       <ChevronRightIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -191,11 +191,11 @@ export function ListingContext({ listing, variant, contact, mine = false }: {
   );
   const photo = listing.photos[0]?.url;
   const city = [listing.city, [listing.state, listing.zipCode].filter(Boolean).join(" ")].filter(Boolean).join(", ");
-  // Closed (rented, paused, under review…): the card stays, marked (listing lifecycle L1, 2026-10-18).
+  // Closed (rented, under review…): the card stays, marked (listing lifecycle L1/L2, 2026-10-18).
   const closed = !!listing.status && listing.status !== "APPROVED";
   const closedBadge = closed && (
     <span className="inline-block rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-100">
-      {mine ? "Not in search right now" : "No longer available"}
+      {listing.status === "RENTED" ? "Rented" : mine ? "Not in search right now" : "No longer available"}
     </span>
   );
 

@@ -118,7 +118,7 @@ function Chips({ l, max }: { l: MarketListing; max: number }) {
 
 function Unavailable({ status }: { status?: string }) {
   if (!status || status === "APPROVED") return null;
-  return <span className="inline-block rounded-full bg-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700">No longer available</span>;
+  return <span className="inline-block rounded-full bg-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700">{status === "RENTED" ? "Rented" : "No longer available"}</span>;
 }
 
 /** The advertiser's profile photo, or their initial. */

@@ -2545,6 +2545,11 @@ owner tests on this PC and says "deploy"**.
 
 ### L1 — Conversations keep working after a listing closes (2026-10-18)
 
+> **Replaced by L2 (owner, 2026-10-18):** "conversations shouldn't keep working
+> after a listing is marked rented". L2 keeps L1's display fix (name, photo and
+> card stay; the short "No longer available" page) but closes the conversation:
+> nobody can send. L1 was never deployed.
+
 **The problem (found in the code):** once a listing is marked rented (or isn't
 public for another reason), the conversation page asks for the listing and gets
 "not found". The seeker loses the advertiser's name, photo and the apartment
@@ -2661,3 +2666,67 @@ owner's yes**. Until then O1 can't be deployed.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### L2 — Mark as rented deletes the photos, keeps the details; Relist (2026-10-18)
+
+**What the owner asked**
+- Let the person who listed **relist the same apartment** with its
+  information, by editing it and adding pictures.
+- **Delete the apartment's pictures as soon as it's marked rented** (storage).
+  Keep the profiles and the details: rooms, price, square feet, laundry and
+  everything else.
+- Conversations about a rented listing: **readable but closed**.
+- When an apartment is rented, **pictures and videos in its conversations are
+  deleted, the text is kept**. These conversations are text only today, so
+  there's nothing to delete yet; the rule applies if pictures or videos are
+  ever added to them.
+
+**Storage answer:**
+- Relisting the same listing reuses what's there; deleting the photos when it's
+  rented frees their space at once.
+- Posting a new listing instead would have uploaded everything again.
+- The server's disk is already paid for (20 GB of 29 GB free); photos are about
+  2 MB each today (L3 shrinks them).
+
+**What changes** (no database change)
+- **Mark as rented** (My listings) asks: "Mark this listing as rented? It will
+  disappear from search, and its photos will be deleted. Your details are
+  kept, so you can relist it later with new photos. Conversations about it
+  close."
+  - Then the listing is **Rented**: hidden everywhere, its photos deleted (the
+    nightly backups still hold them for 7 nights), every other detail kept.
+- **Relist** (on a Rented listing) opens the edit form with every detail
+  filled in and no photos:
+  - "Add photos of the apartment as it is now."
+  - A past "available from" date must be changed.
+  - Saving sends it to **review**; once approved it's back in search.
+- **Conversations:**
+  - While a listing isn't in search (rented, or waiting for review after an
+    edit), **nobody can send**, the seeker or the owner.
+  - Earlier messages stay readable with the name, photo and card, and "This
+    place has been rented. The conversation is closed."
+  - Once relisted and approved, they open again.
+- **Photo files are deleted from the server** when a listing is marked rented,
+  when an owner removes or replaces photos, and when a listing is deleted.
+  - Safety: only files in the listing photos folder, with the names the app
+    gives uploads, and only if no other listing uses the same photo.
+- **"Removed"** now means removed by ApptMasters only. The 3 removed listings
+  on the live site stay as they are unless the owner says which were rented.
+
+- [x] Type check · [x] Tests (371, 11 new, incl. real photo files and the safety cases) · [x] Lint: down to 47 · [x] Browser check (`l2-check.mjs`: 21 checks)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100). The check leaves Jordan's
+"Sunny room near the park" rented, with a conversation.
+1. Sign in as `resident@apptmasters.local` / `LocalTest-2026` and open
+   **Messages**, then the conversation about "Sunny room near the park": the
+   messages, Jordan's name, the card, "This place has been rented. The
+   conversation is closed." and no message box.
+2. Sign in as `roommate@apptmasters.local` (Jordan) and open **My listings**:
+   the room shows **Rented** and **Relist**. Its conversation is closed for
+   Jordan too.
+3. Press **Relist**: every detail is filled in and there are no photos. Change
+   the price, add a photo, save: **Waiting for review**.
+4. Post or mark another listing rented yourself: the confirmation explains
+   that the photos will be deleted.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____

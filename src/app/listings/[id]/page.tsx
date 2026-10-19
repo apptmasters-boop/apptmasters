@@ -32,6 +32,8 @@ interface ListingDetail extends MarketListing {
   roommateOccupation: string | null; roommateSmoking: string | null; roommatePets: string | null;
   roommateLifestyleTags: string; roommateCulturalNotes: string | null;
   owner: { id: string; name: string; createdAt?: string; photo?: string | null };
+  /** Only a summary: a closed listing seen by someone who wrote about it (L1/L2). */
+  summary?: boolean;
 }
 
 const REPORT_REASONS = [
@@ -80,13 +82,13 @@ function ClosedListing({ listing, report, reportDialog }: { listing: ListingDeta
           {photo ? <img src={photo} alt="" className="h-full w-full object-cover opacity-70" /> : <div className="flex h-full items-center justify-center text-gray-300"><HomeIcon className="h-10 w-10" /></div>}
         </div>
         <div className="space-y-1.5 p-4">
-          <span className="inline-block rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-100">No longer available</span>
+          <span className="inline-block rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-100">{listing.status === "RENTED" ? "Rented" : "No longer available"}</span>
           <p className="font-semibold text-gray-900 dark:text-white">{listing.title}</p>
           <p className="text-gray-500 dark:text-gray-400">{priceText(listing)} · {[listing.neighborhood, listing.city].filter(Boolean).join(", ")}</p>
         </div>
       </div>
       <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
-        This place isn&apos;t advertised any more. Your conversation with {listing.owner.name.split(" ")[0]} is still there.
+        {listing.status === "RENTED" ? "This place has been rented." : "This place isn't advertised any more."} Your conversation with {listing.owner.name.split(" ")[0]} is still there to read.
       </p>
       <div className="mt-5 space-y-2">
         <Link href={`/listings/${listing.id}/messages`} className="flex items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-dark">
@@ -217,7 +219,7 @@ export default function ListingDetailPage() {
       </div>
     </div>
   );
-  if (listing.status === "UNAVAILABLE") {
+  if (listing.summary) {
     return <ClosedListing listing={listing} report={reportMsg ? <p className="text-center text-xs text-gray-500">{reportMsg}</p> : (
       <button type="button" onClick={() => setReportOpen(true)} className="mx-auto block text-xs text-gray-500 hover:text-red-600">Report this listing</button>
     )} reportDialog={reportDialog} />;
@@ -310,7 +312,7 @@ export default function ListingDetailPage() {
           <div className="px-4 pt-5 lg:px-0">
             {listing.status && listing.status !== "APPROVED" && (
               <p className="mb-3 inline-block rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
-                {listing.status === "PENDING" ? "Waiting for review: only you can see it" : listing.status === "REJECTED" ? "Not approved: edit it and resubmit" : "No longer available"}
+                {listing.status === "PENDING" ? "Waiting for review: only you can see it" : listing.status === "REJECTED" ? "Not approved: edit it and resubmit" : listing.status === "RENTED" ? "Rented: relist it from My listings" : "No longer available"}
               </p>
             )}
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white">{listing.title}</h1>

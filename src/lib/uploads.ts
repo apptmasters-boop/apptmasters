@@ -8,10 +8,11 @@
  * as something a browser would run. SVG is deliberately not accepted (it can
  * contain scripts).
  */
-import { writeFile, mkdir } from "fs/promises";
+import { writeFile, mkdir, unlink } from "fs/promises";
 import { join } from "path";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export type UploadKind = "image" | "audio";
 
@@ -59,4 +60,35 @@ export async function saveUpload(file: File | null, opts: {
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, filename), bytes);
   return { ok: true, url: `/uploads/${opts.folder}/${filename}` };
+}
+
+/** The only listing photo addresses ever deleted: the names saveUpload gives, in the listings folder. */
+const LISTING_PHOTO = /^\/uploads\/listings\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|gif|webp)$/;
+
+/**
+ * Deletes listing photo files from the disk (listing lifecycle L2, owner 2026-10-18:
+ * marked rented, photos removed or replaced, listing deleted), so photos nobody
+ * shows don't take space. The nightly backups still hold them for 7 nights.
+ *
+ * Photo addresses come from the browser, so only files that look exactly like our
+ * own listing uploads are touched, and never one another listing still shows
+ * (that would delete someone else's photo). Returns how many files were deleted.
+ */
+export async function removeListingFiles(urls: string[], exceptListingId: string): Promise<number> {
+  const candidates = [...new Set(urls)].filter(u => LISTING_PHOTO.test(u));
+  if (candidates.length === 0) return 0;
+  const stillShown = await prisma.listingPhoto.findMany({
+    where: { url: { in: candidates }, listingId: { not: exceptListingId } },
+    select: { url: true },
+  });
+  const keep = new Set(stillShown.map(p => p.url));
+  let removed = 0;
+  for (const url of candidates) {
+    if (keep.has(url)) continue;
+    try {
+      await unlink(join(process.cwd(), "public", "uploads", "listings", url.slice("/uploads/listings/".length)));
+      removed++;
+    } catch { /* already gone */ }
+  }
+  return removed;
 }

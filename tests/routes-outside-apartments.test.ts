@@ -85,19 +85,20 @@ describe("POST /api/listings/[id]/messages", () => {
     expect((await send(seeker.token, listing.id, "Hello")).status).toBe(400);
   });
 
-  it("lets both people keep writing after the listing closes (listing lifecycle L1)", async () => {
+  it("closes the conversation once the listing is rented: nobody can send, until it's back in search (L2)", async () => {
     const owner = await createUser();
     const seeker = await createUser();
     const listing = await approvedListing(owner.user.id);
     expect((await send(seeker.token, listing.id, "Is it available?")).status).toBe(201);
-    await prisma.listing.update({ where: { id: listing.id }, data: { status: "REMOVED" } }); // marked rented
-    expect((await send(seeker.token, listing.id, "Oh, too bad. Thanks anyway!")).status).toBe(201);
-    expect((await send(owner.token, listing.id, "Thanks for asking!", seeker.user.id)).status).toBe(201);
-    // Someone new still can't start a conversation about it.
-    const newcomer = await createUser();
-    const refused = await send(newcomer.token, listing.id, "Hello");
-    expect(refused.status).toBe(400);
-    expect((await refused.json()).error).toBe("This listing is no longer available");
+    await prisma.listing.update({ where: { id: listing.id }, data: { status: "RENTED" } });
+    const closed = await send(seeker.token, listing.id, "Oh, too bad. Thanks anyway!");
+    expect(closed.status).toBe(400);
+    expect((await closed.json()).error).toBe("This place has been rented. The conversation is closed.");
+    expect((await send(owner.token, listing.id, "Thanks for asking!", seeker.user.id)).status).toBe(400);
+    expect((await send((await createUser()).token, listing.id, "Hello")).status).toBe(400);
+    // Relisted and approved: open again.
+    await prisma.listing.update({ where: { id: listing.id }, data: { status: "APPROVED" } });
+    expect((await send(seeker.token, listing.id, "Is it free again?")).status).toBe(201);
   });
 
   it("caps message length", async () => {
@@ -128,7 +129,7 @@ describe("GET /api/listings/[id] after the listing closes (listing lifecycle L1)
     const res = await read(listing.id, seeker.token);
     expect(res.status).toBe(200);
     const summary = await res.json();
-    expect(summary).toMatchObject({ id: listing.id, title: "Sunny 1BR", price: 1500, city: "Closedville", bedrooms: 1, status: "UNAVAILABLE" });
+    expect(summary).toMatchObject({ id: listing.id, title: "Sunny 1BR", price: 1500, city: "Closedville", bedrooms: 1, status: "UNAVAILABLE", summary: true });
     expect(summary.owner.id).toBe(owner.user.id);
     expect(summary.photos).toHaveLength(1);
     expect(summary).not.toHaveProperty("address");
@@ -141,5 +142,15 @@ describe("GET /api/listings/[id] after the listing closes (listing lifecycle L1)
     const own = await (await read(listing.id, owner.token)).json();
     expect(own.status).toBe("REMOVED");
     expect(own.address).toBe("12 Hidden St");
+  });
+
+  it("says Rented when it was rented (L2)", async () => {
+    const owner = await createUser();
+    const seeker = await createUser();
+    const listing = await prisma.listing.create({
+      data: { type: "ROOM_TO_SHARE", status: "RENTED", title: "Room", description: "d", price: 800, city: "Rentville", ownerId: owner.user.id },
+    });
+    await prisma.listingMessage.create({ data: { listingId: listing.id, senderId: seeker.user.id, receiverId: owner.user.id, content: "Hi" } });
+    expect((await (await read(listing.id, seeker.token)).json()).status).toBe("RENTED");
   });
 });

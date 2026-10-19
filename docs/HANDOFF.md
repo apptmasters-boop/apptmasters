@@ -10,8 +10,8 @@ from there."
 ## Next time, start here
 
 1. **F15 (Money, "What's next" only when something waits), F16 (no footer on
-   phones), L1 (conversations keep working after a listing closes) and O1 (the
-   sign-up question):** built, NOT deployed. The owner tests them on this PC
+   phones), L2 (Rented → Relist, replacing L1) and O1 (the sign-up
+   question):** built, NOT deployed. The owner tests them on this PC
    (steps in the checklist), then says "deploy".
    - **O1 needs the new column `User.intent` on the live site:**
      - Write the SQL at deploy time, following `prisma/manual-sql/README.md`.
@@ -20,15 +20,16 @@ from there."
    - **Careful:** `master` includes O1 since commit `7eaddd0`, and its code
      reads that column. Building `master` on the server *before* the column
      exists breaks sign-in.
-     - So either apply the column first (owner's yes),
-     - or deploy F15, F16 and L1 alone by checking out commit `2736ec7`
-       instead of `master`.
+     - The simple way: on "deploy", ask the owner's yes for that one empty,
+       additive column (nothing existing changes), apply it, then build.
+     - Without that yes, deploying F15, F16 and L2 alone needs a branch
+       without O1's two commits (`7eaddd0`, `d025496`). Make it, check it,
+       and build that instead of `master`.
    - **Listing lifecycle:** the owner chose the lighter plan on 2026-10-18 (the
      review and plan are in the checklist, "Listing lifecycle").
    - **Next steps:**
-     - L2 Rented · Paused · Relist (one small SQL: ask the owner's explicit yes
-       before applying it on the live site; the owner decides what each of the 3
-       REMOVED live listings was).
+     - (L2 is built.) The 3 REMOVED live listings stay as they are unless the
+       owner says which were rented (then a data change with their yes).
      - L3 photos: shrink in the browser before upload, reorder, choose the
        cover.
 2. **F2–F14 are live:** wait for the owner's sign-off on apptmasters.com
@@ -107,7 +108,8 @@ asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 | F14 | No Messages row on More for people without a Home (the phone bar has it). **Live 2026-10-18 (55fd4ec)** |
 | F15 | Money: the "What's next" box shows only when something is waiting (no "Nothing waiting for you"). **Built and pushed, NOT deployed yet: the owner tests on this PC first** (third local login: `roommate@apptmasters.local`, Jordan Roommate in Maple House) |
 | F16 | No footer on phones (computers keep it); Help & support added to the Home's More. **Built and pushed, NOT deployed yet: the owner tests on this PC first** |
-| L1 | Conversations keep working after a listing closes: name, photo, card with "No longer available", replies both ways; a short "No longer available" page with Find similar. **Built and pushed, NOT deployed yet** (browser check `l1-check.mjs`, leaves a test conversation about "Sunny room near the park") |
+| L1 | (Replaced by L2: the owner doesn't want conversations to keep working after a listing is rented. Its display fix stays.) |
+| L2 | **Mark as rented** deletes the photos (rows and files), keeps every detail; **Relist** edits the same listing with new photos → review; conversations about a rented listing are readable but closed for both people; photo files also leave the disk when replaced or the listing is deleted (only our own listing uploads, never one another listing shows). No database change. **Built and pushed, NOT deployed yet** (browser check `l2-check.mjs`, leaves "Sunny room near the park" rented with a closed conversation) |
 | O1 | Sign-up asks "What brings you to ApptMasters?" (I'm looking for a place · I already have a place · I have a place to rent out), required, pre-selected from where people came from; each answer lands right; the visitor Home gets "Already have a place?". **Built and pushed, NOT deployed: needs the new column `User.intent` on the live site (in the same SQL as L2, only after the owner's yes)** (browser check `o1-check.mjs`; local confirmation links: `node scripts/dev/screenshots/confirm-link.mjs <email>`) |
 
 - **Local copy to test:** see "Starting the local copy" above.

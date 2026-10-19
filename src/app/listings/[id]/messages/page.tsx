@@ -101,7 +101,7 @@ function MessagesThread() {
       : undefined
     : listing ? { name: listing.owner.name, photo: listing.owner.photo, role: "Advertiser", since: listing.owner.createdAt } : undefined;
   const name = contact?.name ?? "";
-  // Closed after you started talking: the conversation goes on (listing lifecycle L1, 2026-10-18).
+  // The listing left search (rented, or waiting for review): the conversation is closed (L2).
   const closed = !!listing?.status && listing.status !== "APPROVED";
 
   const activeKey = `${listingId}:${otherId}`;
@@ -181,11 +181,19 @@ function MessagesThread() {
               <div ref={bottomRef} />
             </div>
 
-            {closed && messages.length > 0 && (
-              <p className="border-t border-gray-100 px-4 py-2 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                {myListing ? "This listing isn't in search right now. You can still reply here." : `This place is no longer available. You can still write to ${name.split(" ")[0] || "the advertiser"} here.`}
-              </p>
-            )}
+            {/* Closed while the listing isn't in search: readable, nobody writes (listing lifecycle L2, owner 2026-10-18). */}
+            {closed ? (
+              <div role="status" className="border-t border-gray-100 bg-gray-50 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 text-center text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300">
+                {listing?.status === "RENTED" ? (
+                  myListing
+                    ? <>You marked this place as rented. The conversation is closed. <Link href={`/listings/${listingId}/edit`} className="font-semibold text-brand hover:underline">Relist it</Link> to open it again.</>
+                    : "This place has been rented. The conversation is closed."
+                ) : myListing
+                  ? "Your listing isn't in search right now (it may be waiting for review). Messages open again once it's back."
+                  : "This listing isn't available any more. The conversation is closed."}
+              </div>
+            ) : (
+            <>
             {sendError && <p role="alert" className="border-t border-gray-100 px-4 pt-2 text-sm text-red-600 dark:border-gray-800">{sendError}</p>}
             <form onSubmit={send} className="flex items-end gap-2 border-t border-gray-100 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 dark:border-gray-800">
               <label htmlFor="message" className="sr-only">Message</label>
@@ -197,6 +205,8 @@ function MessagesThread() {
                 <SendIcon className="h-5 w-5" />
               </button>
             </form>
+            </>
+            )}
           </>
         )}
       </section>
