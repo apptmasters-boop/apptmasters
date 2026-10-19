@@ -2768,7 +2768,7 @@ stopping when touched**.
 - **Thumbnails:** they follow the photo shown.
 
 - [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`g1-check.mjs`: 15 checks: rotates, waits under the mouse, pause/play, stops after › / a thumbnail / a swipe, arrow keys, Reduce motion, one photo)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-18 (944e66e, G1 + F17 + F18 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100): open a listing with
 several photos (the check leaves "Bright apartment with three photos" in Brooklyn) and wait 4 seconds: it changes by itself (1 / 3 → 2 / 3).
@@ -2798,7 +2798,7 @@ it completely"**.
   Shared expenses pages, with their own notifications.
 
 - [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`f17-check.mjs`: 10 checks; replaces `f15-check.mjs`)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-18 (944e66e, G1 + F17 + F18 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100). The check leaves a payment
 from Jordan waiting.
@@ -2823,7 +2823,7 @@ badge, on its card, in every layout (Saved, search results, Home). Its label
 (No longer available / Rented) stays.
 
 - [x] Type check · [x] Lint (47) · [x] Browser check (`f18-check.mjs`)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-18 (944e66e, G1 + F17 + F18 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100): sign in as
 `resident@apptmasters.local` / `LocalTest-2026` and open **Saved**. The rented
