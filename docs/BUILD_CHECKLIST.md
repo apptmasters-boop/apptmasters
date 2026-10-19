@@ -1900,7 +1900,7 @@ console or a password manager; every change to the server's configuration
 
 | Step | What | Who | Status |
 |---|---|---|---|
-| **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 7 nights encrypted in a private GitHub repository (owner's choice: no extra fees); an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Developer, with the owner's OKs | Set up, ready for your test |
+| **P1 — Nightly backups** | Database and uploaded files every night: 3 nights kept on the server, 7 nights encrypted in a private GitHub repository (owner's choice: no extra fees); an email to the site admins if a night fails; a restore tested ([`BACKUPS.md`](BACKUPS.md)) | Developer, with the owner's OKs | **Approved 2026-10-18** |
 | **P2 — AWS budget alert** | An email to the owner when the month's AWS bill goes over $15, or AWS forecasts it will | Owner: one paste in CloudShell | Approved 2026-10-16 |
 | **P3 — Settings in a password manager** | The owner keeps a copy of the server's `.env.local` (passwords, keys and the backup passphrase) and the SSH key in a password manager, so a lost server can be rebuilt and the backups opened | Owner, with instructions | Ready for the owner |
 | **P4 — Changing your password signs out your other devices** | Today an old sign-in on another phone keeps working after a password change or reset | Developer (small database change, owner's OK first) | Not started |
@@ -1943,11 +1943,13 @@ the nightly job; the separate private repository, encrypted.
       table count the same as live, 20 of 20 files, temporary database deleted
 - [x] Nightly job added to the server's crontab (7:30 UTC; the previous crontab
       saved as `~/backups/crontab.before-2026-10-16-backups`)
-- [ ] The first nightly run (next morning) logged OK. **2026-10-17: it didn't run.**
+- [x] The first nightly run (next morning) logged OK. **2026-10-17: it didn't run.**
       No scheduled job could run, because their log file couldn't be created
       (details in `BACKUPS.md`, "The scheduled jobs' log"). Fixed with the
       owner's OK; the backup tested in cron's own environment (made the
       2026-10-17 backup); the 2026-10-18 nightly run is the real check.
+      **2026-10-18: it ran on its own at 07:30 UTC: `OK 2026-10-18 … github=yes`,
+      folder `2026-10-18` in apptmasters-backups.**
 
 **Your test**
 1. On GitHub, open the private repository **apptmasters-backups**: a folder
@@ -1957,7 +1959,7 @@ the nightly job; the separate private repository, encrypted.
 2. The repository is **Private** and isn't one of the code repository's files.
 3. I send you the restore check's result: the table counts match.
 
-**Sign-off:** [ ] Approved on ____  · Issues found: ____
+**Sign-off:** [x] **Approved on 2026-10-18** (owner: "P1 approved") · Issues found: none
 
 ### P2 — AWS budget alert
 

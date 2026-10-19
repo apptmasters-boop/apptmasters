@@ -19,9 +19,8 @@ from there."
    - **F17 (no "What's next" box on Money at all; payments to confirm moved to Money → Balances; their notification opens Balances):** LIVE 2026-10-18 (944e66e) (`f17-check.mjs`). No database change.
    - **F18 (a closed listing's card never says "Available now" or "New"):** LIVE 2026-10-18 (944e66e) (`f18-check.mjs`). No database change.
    - **G1 (photos rotate on the listing page, every 4 s, stop when touched; swipe and ‹ › added):** LIVE 2026-10-18 (944e66e) (`g1-check.mjs`). No database change.
-2. **P1 backups:** the 2026-10-18 automatic backup worked (`OK … github=yes`,
-   folder `2026-10-18` in `apptmasters-backups`). The owner only has to say
-   "P1 approved".
+2. **P1 backups: approved by the owner on 2026-10-18.** They run every night
+   at 07:30 UTC (`BACKUPS.md`); `verify-live.sh` shows the last one.
 3. **Next to build** (the same rule: built here, the owner tests on this PC,
    deploy only on "deploy"):
    - **L3 photos:** shrink in the browser before upload, reorder, choose the
