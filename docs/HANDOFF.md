@@ -1,35 +1,54 @@
 # Where we continue
 
-**Updated 2026-10-18, evening (F15, F16, L2 and O1 deployed).** Read this
-first, on any PC. Notes that Claude Code keeps on one PC don't move to another
-PC; this file does.
+**Updated 2026-10-18, end of day (the owner: "save everything, see you
+tomorrow").** Read this first, on any PC. Notes that Claude Code keeps on one PC
+don't move to another PC; this file does.
 
 **On a new PC, tell Claude Code:** "Read `docs/HANDOFF.md` and continue
 from there."
 
 ## Next time, start here
 
-1. **Everything built is live:**
-   - F2–F16, L2 (Rented → Relist, which replaced L1) and O1 (the "What
-     brings you to ApptMasters?" question after confirming the email).
-   - The last deploy was 2026-10-18 at commit `b54b4ef`. O1's column
-     `User.intent` was added to the live database with the owner's explicit
-     yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`).
+1. **Everything built is live** (the last deploy: 2026-10-18, commit
+   `944e66e`):
+   - F2–F18, L2 (Rented → Relist, which replaced L1), O1 (the "What brings
+     you to ApptMasters?" question after confirming the email) and G1
+     (listing photos rotate).
+   - O1's column `User.intent` was added to the live database with the
+     owner's explicit yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`).
    - **Waiting for the owner's sign-off** on apptmasters.com.
-   - **F17 (no "What's next" box on Money at all; payments to confirm moved to Money → Balances; their notification opens Balances):** LIVE 2026-10-18 (944e66e) (`f17-check.mjs`). No database change.
-   - **F18 (a closed listing's card never says "Available now" or "New"):** LIVE 2026-10-18 (944e66e) (`f18-check.mjs`). No database change.
-   - **G1 (photos rotate on the listing page, every 4 s, stop when touched; swipe and ‹ › added):** LIVE 2026-10-18 (944e66e) (`g1-check.mjs`). No database change.
-2. **P1 backups: approved by the owner on 2026-10-18.** They run every night
-   at 07:30 UTC (`BACKUPS.md`); `verify-live.sh` shows the last one.
-3. **Next to build** (the same rule: built here, the owner tests on this PC,
+2. **Approved:** Sprint 13, F1, **P1 backups** (2026-10-18), P2 budget alert.
+3. **Open questions for the owner:**
+   - **The Home picture:** it was made with ChatGPT (OpenAI gpt-image,
+     2026-10-03; Content Credentials in the file). The owner asked for a free
+     replacement.
+     - Recommended: a photo **without recognizable people**. Free sites
+       (Unsplash, Pexels) don't clear people for ads, and New York Civil
+       Rights Law § 50 needs written consent. No people also avoids New York's
+       AI "synthetic performer" disclosure (GBL § 396-b, since 2026-06-09).
+     - Four candidates were sent:
+       1. https://unsplash.com/photos/cozy-and-minimalist-living-room-with-city-view-IlNHSsfTunM
+       2. https://unsplash.com/photos/modern-living-room-with-sectional-sofa-and-large-window-yxO8YG082v8
+       3. https://unsplash.com/photos/a-living-room-with-a-blue-couch-and-potted-plants-2ub1pest3T0
+       4. https://www.pexels.com/photo/cityscape-view-from-modern-interior-window-31008751/
+     - Once the owner picks one: confirm the free license and that there are
+       no people or logos. Make a ~300 KB web copy, use it on the Home hero
+       and `AuthShell`, record the source in `public/landing/CREDITS.md`, and
+       remove `hero.png`.
+   - **The 3 REMOVED live listings:** which were rented? Then a data change,
+     with the owner's yes, makes them Rented (and deletes their photos) so
+     they can be relisted.
+4. **Next to build** (the same rule: built here, the owner tests on this PC,
    deploy only on "deploy"):
-   - **L3 photos:** shrink in the browser before upload, reorder, choose the
-     cover (approved in the lighter plan).
-   - **The 3 REMOVED live listings:** they stay as they are unless the owner
-     says which were rented. Then a data change, with their yes, makes them
-     Rented and deletes their photos.
-4. Then P3 (with the owner), P4 (on hold until the front-end fixes are done),
-   P5. More fixes from the owner can come at any time.
+   - L3 photos: shrink in the browser before upload, reorder, choose the
+     cover.
+5. **Pre-launch:**
+   - **P3** with the owner: settings and keys into Google Password Manager,
+     copied with `ssh … | Set-Clipboard`, never shown in the chat.
+   - **P4:** a password change signs out other devices; on hold until the
+     front-end fixes are done; needs a small SQL, with the owner's yes.
+   - **P5:** security review.
+   - More fixes from the owner can come at any time.
 
 **Starting the local copy** (http://localhost:3100) on this PC, in Git Bash
 from the project folder:
