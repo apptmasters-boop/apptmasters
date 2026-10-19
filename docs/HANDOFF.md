@@ -1,41 +1,31 @@
 # Where we continue
 
-**Updated 2026-10-18 (end of session; the owner said "save everything, we will
-continue later").** Read this first, on any PC. Notes that Claude Code keeps on
-one PC don't move to another PC; this file does.
+**Updated 2026-10-18, evening (F15, F16, L2 and O1 deployed).** Read this
+first, on any PC. Notes that Claude Code keeps on one PC don't move to another
+PC; this file does.
 
 **On a new PC, tell Claude Code:** "Read `docs/HANDOFF.md` and continue
 from there."
 
 ## Next time, start here
 
-1. **F15 (Money, "What's next" only when something waits), F16 (no footer on
-   phones), L2 (Rented → Relist, replacing L1) and O1 (the sign-up
-   question):** built, NOT deployed. The owner tests them on this PC
-   (steps in the checklist), then says "deploy".
-   - **O1 needs the new column `User.intent` on the live site:**
-     - Write the SQL at deploy time, following `prisma/manual-sql/README.md`.
-     - Put it in one file with L2's changes if L2 is ready.
-     - Apply it only after the owner's explicit yes.
-   - **Careful:** `master` includes O1 since commit `7eaddd0`, and its code
-     reads that column. Building `master` on the server *before* the column
-     exists breaks sign-in.
-     - The simple way: on "deploy", ask the owner's yes for that one empty,
-       additive column (nothing existing changes), apply it, then build.
-     - Without that yes, deploying F15, F16 and L2 alone needs a branch
-       without O1's two commits (`7eaddd0`, `d025496`). Make it, check it,
-       and build that instead of `master`.
-   - **Listing lifecycle:** the owner chose the lighter plan on 2026-10-18 (the
-     review and plan are in the checklist, "Listing lifecycle").
-   - **Next steps:**
-     - (L2 is built.) The 3 REMOVED live listings stay as they are unless the
-       owner says which were rented (then a data change with their yes).
-     - L3 photos: shrink in the browser before upload, reorder, choose the
-       cover.
-2. **F2–F14 are live:** wait for the owner's sign-off on apptmasters.com
-   ("F2–F14 approved", or the ones that need changes).
-3. **P1 backups:** the 2026-10-18 automatic backup runs at 07:30 UTC. Check it
-   (below), then the owner says "P1 approved".
+1. **Everything built is live:**
+   - F2–F16, L2 (Rented → Relist, which replaced L1) and O1 (the "What
+     brings you to ApptMasters?" question after confirming the email).
+   - The last deploy was 2026-10-18 at commit `b54b4ef`. O1's column
+     `User.intent` was added to the live database with the owner's explicit
+     yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`).
+   - **Waiting for the owner's sign-off** on apptmasters.com.
+2. **P1 backups:** the 2026-10-18 automatic backup worked (`OK … github=yes`,
+   folder `2026-10-18` in `apptmasters-backups`). The owner only has to say
+   "P1 approved".
+3. **Next to build** (the same rule: built here, the owner tests on this PC,
+   deploy only on "deploy"):
+   - **L3 photos:** shrink in the browser before upload, reorder, choose the
+     cover (approved in the lighter plan).
+   - **The 3 REMOVED live listings:** they stay as they are unless the owner
+     says which were rented. Then a data change, with their yes, makes them
+     Rented and deletes their photos.
 4. Then P3 (with the owner), P4 (on hold until the front-end fixes are done),
    P5. More fixes from the owner can come at any time.
 
@@ -83,9 +73,10 @@ the top row everywhere, prices, every filter tested; approved), pre-launch P2
    version), so **ask the owner's OK before applying the SQL on the live site**.
 4. **P5 — Security review** before launch.
 
-**The owner's front-end fixes F2–F14: LIVE; F15: built, not deployed.** The
-owner tested F2–F13 on this PC and said "deploy": deployed 2026-10-17
-(8fc6ba6), F14 on 2026-10-18 (55fd4ec); each time the build passed,
+**The owner's front-end fixes F2–F16, L2 and O1: LIVE.** The
+owner tested them on this PC and said "deploy": F2–F13 deployed 2026-10-17
+(8fc6ba6), F14 on 2026-10-18 (55fd4ec), F15 + F16 + L2 + O1 on 2026-10-18
+(b54b4ef; one live filter check failed once on timing and passed on rerun); each time the build passed,
 `verify-live.sh` answered 200 everywhere, and the live filters and Home search
 checks passed. Waiting for the owner's sign-off on apptmasters.com. The owner's rule for
 future fixes: "don't deploy it in the server when you finish, I will test it
@@ -106,11 +97,11 @@ asked by the owner" in [`BUILD_CHECKLIST.md`](BUILD_CHECKLIST.md).
 | F12 | The footer keeps only Help; the local "N" button is hidden |
 | F13 | My Profile and Settings (Personal information, Notifications, Login & security, Dark mode) each have their own page |
 | F14 | No Messages row on More for people without a Home (the phone bar has it). **Live 2026-10-18 (55fd4ec)** |
-| F15 | Money: the "What's next" box shows only when something is waiting (no "Nothing waiting for you"). **Built and pushed, NOT deployed yet: the owner tests on this PC first** (third local login: `roommate@apptmasters.local`, Jordan Roommate in Maple House) |
-| F16 | No footer on phones (computers keep it); Help & support added to the Home's More. **Built and pushed, NOT deployed yet: the owner tests on this PC first** |
+| F15 | Money: the "What's next" box shows only when something is waiting (no "Nothing waiting for you"). **Live 2026-10-18 (b54b4ef)** (third local login: `roommate@apptmasters.local`, Jordan Roommate in Maple House) |
+| F16 | No footer on phones (computers keep it); Help & support added to the Home's More. **Live 2026-10-18 (b54b4ef)** |
 | L1 | (Replaced by L2: the owner doesn't want conversations to keep working after a listing is rented. Its display fix stays.) |
-| L2 | **Mark as rented** deletes the photos (rows and files), keeps every detail; **Relist** edits the same listing with new photos → review; conversations about a rented listing are readable but closed for both people; photo files also leave the disk when replaced or the listing is deleted (only our own listing uploads, never one another listing shows). No database change. **Built and pushed, NOT deployed yet** (browser check `l2-check.mjs`, leaves "Sunny room near the park" rented with a closed conversation) |
-| O1 | Right after the email is confirmed (`/welcome`; moved off the sign-up form at the owner's request), asks "What brings you to ApptMasters?" (I'm looking for a place · I already have a place · I have a place to rent out), required, pre-selected from where people came from; each answer lands right; the visitor Home gets "Already have a place?". **Built and pushed, NOT deployed: needs the new column `User.intent` on the live site (in the same SQL as L2, only after the owner's yes)** (browser check `o1-check.mjs`; local confirmation links: `node scripts/dev/screenshots/confirm-link.mjs <email>`) |
+| L2 | **Mark as rented** deletes the photos (rows and files), keeps every detail; **Relist** edits the same listing with new photos → review; conversations about a rented listing are readable but closed for both people; photo files also leave the disk when replaced or the listing is deleted (only our own listing uploads, never one another listing shows). No database change. **Live 2026-10-18 (b54b4ef)** (browser check `l2-check.mjs`, leaves "Sunny room near the park" rented with a closed conversation) |
+| O1 | Right after the email is confirmed (`/welcome`; moved off the sign-up form at the owner's request), asks "What brings you to ApptMasters?" (I'm looking for a place · I already have a place · I have a place to rent out), required, pre-selected from where people came from; each answer lands right; the visitor Home gets "Already have a place?". **Live 2026-10-18 (b54b4ef)** (column added with the owner's yes) (browser check `o1-check.mjs`; local confirmation links: `node scripts/dev/screenshots/confirm-link.mjs <email>`) |
 
 - **Local copy to test:** see "Starting the local copy" above.
 - **Deploying the next fixes:** same recipe. On the server: pull, `rm -rf

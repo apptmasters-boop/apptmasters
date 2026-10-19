@@ -2488,7 +2488,7 @@ House (`roommate@apptmasters.local` / `LocalTest-2026`, Jordan Roommate). The
 check leaves one payment waiting: Jordan says they paid the resident $10.
 
 - [x] Type check passes · [x] Lint: no new errors (50) · [x] Browser check (`f15-check.mjs`: no box when nothing waits; the box with Confirm; gone after Confirm; the roommate's "Waiting for … to confirm")
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-18 (b54b4ef, F15 + F16 + L2 + O1 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. Sign in as `resident@apptmasters.local` / `LocalTest-2026`, open **Money**:
@@ -2514,7 +2514,7 @@ Remove it in all the pages": the footer (Help · © 2026 ApptMasters).
   support** under Account.
 
 - [x] Type check passes · [x] Lint: no new errors (50) · [x] Browser check (`f2-check.mjs`: no footer on 8 pages on a phone, still there on a computer; `f13-check.mjs`: Help & support on the Home's More)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-18 (b54b4ef, F15 + F16 + L2 + O1 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. On a phone-sized window (or your phone on the same Wi-Fi), scroll to the
@@ -2573,7 +2573,7 @@ refused unless the listing was public.
 - Rented · Paused · Relist for owners comes in L2.
 
 - [x] Type check · [x] Tests (352, 2 new: replies after closing; who sees the summary) · [x] Lint: no new errors (50) · [x] Browser check (`l1-check.mjs`: 19 checks, phone and computer; an open listing unchanged)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Not deployed on its own: replaced by L2, which went live on 2026-10-18 (b54b4ef)
 
 **Your test on this PC** (http://localhost:3100). The check leaves a
 conversation about a listing that Jordan marked rented.
@@ -2662,7 +2662,7 @@ database. On the live site it goes in with L2's change, **only after the
 owner's yes**. Until then O1 can't be deployed.
 
 - [x] Type check · [x] Tests (360, 8 new) · [x] Lint: no new errors (50) · [x] Browser check (`o1-check.mjs`: 19 checks, every answer and every entry point)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first; needs the database change**
+- [x] Deployed to apptmasters.com on 2026-10-18 (b54b4ef, F15 + F16 + L2 + O1 together, at the owner's "deploy"); its column `User.intent` applied on the live database the same day after the owner's explicit yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`)
 
 **Your test on this PC** (http://localhost:3100, signed out)
 1. Click **Sign up** at the top: the three choices come first, and Create
@@ -2727,7 +2727,7 @@ owner's yes**. Until then O1 can't be deployed.
   on the live site stay as they are unless the owner says which were rented.
 
 - [x] Type check · [x] Tests (371, 11 new, incl. real photo files and the safety cases) · [x] Lint: down to 47 · [x] Browser check (`l2-check.mjs`: 21 checks)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-18 (b54b4ef, F15 + F16 + L2 + O1 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100). The check leaves Jordan's
 "Sunny room near the park" rented, with a conversation.
