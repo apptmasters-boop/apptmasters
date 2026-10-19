@@ -15,6 +15,7 @@ import Link from "next/link";
 import { apiFetch, getToken } from "@/lib/api";
 import { useMe } from "@/components/market/useMe";
 import { BackLink } from "@/components/market/MarketChrome";
+import PhotoCarousel from "@/components/market/PhotoCarousel";
 import { SaveButton, priceText, availableText, type MarketListing } from "@/components/market/ListingCard";
 import { useSavedIds, toggleSaved, saveSignInPath } from "@/components/market/saved";
 import { amenityIcon } from "@/components/market/amenityIcons";
@@ -123,7 +124,6 @@ export default function ListingDetailPage() {
   const saved = useSavedIds().has(id);
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
-  const [photo, setPhoto] = useState(0);
   const [moreText, setMoreText] = useState(false);
   const [allAmenities, setAllAmenities] = useState(false);
   const [contacted, setContacted] = useState(false);
@@ -274,18 +274,8 @@ export default function ListingDetailPage() {
       <div className="lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start lg:gap-10">
         <div className="min-w-0">
           {/* Photos: across the top on phones (docs/mockups/listing-details-mobile.jpg). */}
-          <div className="relative">
-            <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 sm:aspect-[16/9] lg:aspect-[16/10] lg:rounded-2xl dark:bg-gray-800">
-              {photos[photo] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photos[photo].url} alt={listing.title} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-300"><HomeIcon className="h-14 w-14" /></div>
-              )}
-              {photos.length > 1 && (
-                <span className="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1 text-sm font-medium text-white">{photo + 1} / {photos.length}</span>
-              )}
-            </div>
+          {/* Photos rotate on their own, stop when touched (step G1, owner 2026-10-18). */}
+          <PhotoCarousel photos={photos} alt={listing.title}>
             <Link href={backHref} aria-label="Back to results" className="absolute left-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 shadow lg:hidden">
               <ArrowLeftIcon className="h-6 w-6 text-gray-900" />
             </Link>
@@ -296,18 +286,7 @@ export default function ListingDetailPage() {
               </button>
             </div>
             {shared && <span className="absolute right-3 top-16 rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white">Link copied</span>}
-          </div>
-          {photos.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto px-4 pt-2 lg:px-0">
-              {photos.map((p, i) => (
-                <button key={i} type="button" onClick={() => setPhoto(i)} aria-label={`Photo ${i + 1}`}
-                  className={`h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 sm:h-20 sm:w-28 ${i === photo ? "border-brand" : "border-transparent opacity-80"}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.url} alt="" className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+          </PhotoCarousel>
 
           <div className="px-4 pt-5 lg:px-0">
             {listing.status && listing.status !== "APPROVED" && (

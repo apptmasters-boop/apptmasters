@@ -16,6 +16,7 @@ from there."
      `User.intent` was added to the live database with the owner's explicit
      yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`).
    - **Waiting for the owner's sign-off** on apptmasters.com.
+   - **G1 (photos rotate on the listing page, every 4 s, stop when touched; swipe and ‹ › added):** built and pushed, NOT deployed: the owner tests on this PC first (`g1-check.mjs`). No database change.
 2. **P1 backups:** the 2026-10-18 automatic backup worked (`OK … github=yes`,
    folder `2026-10-18` in `apptmasters-backups`). The owner only has to say
    "P1 approved".

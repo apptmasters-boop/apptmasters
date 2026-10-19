@@ -2744,3 +2744,35 @@ owner's yes**. Until then O1 can't be deployed.
    that the photos will be deleted.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### G1 — Listing photos rotate on their own (2026-10-18)
+
+**What the owner asked:** "is it possible to activate auto carousel on the
+pictures so that they will rotate?" The owner's choices: **the listing page
+only** (cards in search, Saved and Home stay still), and **every 4 seconds,
+stopping when touched**.
+
+**What changes** (listing page, 2+ photos)
+- **Rotation:** the next photo every **4 seconds**, with a soft fade; after
+  the last photo it starts again.
+- **Pauses** while the mouse is on the photo, or a finger or the keyboard is
+  on it. **Stops for good** once the person swipes, uses an arrow or taps a
+  thumbnail: they're in control.
+- **A small pause / play button** next to "1 / N" (the accessibility rule for
+  moving content). No rotation for people who turned on "Reduce motion", or
+  while the page is in a background tab.
+- **New controls that were missing:** swipe on phones, ‹ › arrows on
+  computers, and the arrow keys.
+- **Thumbnails:** they follow the photo shown.
+
+- [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`g1-check.mjs`: 15 checks: rotates, waits under the mouse, pause/play, stops after › / a thumbnail / a swipe, arrow keys, Reduce motion, one photo)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100): open a listing with
+several photos (the check leaves "Bright apartment with three photos" in Brooklyn) and wait 4 seconds: it changes by itself (1 / 3 → 2 / 3).
+Put the mouse on it: it waits. Press › or a thumbnail: it stops rotating.
+On a phone (or a narrow window), swipe left and right. A listing with one photo
+doesn't move.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
