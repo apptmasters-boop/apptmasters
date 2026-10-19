@@ -1,7 +1,8 @@
 /**
  * "What brings you to ApptMasters?" (step O1, owner 2026-10-18): one required
- * question on the sign-up form, pre-selected from what the person was doing.
- * Pure functions, shared by the form, the sign-up API and the landing rules.
+ * question, asked right after the email is confirmed (/welcome; moved off the
+ * sign-up form at the owner's request), pre-selected from what the person was
+ * doing. Pure functions, shared by /welcome, the answer API and the landing rules.
  *
  *   FIND_HOME   I'm looking for a place      → Home (search, Saved)
  *   HAVE_HOME   I already have a place       → Create a Home (it links "Join their home")

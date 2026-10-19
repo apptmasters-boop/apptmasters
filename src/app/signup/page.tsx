@@ -6,8 +6,7 @@ import { apiFetch } from "@/lib/api";
 import { safeReturnTo } from "@/lib/returnTo";
 import AuthShell from "@/components/auth/AuthShell";
 import { AuthField, PasswordField, FormError, PrimaryButton } from "@/components/auth/AuthFields";
-import { MailIcon, LockIcon, UserIcon, UserPlusIcon, CheckIcon, SearchIcon, HomeUsersIcon, KeyHouseIcon } from "@/components/landing/icons";
-import { intentFromReturnTo, type Intent } from "@/lib/intent";
+import { MailIcon, LockIcon, UserIcon, UserPlusIcon, CheckIcon } from "@/components/landing/icons";
 
 // Keep in sync with the schema in src/app/api/listings/signup/route.ts
 const PASSWORD_RULES = [
@@ -54,50 +53,11 @@ function CheckYourEmail({ email }: { email: string }) {
   );
 }
 
-/** "What brings you to ApptMasters?" (step O1, owner 2026-10-18; "I…" sentences, owner's wording choice). */
-const CHOICES: { value: Intent; title: string; text: string; icon: (p: { className?: string }) => React.ReactNode }[] = [
-  { value: "FIND_HOME", title: "I'm looking for a place", text: "A room or an apartment", icon: SearchIcon },
-  { value: "HAVE_HOME", title: "I already have a place", text: "Share rent, expenses and chores with my roommates", icon: HomeUsersIcon },
-  { value: "RENT_OUT", title: "I have a place to rent out", text: "A room in my home, or an apartment I own", icon: KeyHouseIcon },
-];
-
-function IntentChoice({ value, onChange, missing }: { value: Intent | null; onChange: (v: Intent) => void; missing: boolean }) {
-  return (
-    <fieldset id="intent" tabIndex={-1} aria-describedby={missing ? "intent-missing" : undefined} className="focus:outline-none">
-      <legend className="mb-2 text-sm font-semibold text-gray-900">What brings you to ApptMasters?</legend>
-      <div className="space-y-2">
-        {CHOICES.map(({ value: v, title, text, icon: Icon }) => {
-          const on = value === v;
-          return (
-            <label key={v} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand/40 ${
-              on ? "border-brand bg-brand-soft/60" : missing ? "border-red-300 hover:border-red-400" : "border-gray-200 hover:border-gray-300"}`}>
-              <input type="radio" name="intent" value={v} checked={on} onChange={() => onChange(v)} className="sr-only" />
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${on ? "bg-brand text-white" : "bg-gray-100 text-gray-700"}`}>
-                <Icon className="h-5 w-5" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-gray-900">{title}</span>
-                <span className="block text-xs text-gray-500">{text}</span>
-              </span>
-              <span aria-hidden className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${on ? "border-brand bg-brand text-white" : "border-gray-300"}`}>
-                {on && <CheckIcon className="h-3 w-3" />}
-              </span>
-            </label>
-          );
-        })}
-      </div>
-      {missing && <p id="intent-missing" className="mt-2 text-sm text-red-600">Choose what brings you to ApptMasters.</p>}
-    </fieldset>
-  );
-}
-
 function SignupForm() {
   const searchParams = useSearchParams();
   // What they were doing (a listing, a save, Post a listing…); empty when they just pressed Sign up.
+  // It travels in the confirmation link; "What brings you…" comes after confirming (/welcome, step O1).
   const returnTo = safeReturnTo(searchParams.get("returnTo"), "");
-  // Pre-selected from that, still changeable; nothing chosen after a plain Sign up (step O1).
-  const [intent, setIntent] = useState<Intent | null>(() => intentFromReturnTo(returnTo));
-  const [intentMissing, setIntentMissing] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -107,11 +67,10 @@ function SignupForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!intent) { setIntentMissing(true); document.getElementById("intent")?.focus(); return; }
     if (!passwordOk) { setError("Please choose a password that meets all the requirements."); return; }
     setLoading(true);
     setError("");
-    const res = await apiFetch("/api/listings/signup", { method: "POST", body: JSON.stringify({ ...form, returnTo, intent }) });
+    const res = await apiFetch("/api/listings/signup", { method: "POST", body: JSON.stringify({ ...form, returnTo }) });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) {
@@ -127,7 +86,6 @@ function SignupForm() {
     <AuthShell title="Create your account" subtitle="Start your journey with ApptMasters" {...HERO}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <FormError>{error}</FormError>}
-        <IntentChoice value={intent} onChange={v => { setIntent(v); setIntentMissing(false); }} missing={intentMissing} />
         <AuthField icon={<UserIcon className="h-5 w-5" />} label="Full name"
           type="text" required maxLength={80} autoComplete="name" placeholder="John Doe"
           value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
@@ -153,7 +111,7 @@ function SignupForm() {
         </div>
 
         <PrimaryButton loading={loading} icon={<UserPlusIcon className="h-4 w-4" />}>
-          {loading ? "Creating account…" : intent ? "Create account" : "Choose what brings you here"}
+          {loading ? "Creating account…" : "Create account"}
         </PrimaryButton>
         <p className="text-center text-xs text-gray-500">We&apos;ll email you a link to confirm your address.</p>
       </form>

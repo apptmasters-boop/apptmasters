@@ -217,8 +217,9 @@ should return to that listing and continue contacting the advertiser.
 
 There is no mandatory onboarding questionnaire immediately after signup.
 
-> **Owner's change (2026-10-18, step O1):** the sign-up form now asks one
-> required question, "What brings you to ApptMasters?" (I'm looking for a
+> **Owner's change (2026-10-18, step O1):** right after the email is confirmed
+> (moved off the sign-up form at the owner's request, so that form stays short),
+> one required question: "What brings you to ApptMasters?" (I'm looking for a
 > place · I already have a place · I have a place to rent out; the owner chose
 > these "I…" sentences over "Set up my home", which read unclear). It comes
 > pre-selected from what the person was doing (saving or contacting a listing

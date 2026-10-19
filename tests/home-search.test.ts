@@ -18,7 +18,7 @@ vi.mock("@/lib/email", async importOriginal => {
 });
 
 import { sendEmail } from "@/lib/email";
-import { homeQuestionDueAt, homeQuestionEmailDue, landingPath, signInPath, type HomeSearchFacts } from "@/lib/housing";
+import { homeQuestionDueAt, homeQuestionEmailDue, landingPath, signInPath, needsIntent, type HomeSearchFacts } from "@/lib/housing";
 import { runHomeQuestion } from "@/lib/homeSearch";
 import { GET as askRoute, POST as answerRoute } from "@/app/api/users/home-search/route";
 import { POST as cronRoute } from "@/app/api/cron/home-search/route";
@@ -255,10 +255,26 @@ describe("signInPath (step O1)", () => {
 
   it("everyone else lands as before", () => {
     expect(signInPath(person({ intent: "FIND_HOME" }))).toBe("/");
-    expect(signInPath(person())).toBe("/");
     expect(signInPath(person({ intent: "HAVE_HOME", foundHomeAt: new Date() }))).toBe("/apartment/create");
     expect(signInPath(person({ intent: "RENT_OUT", memberships: [{ status: "ACTIVE", apartment: { id: "h1" } }] }))).toBe("/apartment/h1");
     expect(signInPath(person({ intent: "RENT_OUT", systemRole: "MANAGER" }))).toBe("/manager");
   });
 });
 
+describe("needsIntent: who is asked What brings you to ApptMasters? at sign-in (step O1)", () => {
+  const person = (over: Record<string, unknown> = {}) => ({ systemRole: "USER", foundHomeAt: null, intent: null, memberships: [], ...over });
+
+  it("people still looking who haven't answered: /welcome first", () => {
+    expect(needsIntent(person())).toBe(true);
+    expect(signInPath(person())).toBe("/welcome");
+  });
+
+  it("never people who answered, live in a Home, wait to join one, found a place, or run a portal", () => {
+    expect(needsIntent(person({ intent: "FIND_HOME" }))).toBe(false);
+    expect(needsIntent(person({ memberships: [{ status: "ACTIVE", apartment: { id: "h1" } }] }))).toBe(false);
+    expect(needsIntent(person({ memberships: [{ status: "PENDING_APPROVAL", apartment: { id: "h1" } }] }))).toBe(false);
+    expect(needsIntent(person({ foundHomeAt: new Date() }))).toBe(false);
+    expect(needsIntent(person({ systemRole: "MANAGER" }))).toBe(false);
+    expect(needsIntent(person({ systemRole: "SUPER_ADMIN" }))).toBe(false);
+  });
+});

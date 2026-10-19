@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import { POST as signup } from "@/app/api/listings/signup/route";
 import { POST as login } from "@/app/api/auth/login/route";
 import { POST as verifyEmail } from "@/app/api/auth/verify-email/route";
-import { POST as resendLink } from "@/app/api/auth/resend-verification/route";
+import { POST as answerIntent } from "@/app/api/users/intent/route";
 import { intentFromReturnTo, afterSignup } from "@/lib/intent";
 import { prisma } from "@/lib/db";
 import { esc } from "@/lib/email";
@@ -19,7 +19,7 @@ const newEmail = () => `signup-${randomUUID()}@example.com`;
 const sent = () => (globalThis as unknown as { sentEmails: { to: string; subject: string; html: string }[] }).sentEmails;
 
 const signUp = (body: Record<string, unknown>) =>
-  signup(request("/api/listings/signup", { method: "POST", body: { name: "New Person", password: PASSWORD, intent: "FIND_HOME", ...body } }));
+  signup(request("/api/listings/signup", { method: "POST", body: { name: "New Person", password: PASSWORD, ...body } }));
 const logIn = (email: string, password = PASSWORD) =>
   login(request("/api/auth/login", { method: "POST", body: { email, password } }));
 
@@ -107,46 +107,39 @@ describe("POST /api/listings/signup", () => {
   });
 });
 
-describe("What brings you to ApptMasters? (step O1)", () => {
-  it("is required, and only the three answers are accepted", async () => {
-    const missing = await signUp({ email: newEmail(), intent: undefined });
-    expect(missing.status).toBe(400);
-    expect((await missing.json()).error).toBe("Choose what brings you to ApptMasters");
-    expect((await signUp({ email: newEmail(), intent: "LANDLORD" })).status).toBe(400);
-  });
+describe("What brings you to ApptMasters? (step O1, asked after confirming)", () => {
+  const answer = (token: string | undefined, intent: unknown) =>
+    answerIntent(request("/api/users/intent", { method: "POST", token, body: { intent } }));
 
-  it("is saved; Set up my home also counts as I found a place", async () => {
-    const home = newEmail(), rent = newEmail(), find = newEmail();
-    await signUp({ email: home, intent: "HAVE_HOME" });
-    await signUp({ email: rent, intent: "RENT_OUT" });
-    await signUp({ email: find, intent: "FIND_HOME" });
-    const [h, r, f] = await Promise.all([home, rent, find].map(email => prisma.user.findUniqueOrThrow({ where: { email } })));
-    expect([h.intent, r.intent, f.intent]).toEqual(["HAVE_HOME", "RENT_OUT", "FIND_HOME"]);
-    expect(h.foundHomeAt).toBeInstanceOf(Date);
-    expect(r.foundHomeAt).toBeNull();
-    expect(f.foundHomeAt).toBeNull();
-  });
-
-  it("the link goes back to what they were doing when it fits the answer, else to the answer's start", async () => {
-    const saver = newEmail(), changed = newEmail(), home = newEmail(), plain = newEmail();
-    await signUp({ email: saver, intent: "FIND_HOME", returnTo: "/listings/abc?save=abc" });
-    await signUp({ email: changed, intent: "RENT_OUT", returnTo: "/listings/abc" });
-    await signUp({ email: home, intent: "HAVE_HOME" });
-    await signUp({ email: plain, intent: "FIND_HOME", returnTo: "/" });
-    expect(linkReturnTo(saver)).toBe("/listings/abc?save=abc");
-    expect(linkReturnTo(changed)).toBe("/listings/new");
-    expect(linkReturnTo(home)).toBe("/apartment/create");
-    expect(linkReturnTo(plain)).toBe("/");
-  });
-
-  it("a resent link starts where the answer does", async () => {
+  it("sign-up asks nothing; the link keeps what they were doing", async () => {
     const email = newEmail();
-    await signUp({ email, intent: "RENT_OUT" });
-    expect((await resendLink(request("/api/auth/resend-verification", { method: "POST", body: { email } }))).status).toBe(200);
-    expect(linkReturnTo(email)).toBe("/listings/new");
+    expect((await signUp({ email, returnTo: "/listings/abc?save=abc" })).status).toBe(201);
+    expect(linkReturnTo(email)).toBe("/listings/abc?save=abc");
+    expect((await prisma.user.findUniqueOrThrow({ where: { email } })).intent).toBeNull();
   });
 
-  it("pre-selects the answer from the page they signed up from", () => {
+  it("the answer: signed in only, one of the three, saved once", async () => {
+    const u = await createUser();
+    expect((await answer(undefined, "FIND_HOME")).status).toBe(401);
+    const bad = await answer(u.token, "LANDLORD");
+    expect(bad.status).toBe(400);
+    expect((await bad.json()).error).toBe("Choose what brings you to ApptMasters");
+    expect((await answer(u.token, "RENT_OUT")).status).toBe(200);
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: u.user.id } })).intent).toBe("RENT_OUT");
+    expect((await answer(u.token, "FIND_HOME")).status).toBe(409);
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: u.user.id } })).intent).toBe("RENT_OUT");
+  });
+
+  it("I already have a place also counts as I found a place", async () => {
+    const home = await createUser();
+    const look = await createUser();
+    await answer(home.token, "HAVE_HOME");
+    await answer(look.token, "FIND_HOME");
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: home.user.id } })).foundHomeAt).toBeInstanceOf(Date);
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: look.user.id } })).foundHomeAt).toBeNull();
+  });
+
+  it("pre-selects from what they were doing, and goes back there when it fits the answer", () => {
     expect(intentFromReturnTo("/?save=abc")).toBe("FIND_HOME");
     expect(intentFromReturnTo("/listings/abc/messages")).toBe("FIND_HOME");
     expect(intentFromReturnTo("/listings?q=Brooklyn")).toBe("FIND_HOME");
@@ -155,6 +148,9 @@ describe("What brings you to ApptMasters? (step O1)", () => {
     expect(intentFromReturnTo("/apartment/join?code=AB12")).toBe("HAVE_HOME");
     expect(intentFromReturnTo("/")).toBeNull();
     expect(intentFromReturnTo("")).toBeNull();
+    expect(afterSignup("FIND_HOME", "/listings/abc?save=abc")).toBe("/listings/abc?save=abc");
+    expect(afterSignup("RENT_OUT", "/listings/abc")).toBe("/listings/new");
+    expect(afterSignup("HAVE_HOME", "")).toBe("/apartment/create");
     expect(afterSignup("FIND_HOME", "https://evil.example/listings/x")).toBe("/");
   });
 });

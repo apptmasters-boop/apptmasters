@@ -2612,8 +2612,22 @@ room"; SpareRoom asks offering or seeking when you post.
 
 ### O1 — "What brings you to ApptMasters?" on the sign-up form (2026-10-18)
 
+> **Moved after the email confirmation (owner, 2026-10-18):** "so the profile
+> picture will not change its length". The sign-up form is back to name, email,
+> password. The question comes right after the email is confirmed, on its own
+> page (`/welcome`, same picture layout), required (Continue waits for a choice).
+> Someone who leaves without answering is asked at their next sign-in (only if
+> they have no answer, no Home, no join request waiting and haven't said "I found
+> a place"; people in a Home are never asked). Everything below still applies,
+> reading "after confirming" for "on the sign-up form".
+> Checked: 372 tests, `o1-check.mjs` (19 checks: three-field sign-up, the question
+> after confirming, each answer, pre-selection, asked again at the next sign-in).
+> **Your test:** sign up (three fields), open the link from
+> `node scripts/dev/screenshots/confirm-link.mjs <email>`: the question appears;
+> choose, Continue.
+
 **What changes**
-- **The sign-up form** starts with three choices (required). The owner chose
+- **The question** has three choices (required). The owner chose
   "I…" sentences on 2026-10-18, because "Set up my home" read unclear:
   - **I'm looking for a place:** a room or an apartment.
   - **I already have a place:** share rent, expenses and chores with my

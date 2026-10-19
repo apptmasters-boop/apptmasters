@@ -3,7 +3,6 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { sendVerificationLink } from "@/lib/emailVerification";
 import { rateLimit, clientIp } from "@/lib/rateLimit";
-import { INTENT_START, isIntent } from "@/lib/intent";
 
 const schema = z.object({ email: z.string().email() });
 
@@ -22,8 +21,7 @@ export async function POST(req: NextRequest) {
   // Always respond success to avoid leaking whether an email exists
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
   if (user && !user.emailVerified) {
-    // A new link starts where their sign-up answer does (step O1); older accounts: the usual landing.
-    await sendVerificationLink(user, isIntent(user.intent) ? INTENT_START[user.intent] : null);
+    await sendVerificationLink(user);
   }
 
   return NextResponse.json({ success: true });

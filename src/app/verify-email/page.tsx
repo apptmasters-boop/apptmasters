@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, setToken, goToLandingPage } from "@/lib/api";
+import { apiFetch, setToken } from "@/lib/api";
 import { safeReturnTo } from "@/lib/returnTo";
 import AuthShell from "@/components/auth/AuthShell";
 import { CheckIcon } from "@/components/landing/icons";
@@ -11,8 +11,10 @@ import { CheckIcon } from "@/components/landing/icons";
 function VerifyEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // No destination in the link: the usual sign-in landing (it used to be the old /dashboard; step O1).
-  const next = safeReturnTo(searchParams.get("returnTo"), "");
+  // After confirming: "What brings you to ApptMasters?" (/welcome, step O1), which then goes on to
+  // what they were doing (the link's returnTo) or the answer's start page.
+  const back = safeReturnTo(searchParams.get("returnTo"), "");
+  const next = back ? `/welcome?returnTo=${encodeURIComponent(back)}` : "/welcome";
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -36,7 +38,7 @@ function VerifyEmail() {
       }
       setToken(data.token);
       setStatus("success");
-      setTimeout(() => { if (next) router.replace(next); else goToLandingPage(router); }, 2000);
+      setTimeout(() => router.replace(next), 1500);
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -61,7 +63,7 @@ function VerifyEmail() {
             <CheckIcon className="h-7 w-7" />
           </div>
           <p className="text-sm text-gray-700">You&apos;re signed in. Taking you there now…</p>
-          <button type="button" onClick={() => { if (next) router.replace(next); else goToLandingPage(router); }}
+          <button type="button" onClick={() => router.replace(next)}
             className="inline-block text-sm font-semibold text-brand hover:underline">Continue</button>
         </div>
       </AuthShell>

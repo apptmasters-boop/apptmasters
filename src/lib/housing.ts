@@ -45,12 +45,23 @@ export function landingPath(me: MeForLanding): string {
 }
 
 /**
+ * "What brings you to ApptMasters?" not answered yet (step O1): asked on /welcome after
+ * confirming the email, and again at sign-in if they left it. Only people still
+ * looking: in a Home, waiting to join one, "I found a place", landlords and admins
+ * are never asked.
+ */
+export function needsIntent(me: MeForLanding): boolean {
+  return !me.intent && me.systemRole === "USER" && !me.foundHomeAt && me.memberships.length === 0;
+}
+
+/**
  * Where to go right after signing in. Same as landingPath, except that people who
  * signed up to rent a place out start on their listings (step O1, 2026-10-18). Home
  * itself stays open to them: it redirects by landingPath, not by this.
  * ("I already have a place" sets foundHomeAt, so landingPath already handles it.)
  */
 export function signInPath(me: MeForLanding): string {
+  if (needsIntent(me)) return "/welcome";
   const path = landingPath(me);
   return path === "/" && me.intent === "RENT_OUT" ? "/listings/mine" : path;
 }
