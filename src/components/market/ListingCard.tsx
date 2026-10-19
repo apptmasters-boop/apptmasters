@@ -143,7 +143,8 @@ export default function ListingCard({ listing: l, layout = "row", footer, menu, 
   menu?: React.ReactNode; ago?: string; photoCount?: boolean;
 }) {
   const gone = !!l.status && l.status !== "APPROVED";
-  const available = availableText(l.availableFrom);
+  // A closed listing never claims to be available, or new (fix F18, owner 2026-10-18).
+  const available = gone ? null : availableText(l.availableFrom);
   const kind = placeKind(l);
 
   if (layout === "tile") {
@@ -170,7 +171,7 @@ export default function ListingCard({ listing: l, layout = "row", footer, menu, 
     return (
       <article className={`group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-shadow hover:shadow-lg hover:shadow-black/5 dark:border-gray-800 dark:bg-gray-900 ${gone ? "opacity-70" : ""}`}>
         <Link href={`/listings/${l.id}`} className="flex flex-1 flex-col">
-          <Photo l={l} className="aspect-[2/1]" showPrice={false} showCount={photoCount} />
+          <Photo l={l} className="aspect-[2/1]" showNew={!gone} showPrice={false} showCount={photoCount} />
           <div className="flex flex-1 flex-col gap-1.5 p-4">
             <Unavailable status={l.status} />
             <p className={`text-lg font-bold leading-tight text-gray-900 dark:text-white ${menu ? "pr-9" : ""}`}>{priceMonthText(l)}</p>
@@ -205,7 +206,7 @@ export default function ListingCard({ listing: l, layout = "row", footer, menu, 
   return (
     <article className={`relative overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 ${gone ? "opacity-70" : ""}`}>
       <Link href={`/listings/${l.id}`} className="grid grid-cols-[44%_1fr] gap-3 p-2.5 sm:grid-cols-[17rem_1fr] sm:gap-5 sm:p-3">
-        <Photo l={l} className="min-h-[9.5rem] rounded-xl sm:min-h-[11rem]" />
+        <Photo l={l} className="min-h-[9.5rem] rounded-xl sm:min-h-[11rem]" showNew={!gone} />
         <div className="min-w-0 space-y-1.5 py-0.5 sm:py-1.5">
           <Unavailable status={l.status} />
           <h3 className={`truncate text-[15px] font-semibold text-gray-900 sm:text-base dark:text-white ${menu ? "pr-8" : ""}`}>{l.title}</h3>

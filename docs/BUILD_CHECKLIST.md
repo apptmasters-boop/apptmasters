@@ -2812,3 +2812,23 @@ from Jordan waiting.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F18 — A closed listing doesn't say "Available now" (2026-10-18)
+
+**What the owner asked:** "fix this". On Saved, a card said **No longer
+available** and **Available now** at the same time.
+
+**What changes:** a listing that isn't available (rented, removed, waiting for
+review…) no longer shows "Available now" / "Available from …", nor the "New"
+badge, on its card, in every layout (Saved, search results, Home). Its label
+(No longer available / Rented) stays.
+
+- [x] Type check · [x] Lint (47) · [x] Browser check (`f18-check.mjs`)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100): sign in as
+`resident@apptmasters.local` / `LocalTest-2026` and open **Saved**. The rented
+"Rented room (test)" shows **Rented**, no "Available…" line and no "New". An
+available listing still shows its "Available now".
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

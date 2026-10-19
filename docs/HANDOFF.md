@@ -17,6 +17,7 @@ from there."
      yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`).
    - **Waiting for the owner's sign-off** on apptmasters.com.
    - **F17 (no "What's next" box on Money at all; payments to confirm moved to Money → Balances; their notification opens Balances):** built and pushed, NOT deployed (`f17-check.mjs`). No database change.
+   - **F18 (a closed listing's card never says "Available now" or "New"):** built and pushed, NOT deployed (`f18-check.mjs`). No database change.
    - **G1 (photos rotate on the listing page, every 4 s, stop when touched; swipe and ‹ › added):** built and pushed, NOT deployed: the owner tests on this PC first (`g1-check.mjs`). No database change.
 2. **P1 backups:** the 2026-10-18 automatic backup worked (`OK … github=yes`,
    folder `2026-10-18` in `apptmasters-backups`). The owner only has to say
