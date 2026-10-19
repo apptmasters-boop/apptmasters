@@ -39,7 +39,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       apartmentId, userIds: [toUserId], type: "PAYMENT_RECORDED",
       title: `${payer?.name ?? "Someone"} says they paid you $${payment.amount.toFixed(2)}`,
       body: "Confirm it in Money once you've received it.",
-      link: `/apartment/${apartmentId}/money`,
+      link: `/apartment/${apartmentId}/money?tab=balances`, // answered on Balances (fix F17)
     });
     return NextResponse.json(payment, { status: 201 });
   } catch (e) {

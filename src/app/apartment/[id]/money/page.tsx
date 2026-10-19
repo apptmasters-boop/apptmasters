@@ -6,16 +6,17 @@
  * owed at all, rent included (§11.2). Adding expenses, rent and fund
  * movements still happens on their own pages, linked from the Overview.
  * Paying someone back is "Record payment" on Balances; the person paid
- * confirms it on their Overview (Sprint 5c, src/lib/payments.ts).
+ * confirms it on Balances too, under "Payments to confirm" (Sprint 5c,
+ * src/lib/payments.ts; moved from the Overview's "What's next" box, which the
+ * owner removed: fix F17, 2026-10-18).
  */
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { HubSection } from "@/components/home/HubPage";
 import { ScaleIcon, CalendarIcon, DollarIcon } from "@/components/landing/icons";
 import NotificationBell from "@/components/NotificationBell";
-import { position, net, unpaidRent, toConfirm, type Debt, type SummaryEntry } from "@/lib/moneySummary";
+import { position, net, type Debt, type SummaryEntry } from "@/lib/moneySummary";
 
 const TABS = ["overview", "activity", "balances"] as const;
 type Tab = (typeof TABS)[number];
@@ -52,7 +53,8 @@ export default function MoneyPage() {
   const router = useRouter();
   const [ledger, setLedger] = useState<Ledger | null>(null);
   const [failed, setFailed] = useState(false);
-  const [tab, setTab] = useState<Tab>("overview");
+  const asked = useSearchParams().get("tab");
+  const [tab, setTab] = useState<Tab>(TABS.includes(asked as Tab) ? (asked as Tab) : "overview");
   const [shown, setShown] = useState(ACTIVITY_PAGE);
   const [paying, setPaying] = useState<string | null>(null); // who the Record payment dialog is for
 
@@ -96,12 +98,12 @@ export default function MoneyPage() {
       {failed && <p className="mt-6 text-sm text-red-600">Money couldn&apos;t load. Try again in a minute.</p>}
       {!ledger && !failed && <p className="mt-6 text-sm text-gray-400">Loading…</p>}
 
-      {ledger && tab === "overview" && <Overview ledger={ledger} apartmentId={apartmentId} onChange={() => load()} />}
+      {ledger && tab === "overview" && <Overview ledger={ledger} />}
       {ledger && tab === "activity" && <Activity ledger={ledger} shown={shown} onMore={() => setShown(n => n + ACTIVITY_PAGE)} />}
-      {ledger && tab === "balances" && <Balances ledger={ledger} onPay={setPaying} />}
+      {ledger && tab === "balances" && <Balances ledger={ledger} apartmentId={apartmentId} onPay={setPaying} onChange={() => load()} />}
       {ledger && paying && (
         <RecordPayment apartmentId={apartmentId} to={paying} name={ledger.names[paying] ?? "them"}
-          onClose={() => setPaying(null)} onDone={() => { setPaying(null); setTab("overview"); load(); }} />
+          onClose={() => setPaying(null)} onDone={() => { setPaying(null); setTab("balances"); load(); }} />
       )}
 
       <div className="mt-8">
@@ -115,30 +117,16 @@ export default function MoneyPage() {
   );
 }
 
-function Overview({ ledger, apartmentId, onChange }: { ledger: Ledger; apartmentId: string; onChange: () => void }) {
-  const { me, names, entries } = ledger;
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const toAnswer = ledger.payments.filter(p => p.status === "PENDING" && p.to === me);
-  const sent = ledger.payments.filter(p => p.status === "PENDING" && p.from === me);
-  async function answer(paymentId: string, action: "confirm" | "decline" | "cancel") {
-    setBusy(paymentId); setError(null);
-    const res = await apiFetch(`/api/apartments/${apartmentId}/payments/${paymentId}`, { method: "POST", body: JSON.stringify({ action }) });
-    if (!res.ok) setError((await res.json().catch(() => ({}))).error ?? "Something went wrong. Try again.");
-    setBusy(null);
-    onChange();
-  }
+function Overview({ ledger }: { ledger: Ledger }) {
+  const { me } = ledger;
   const { owe, owed } = position(ledger.debts, me);
   const rentNet = net(ledger.bySource.rent, me);
   const expenseNet = net(ledger.bySource.expense, me);
-  const rentDue = unpaidRent(entries, me);
-  const confirm = toConfirm(entries, me);
-  const now = new Date();
-  const who = (id: string) => names[id] ?? "Someone";
   const part = (label: string, n: number) => (n > 0 ? `${label}: you owe ${money(n)}` : n < 0 ? `${label}: you're owed ${money(n)}` : null);
   const parts = [part("Rent", rentNet), part("Shared expenses", expenseNet)].filter(Boolean);
-  const waiting = rentDue.length + confirm.length + toAnswer.length + sent.length > 0;
 
+  // No "What's next" box (owner, fix F17, 2026-10-18): payments to confirm are on Balances;
+  // rent and cash confirmations on the Rent and Shared expenses pages.
   return (
     <section className="mt-5 space-y-4">
       {owe === 0 && owed === 0 ? (
@@ -160,77 +148,65 @@ function Overview({ ledger, apartmentId, onChange }: { ledger: Ledger; apartment
       )}
       {parts.length > 0 && <p className="px-1 text-sm text-gray-600">{parts.join(" · ")}</p>}
 
-      {/* Only when something needs you (fix F15, owner 2026-10-18: no "Nothing waiting for you"). */}
-      {(waiting || error) && (
-        <div className="rounded-2xl border border-gray-200 bg-white">
-          <h2 className="border-b border-gray-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500">What&apos;s next</h2>
-          {toAnswer.length + sent.length > 0 && (
-            <ul className={`divide-y divide-gray-50 ${rentDue.length + confirm.length > 0 ? "border-b border-gray-100" : ""}`}>
-              {toAnswer.map(p => (
-                <li key={p.id} className="px-4 py-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium text-gray-900">{who(p.from)} says they paid you</span>
-                      <span className="block text-xs text-gray-500">{METHODS[p.method] ?? p.method} · {p.items.join(", ")}{p.note ? ` · "${p.note}"` : ""}</span>
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">{money(p.amount)}</span>
-                  </div>
-                  <div className="mt-2 flex gap-2">
-                    <button onClick={() => answer(p.id, "confirm")} disabled={busy === p.id} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Confirm</button>
-                    <button onClick={() => answer(p.id, "decline")} disabled={busy === p.id} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium disabled:opacity-60">I didn&apos;t receive it</button>
-                  </div>
-                </li>
-              ))}
-              {sent.map(p => (
-                <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium text-gray-900">Waiting for {who(p.to)} to confirm your payment</span>
-                    <span className="block text-xs text-gray-500">{money(p.amount)} · {METHODS[p.method] ?? p.method} · {day(p.createdAt)}</span>
-                  </span>
-                  <button onClick={() => answer(p.id, "cancel")} disabled={busy === p.id} className="text-xs font-medium text-red-600 hover:underline disabled:opacity-60">Cancel</button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {error && <p className="px-4 py-2 text-sm text-red-600" role="alert">{error}</p>}
-          {rentDue.length + confirm.length > 0 && (
-            <ul className="divide-y divide-gray-50">
-              {rentDue.map(r => {
-                const late = !r.waiting && r.due < now;
-                return (
-                  <li key={r.id}>
-                    <Link href={`/apartment/${apartmentId}/rent`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium text-gray-900">{r.label}: your share to {who(r.to)}</span>
-                        <span className={`block text-xs ${late ? "font-semibold text-red-600" : "text-gray-500"}`}>
-                          {r.waiting ? `Waiting for ${who(r.to)} to confirm` : late ? `Overdue since ${day(r.due)}` : `Due ${day(r.due)}`}
-                        </span>
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900">{money(r.amount)}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-              {confirm.map(p => (
-                <li key={p.id}>
-                  <Link href={`/apartment/${apartmentId}/${p.source === "rent" ? "rent" : "finance"}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium text-gray-900">{who(p.from)} says they paid you</span>
-                      <span className="block text-xs text-gray-500">{p.label.replace(" (waiting for confirmation)", "")} · tap to confirm</span>
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">{money(p.amount)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
       <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3">
         <span className="text-sm text-gray-600">Shared fund</span>
         <span className="text-sm font-semibold text-gray-900">{money(ledger.fundBalance)}</span>
       </div>
+    </section>
+  );
+}
+
+/**
+ * Payments recorded with "Record payment" that wait for an answer (Sprint 5c): the ones
+ * paid to you (Confirm / I didn't receive it) and yours (Cancel). On Balances since fix
+ * F17; only when there are any.
+ */
+function PaymentsToConfirm({ ledger, apartmentId, onChange }: { ledger: Ledger; apartmentId: string; onChange: () => void }) {
+  const { me, names } = ledger;
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const toAnswer = ledger.payments.filter(p => p.status === "PENDING" && p.to === me);
+  const sent = ledger.payments.filter(p => p.status === "PENDING" && p.from === me);
+  const who = (id: string) => names[id] ?? "Someone";
+  async function answer(paymentId: string, action: "confirm" | "decline" | "cancel") {
+    setBusy(paymentId); setError(null);
+    const res = await apiFetch(`/api/apartments/${apartmentId}/payments/${paymentId}`, { method: "POST", body: JSON.stringify({ action }) });
+    if (!res.ok) setError((await res.json().catch(() => ({}))).error ?? "Something went wrong. Try again.");
+    setBusy(null);
+    onChange();
+  }
+  if (toAnswer.length + sent.length === 0 && !error) return null;
+
+  return (
+    <section className="mt-5 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+      <h2 className="border-b border-gray-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500">Payments to confirm</h2>
+      <ul className="divide-y divide-gray-50">
+        {toAnswer.map(p => (
+          <li key={p.id} className="px-4 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-gray-900">{who(p.from)} says they paid you</span>
+                <span className="block text-xs text-gray-500">{METHODS[p.method] ?? p.method} · {p.items.join(", ")}{p.note ? ` · "${p.note}"` : ""}</span>
+              </span>
+              <span className="text-sm font-semibold text-gray-900">{money(p.amount)}</span>
+            </div>
+            <div className="mt-2 flex gap-2">
+              <button onClick={() => answer(p.id, "confirm")} disabled={busy === p.id} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Confirm</button>
+              <button onClick={() => answer(p.id, "decline")} disabled={busy === p.id} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium disabled:opacity-60">I didn&apos;t receive it</button>
+            </div>
+          </li>
+        ))}
+        {sent.map(p => (
+          <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-3">
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-gray-900">Waiting for {who(p.to)} to confirm your payment</span>
+              <span className="block text-xs text-gray-500">{money(p.amount)} · {METHODS[p.method] ?? p.method} · {day(p.createdAt)}</span>
+            </span>
+            <button onClick={() => answer(p.id, "cancel")} disabled={busy === p.id} className="text-xs font-medium text-red-600 hover:underline disabled:opacity-60">Cancel</button>
+          </li>
+        ))}
+      </ul>
+      {error && <p className="px-4 py-2 text-sm text-red-600" role="alert">{error}</p>}
     </section>
   );
 }
@@ -307,44 +283,51 @@ function Activity({ ledger, shown, onMore }: { ledger: Ledger; shown: number; on
   );
 }
 
-function Balances({ ledger, onPay }: { ledger: Ledger; onPay: (userId: string) => void }) {
+function Balances({ ledger, apartmentId, onPay, onChange }: { ledger: Ledger; apartmentId: string; onPay: (userId: string) => void; onChange: () => void }) {
   const { me, names, debts, bySource } = ledger;
   const who = (id: string) => (id === me ? "You" : names[id] ?? "Someone");
   const sorted = [...debts].sort((a, b) => Number(b.from === me || b.to === me) - Number(a.from === me || a.to === me) || b.amount - a.amount);
 
+  const payments = <PaymentsToConfirm ledger={ledger} apartmentId={apartmentId} onChange={onChange} />;
   if (sorted.length === 0) {
     return (
-      <div className="mt-5 rounded-2xl border border-gray-200 bg-white px-5 py-5">
-        <p className="font-semibold text-gray-900">Nobody owes anybody</p>
-        <p className="mt-0.5 text-sm text-gray-500">Rent and shared expenses are all settled in this household.</p>
-      </div>
+      <>
+        {payments}
+        <div className="mt-5 rounded-2xl border border-gray-200 bg-white px-5 py-5">
+          <p className="font-semibold text-gray-900">Nobody owes anybody</p>
+          <p className="mt-0.5 text-sm text-gray-500">Rent and shared expenses are all settled in this household.</p>
+        </div>
+      </>
     );
   }
   return (
-    <ul className="mt-5 divide-y divide-gray-50 overflow-hidden rounded-2xl border border-gray-200 bg-white">
-      {sorted.map(d => {
-        const mine = d.from === me || d.to === me;
-        const rent = between(bySource.rent, d.from, d.to);
-        const expenses = between(bySource.expense, d.from, d.to);
-        const split = [rent && `Rent ${rent > 0 ? "" : "−"}${money(rent)}`, expenses && `Shared expenses ${expenses > 0 ? "" : "−"}${money(expenses)}`].filter(Boolean);
-        return (
-          <li key={`${d.from}-${d.to}`} className={`flex items-center justify-between gap-3 px-4 py-3 ${mine ? "bg-brand-soft/50" : ""}`}>
-            <span className="min-w-0">
-              <span className="block text-sm font-medium text-gray-900">
-                {who(d.from)} {d.from === me ? "owe" : "owes"} {d.to === me ? "you" : who(d.to)}
+    <>
+      {payments}
+      <ul className="mt-5 divide-y divide-gray-50 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        {sorted.map(d => {
+          const mine = d.from === me || d.to === me;
+          const rent = between(bySource.rent, d.from, d.to);
+          const expenses = between(bySource.expense, d.from, d.to);
+          const split = [rent && `Rent ${rent > 0 ? "" : "−"}${money(rent)}`, expenses && `Shared expenses ${expenses > 0 ? "" : "−"}${money(expenses)}`].filter(Boolean);
+          return (
+            <li key={`${d.from}-${d.to}`} className={`flex items-center justify-between gap-3 px-4 py-3 ${mine ? "bg-brand-soft/50" : ""}`}>
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-gray-900">
+                  {who(d.from)} {d.from === me ? "owe" : "owes"} {d.to === me ? "you" : who(d.to)}
+                </span>
+                {split.length > 0 && <span className="block text-xs text-gray-500">{split.join(" · ")}</span>}
               </span>
-              {split.length > 0 && <span className="block text-xs text-gray-500">{split.join(" · ")}</span>}
-            </span>
-            <span className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-gray-900">{money(d.amount)}</span>
-              {d.from === me && (
-                <button onClick={() => onPay(d.to)} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white">Record payment</button>
-              )}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
+              <span className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-gray-900">{money(d.amount)}</span>
+                {d.from === me && (
+                  <button onClick={() => onPay(d.to)} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white">Record payment</button>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         apartmentId, userIds: [payment.fromUserId], type: action === "confirm" ? "PAYMENT_CONFIRMED" : "PAYMENT_DECLINED",
         title: action === "confirm" ? `${name} confirmed your payment of $${payment.amount.toFixed(2)}` : `${name} didn't confirm your payment of $${payment.amount.toFixed(2)}`,
         body: action === "confirm" ? "It's marked as paid in Money." : "What it covered is still owed. Talk to them, then record it again.",
-        link: `/apartment/${apartmentId}/money`,
+        link: `/apartment/${apartmentId}/money?tab=balances`, // answered on Balances (fix F17)
       });
     }
     return NextResponse.json(payment);

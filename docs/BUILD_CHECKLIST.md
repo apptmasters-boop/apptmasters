@@ -2474,6 +2474,8 @@ their name on a computer.
 
 ### F15 — Money: no "What's next" box when nothing is waiting (2026-10-18)
 
+> **Replaced by F17 (owner, 2026-10-18):** the box is removed completely.
+
 **What the owner asked:** on Money → Overview, remove "What's next · Nothing
 waiting for you."
 
@@ -2773,6 +2775,40 @@ several photos (the check leaves "Bright apartment with three photos" in Brookly
 Put the mouse on it: it waits. Press › or a thumbnail: it stops rotating.
 On a phone (or a narrow window), swipe left and right. A listing with one photo
 doesn't move.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### F17 — No "What's next" box on Money at all (2026-10-18)
+
+**What the owner asked:** remove "What's next", "Nothing waiting for you" and
+the whole box. Asked whether to keep it when something is waiting: **"Remove
+it completely"**.
+
+**What changes**
+- **Money → Overview** no longer has the box, ever. It keeps You owe / You're
+  owed, the rent / shared-expenses line, Shared fund, and Add and manage.
+- **Payments a roommate recorded** ("Jordan Roommate says they paid you" →
+  Confirm / I didn't receive it), and **your own payments waiting** for
+  someone ("Waiting for … to confirm" → Cancel), move to **Money → Balances**.
+  - They sit at the top, under "Payments to confirm", only when there are any.
+  - This box was the only place to answer them.
+- **The notification** for these payments opens Money on **Balances**. After
+  you record a payment, Money switches to Balances, so you see it waiting.
+- **Rent and cash confirmations** stay where they already were: the Rent and
+  Shared expenses pages, with their own notifications.
+
+- [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`f17-check.mjs`: 10 checks; replaces `f15-check.mjs`)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100). The check leaves a payment
+from Jordan waiting.
+1. Sign in as `resident@apptmasters.local` / `LocalTest-2026` and open
+   **Money**: no "What's next" box on the Overview.
+2. Sign in as `roommate@apptmasters.local` (Jordan), Money → **Balances**:
+   "Waiting for Riley Resident to confirm your payment", with Cancel.
+3. Back as the resident, Money → **Balances**: "Payments to confirm" shows
+   "Jordan Roommate says they paid you" with **Confirm**. Press it: the row
+   goes away.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
