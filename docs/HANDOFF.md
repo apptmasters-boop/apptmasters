@@ -18,6 +18,7 @@ from there."
      owner's explicit yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`).
    - **Waiting for the owner's sign-off** on apptmasters.com.
    - **F19 (2026-10-23): contacting an advertiser when signed out or when the 7-day sign-in expired goes to sign up and back, like Save; an expired sign-in is forgotten app-wide; a message typed when it expired is kept and comes back):** built and pushed, NOT deployed: the owner tests on this PC first (`f19-check.mjs`). No database change.
+   - **F20 (2026-10-23): Filters in order of importance** (the owner chose the order): Location, Property type, Price, **Fees**, **Move-in date**, **Lease duration**, Number of occupants, Bedrooms, **Pets & smoking** (Pets moved from Additional options, still `amenities=petsAllowed`), Additional options, What matters to you? (only when All or Room), then **More filters** (Bathrooms · Size · Listed, folded; opens by itself with a count when one is set). Same filters, same addresses. Built and pushed, NOT deployed: the owner tests on this PC first (`filters-ui-check.mjs`). No database change.
 2. **Approved:** Sprint 13, F1, **P1 backups** (2026-10-18), P2 budget alert.
 3. **Open questions for the owner:**
    - **The Home picture:** it was made with ChatGPT (OpenAI gpt-image,

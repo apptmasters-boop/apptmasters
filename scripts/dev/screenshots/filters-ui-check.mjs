@@ -1,10 +1,13 @@
 // Fix F1: clicks through every filter on the LOCAL app (port 3100, test database) and
 // checks that the page address and the number of results shown match the search.
 //   node filters-ui-check.mjs
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
 
 const BASE = process.env.SHOTS_BASE ?? "http://localhost:3100";
+const OUT = new URL("./outF20/", import.meta.url);
+fs.mkdirSync(OUT, { recursive: true });
 const browser = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH ?? "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true,
   args: ["--no-sandbox", "--no-first-run", "--disable-gpu"], userDataDir: fileURLToPath(new URL("./profile", import.meta.url)),
@@ -132,8 +135,34 @@ for (const [size, viewport] of [["computer", { width: 1536, height: 1000 }], ["p
   await open(); await clickStartsWith("Rooms ("); await wait(800);
   ok(params().get("kind") === "room", "tab Rooms"); await countsMatch("tab Rooms");
 
+  // F20: the order (deal-breakers first), Pets & smoking, the room lifestyle only for rooms, More filters.
+  const headings = () => page.$$eval(`${dialog} h3`, hs => hs.filter(h => h.offsetParent !== null).map(h => h.textContent.trim()));
+  const ORDER = ["Location", "Property type", "Price range", "Fees", "Move-in date", "Lease duration", "Number of occupants", "Bedrooms",
+    "Pets & smoking", "Additional options", "What matters to you?"];
+  await open(); await clickStartsWith("Filters"); await page.waitForSelector(dialog);
+  const shown = await headings();
+  ok(JSON.stringify(shown) === JSON.stringify(ORDER), `the order: ${shown.join(" · ")}`);
+  const moreText = () => page.$$eval(`${dialog} button[aria-controls=more-filters]`, bs => bs.map(b => `${b.textContent.trim()}|${b.getAttribute("aria-expanded")}`)[0] ?? "");
+  ok((await moreText()).startsWith("More filters") && (await moreText()).endsWith("|false"), `More filters, folded: ${await moreText()}`);
+  ok(!(await page.evaluate(() => [...document.querySelectorAll("[role=dialog] button")].some(b => b.offsetParent && b.textContent.trim() === "Pet friendly"))), "no Pet friendly in Additional options");
+  await clickStartsWith("More filters", dialog);
+  const opened = await headings();
+  ok(JSON.stringify(opened.slice(-3)) === JSON.stringify(["Bathrooms", "Size", "Listed"]), `More filters opens: ${opened.slice(-3).join(" · ")}`);
+  await clickButton("Apartment", dialog);
+  ok(!(await headings()).includes("What matters to you?"), "Apartment: no room lifestyle");
+  await clickButton("House", dialog);
+  ok(!(await headings()).includes("What matters to you?"), "House: no room lifestyle");
+  await clickButton("Room", dialog);
+  ok((await headings()).includes("What matters to you?"), "Room: the room lifestyle is back");
+  await clickButton("All", dialog);
+  ok((await headings()).includes("What matters to you?"), "All: the room lifestyle shows");
+  await page.screenshot({ path: fileURLToPath(new URL(`f20-filters-${size}.png`, OUT)), fullPage: false }); console.log(`shot f20-filters-${size}`);
+  await page.evaluate(() => document.querySelector("[aria-label='Close filters']")?.click());
+  await wait(300);
+
   // Every filter in the Filters window.
   const pill = text => () => clickButton(text, dialog);
+  const inMore = text => async () => { await clickStartsWith("More filters", dialog); await clickButton(text, dialog); };
   await filtersWindow(pill("Room"), "property type Room", p => p.get("kind") === "room");
   await filtersWindow(async () => { await clickButton("Room", dialog); await clickButton("Private room", dialog); }, "private room", p => p.get("roomType") === "PRIVATE_ROOM");
   await filtersWindow(pill("House"), "property type House", p => p.get("kind") === "house");
@@ -144,11 +173,16 @@ for (const [size, viewport] of [["computer", { width: 1536, height: 1000 }], ["p
   await filtersWindow(pill("3+"), "bedrooms 3+", p => p.get("bedrooms") === "3+");
   await filtersWindow(pill("Studio"), "studio", p => p.get("bedrooms") === "0");
   await filtersWindow(pill("4"), "4 people", p => p.get("occupants") === "4");
-  await filtersWindow(pill("2+"), "2+ bathrooms", p => p.get("bathrooms") === "2");
-  await filtersWindow(pill("750+"), "750+ sq ft", p => p.get("minSqft") === "750");
+  await filtersWindow(inMore("2+"), "2+ bathrooms", p => p.get("bathrooms") === "2");
+  // A filter set under More filters: it opens by itself, with the count.
+  await clickStartsWith("Filters"); await page.waitForSelector(dialog);
+  ok((await moreText()).startsWith("More filters (1)") && (await moreText()).endsWith("|true"),`More filters opens by itself when one is set: ${await moreText()}`);
+  await page.evaluate(() => document.querySelector("[aria-label='Close filters']")?.click()); await wait(300);
+  await filtersWindow(inMore("750+"), "750+ sq ft", p => p.get("minSqft") === "750");
   await filtersWindow(pill("Month-to-month"), "month-to-month", p => p.get("lease") === "0");
   await filtersWindow(pill("12 months or more"), "12 months or more", p => p.get("lease") === "12");
-  for (const [label, key] of [["Furnished", "furnished"], ["Pet friendly", "petsAllowed"], ["Parking", "parking"], ["Wi-Fi", "internetIncluded"],
+  await filtersWindow(pill("Pets allowed"), "pets allowed (Pets & smoking)", p => (p.get("amenities") ?? "").split(",").includes("petsAllowed"));
+  for (const [label, key] of [["Furnished", "furnished"], ["Parking", "parking"], ["Wi-Fi", "internetIncluded"],
     ["Air conditioning", "airConditioning"], ["Elevator", "elevator"], ["Heat included", "heatIncluded"], ["Dishwasher", "dishwasher"],
     ["Utilities included", "utilitiesIncluded"], ["Private bathroom", "privateBathroom"], ["Accessible", "accessible"]]) {
     await filtersWindow(pill(label), label, p => (p.get("amenities") ?? "").split(",").includes(key));
@@ -158,7 +192,7 @@ for (const [size, viewport] of [["computer", { width: 1536, height: 1000 }], ["p
   await filtersWindow(pill("Allowed"), "smoking allowed", p => p.get("smoking") === "allowed");
   await filtersWindow(pill("No broker fee"), "no broker fee", p => p.get("noBrokerFee") === "1");
   await filtersWindow(pill("No application fee"), "no application fee", p => p.get("noApplicationFee") === "1");
-  await filtersWindow(pill("Last 7 days"), "listed in the last 7 days", p => p.get("listedWithin") === "7");
+  await filtersWindow(inMore("Last 7 days"), "listed in the last 7 days", p => p.get("listedWithin") === "7");
   // What matters to you? (fix F5): a roommate choice also selects Room.
   await filtersWindow(pill("Quiet home"), "Quiet home", p => p.get("roommateLifestyleTag") === "quiet-household" && p.get("kind") === "room");
   await filtersWindow(async () => { await clickButton("Night owl", dialog); await clickButton("Apartment", dialog); },

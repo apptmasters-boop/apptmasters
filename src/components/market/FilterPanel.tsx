@@ -5,7 +5,8 @@
  * by the Filters button: a sheet on phones, a window on computers (Fix F1: no
  * more side panel). It edits a draft; "Show N listings", always in view at the
  * bottom, applies it, with N counted as you choose. Radius comes with the map
- * (Sprint 12f).
+ * (Sprint 12f). F20 (2026-10-23): deal-breakers first (price, fees, move-in,
+ * lease, people), then comforts; Bathrooms, Size and Listed under "More filters".
  */
 import { useEffect, useState } from "react";
 import {
@@ -14,17 +15,19 @@ import {
 import { LIFESTYLE_TAGS, ROOM_TYPES, type AmenityKey } from "@/lib/listingFields";
 import PriceRange from "./PriceRange";
 import {
-  AccessibleIcon, BathIcon, BedIcon, BoltIcon, CalendarIcon, CapIcon, CarIcon, DishwasherIcon, ElevatorIcon, FlameIcon, HeartHandIcon,
-  HomeIcon, MoonIcon, NoSmokeIcon, PawIcon, PinIcon, QuietIcon, ReceiptIcon, RulerIcon, SearchIcon, ShowerIcon, SlidersIcon,
-  SnowflakeIcon, SofaIcon, SunriseIcon, TagIcon, UsersIcon, WasherIcon, WifiIcon, XIcon,
+  AccessibleIcon, BathIcon, BedIcon, BoltIcon, CalendarIcon, CapIcon, CarIcon, ChevronDownIcon, ClockIcon, DishwasherIcon, ElevatorIcon,
+  FlameIcon, HeartHandIcon, HomeIcon, MoonIcon, NoSmokeIcon, PawIcon, PinIcon, PlusCircleIcon, QuietIcon, ReceiptIcon, RulerIcon,
+  SearchIcon, ShowerIcon, SlidersIcon, SnowflakeIcon, SofaIcon, SunriseIcon, TagIcon, UsersIcon, WasherIcon, WifiIcon, XIcon,
 } from "@/components/landing/icons";
 
 type IconType = (p: { className?: string }) => React.ReactNode;
 
-/** The options, in the order of the picture; "laundry" is its own filter (in the unit or the building). */
+/**
+ * The options, in the order of the picture; "laundry" is its own filter (in the unit or the building).
+ * Pets moved to "Pets & smoking" (F20).
+ */
 const OPTIONS: { key: AmenityKey | "laundry"; label: string; icon: IconType }[] = [
   { key: "furnished", label: "Furnished", icon: SofaIcon },
-  { key: "petsAllowed", label: "Pet friendly", icon: PawIcon },
   { key: "parking", label: "Parking", icon: CarIcon },
   { key: "laundry", label: "Laundry", icon: WasherIcon },
   { key: "internetIncluded", label: "Wi-Fi", icon: WifiIcon },
@@ -107,6 +110,11 @@ export default function FilterPanel({ value, onApply, onClose }: {
   const [priceKey, setPriceKey] = useState(0);
   const set = (patch: Partial<SearchFilters>) => setDraft(d => ({ ...d, ...patch }));
   const count = useDraftCount(draft);
+  // Bathrooms, Size and Listed fold under "More filters", open from the start when one is set (F20).
+  const [more, setMore] = useState(() => !!(value.bathrooms || value.minSqft || value.listedWithin));
+  const moreSet = [draft.bathrooms, draft.minSqft, draft.listedWithin].filter(Boolean).length;
+  const petsOn = draft.amenities.includes("petsAllowed");
+  const extras = draft.amenities.filter(a => a !== "petsAllowed");
   const optionOn = (key: AmenityKey | "laundry") => key === "laundry" ? draft.laundry : draft.amenities.includes(key);
   const toggleOption = (key: AmenityKey | "laundry") => key === "laundry"
     ? set({ laundry: !draft.laundry })
@@ -159,20 +167,11 @@ export default function FilterPanel({ value, onApply, onClose }: {
             onChange={(minPrice, maxPrice) => set({ minPrice, maxPrice })} />
         </Section>
 
-        <Section icon={BedIcon} title="Bedrooms" onClear={draft.bedrooms ? () => set({ bedrooms: "" }) : undefined}>
-          <OneOf cols="grid-cols-5" value={draft.bedrooms} onChange={bedrooms => set({ bedrooms })}
-            options={[["", "Any"], ["0", "Studio"], ["1", "1"], ["2", "2"], ["3+", "3+"]]} />
-        </Section>
-
-        <Section icon={UsersIcon} title="Number of occupants" hint="How many people will live there, you included?" onClear={draft.occupants ? () => set({ occupants: null }) : undefined}>
-          <div className="grid grid-cols-5 gap-2">
-            {[1, 2, 3, 4, 5].map(n => <Pill key={n} active={draft.occupants === n} onClick={() => set({ occupants: draft.occupants === n ? null : n })} className="px-1">{n === 5 ? "5+" : n}</Pill>)}
+        <Section icon={ReceiptIcon} title="Fees" hint="Money due before moving in" onClear={draft.noBrokerFee || draft.noApplicationFee ? () => set({ noBrokerFee: false, noApplicationFee: false }) : undefined}>
+          <div className="flex flex-wrap gap-2">
+            <Pill active={draft.noBrokerFee} onClick={() => set({ noBrokerFee: !draft.noBrokerFee })}>No broker fee</Pill>
+            <Pill active={draft.noApplicationFee} onClick={() => set({ noApplicationFee: !draft.noApplicationFee })}>No application fee</Pill>
           </div>
-        </Section>
-
-        <Section icon={BathIcon} title="Bathrooms" onClear={draft.bathrooms ? () => set({ bathrooms: null }) : undefined}>
-          <OneOf cols="grid-cols-4" value={draft.bathrooms} onChange={bathrooms => set({ bathrooms })}
-            options={[[null, "Any"], [1, "1+"], [2, "2+"], [3, "3+"]]} />
         </Section>
 
         <Section icon={CalendarIcon} title="Move-in date" hint="Available by then" onClear={draft.moveIn ? () => set({ moveIn: "" }) : undefined}>
@@ -182,50 +181,87 @@ export default function FilterPanel({ value, onApply, onClose }: {
           </div>
         </Section>
 
+        <Section icon={ClockIcon} title="Lease duration" onClear={draft.lease ? () => set({ lease: "" }) : undefined}>
+          <OneOf cols="grid-cols-2" value={draft.lease} onChange={lease => set({ lease })}
+            options={[["", "Any"], ...LEASE_FILTERS.map(l => [l.value, l.label] as [SearchFilters["lease"], string])]} />
+        </Section>
+
+        <Section icon={UsersIcon} title="Number of occupants" hint="How many people will live there, you included?" onClear={draft.occupants ? () => set({ occupants: null }) : undefined}>
+          <div className="grid grid-cols-5 gap-2">
+            {[1, 2, 3, 4, 5].map(n => <Pill key={n} active={draft.occupants === n} onClick={() => set({ occupants: draft.occupants === n ? null : n })} className="px-1">{n === 5 ? "5+" : n}</Pill>)}
+          </div>
+        </Section>
+
+        <Section icon={BedIcon} title="Bedrooms" onClear={draft.bedrooms ? () => set({ bedrooms: "" }) : undefined}>
+          <OneOf cols="grid-cols-5" value={draft.bedrooms} onChange={bedrooms => set({ bedrooms })}
+            options={[["", "Any"], ["0", "Studio"], ["1", "1"], ["2", "2"], ["3+", "3+"]]} />
+        </Section>
+
+        {/* Pets moved here from Additional options (F20); still the amenities=petsAllowed filter. */}
+        <Section icon={PawIcon} title="Pets & smoking"
+          onClear={petsOn || draft.smoking ? () => set({ amenities: draft.amenities.filter(a => a !== "petsAllowed"), smoking: "" }) : undefined}>
+          <p className="mb-2 text-sm font-medium text-gray-600 dark:text-gray-300">Pets</p>
+          <div className="flex flex-wrap gap-2">
+            <Pill active={petsOn} onClick={() => toggleOption("petsAllowed")}><PawIcon className="h-5 w-5" />Pets allowed</Pill>
+          </div>
+          <p className="mb-2 mt-4 text-sm font-medium text-gray-600 dark:text-gray-300">Smoking</p>
+          <OneOf cols="grid-cols-3" value={draft.smoking} onChange={smoking => set({ smoking })}
+            options={[["", "Any"], ["free", "Smoke-free"], ["allowed", "Allowed"]] as [SearchFilters["smoking"], string][]} />
+        </Section>
+
         <Section icon={SlidersIcon} title="Additional options"
-          onClear={draft.amenities.length || draft.laundry ? () => set({ amenities: [], laundry: false }) : undefined}>
+          onClear={extras.length || draft.laundry ? () => set({ amenities: draft.amenities.filter(a => a === "petsAllowed"), laundry: false }) : undefined}>
           <div className="flex flex-wrap gap-2">
             {OPTIONS.map(({ key, label, icon: Icon }) => <Pill key={key} active={optionOn(key)} onClick={() => toggleOption(key)}><Icon className="h-5 w-5" />{label}</Pill>)}
           </div>
         </Section>
 
-        <Section icon={HeartHandIcon} title="What matters to you?" hint="Rooms to share: how the people there live"
-          onClear={draft.roommateLifestyleTag ? () => setLifestyle("") : undefined}>
-          <div className="flex flex-wrap gap-2">
-            <Pill active={!draft.roommateLifestyleTag} onClick={() => setLifestyle("")}>Any</Pill>
-            {LIFESTYLE_TAGS.map(t => {
-              const Icon = LIFESTYLE_ICONS[t.value];
-              return <Pill key={t.value} active={draft.roommateLifestyleTag === t.value} onClick={() => setLifestyle(t.value)}><Icon className="h-5 w-5" />{t.label}</Pill>;
-            })}
-          </div>
-        </Section>
+        {/* Room lifestyle: only when rooms are in the search (F20); a set one always shows. */}
+        {(draft.kind === "" || draft.kind === "room" || !!draft.roommateLifestyleTag) && (
+          <Section icon={HeartHandIcon} title="What matters to you?" hint="Rooms to share: how the people there live"
+            onClear={draft.roommateLifestyleTag ? () => setLifestyle("") : undefined}>
+            <div className="flex flex-wrap gap-2">
+              <Pill active={!draft.roommateLifestyleTag} onClick={() => setLifestyle("")}>Any</Pill>
+              {LIFESTYLE_TAGS.map(t => {
+                const Icon = LIFESTYLE_ICONS[t.value];
+                return <Pill key={t.value} active={draft.roommateLifestyleTag === t.value} onClick={() => setLifestyle(t.value)}><Icon className="h-5 w-5" />{t.label}</Pill>;
+              })}
+            </div>
+          </Section>
+        )}
 
-        <Section icon={RulerIcon} title="Size" hint="Square feet" onClear={draft.minSqft ? () => set({ minSqft: null }) : undefined}>
-          <OneOf cols="grid-cols-5" value={draft.minSqft} onChange={minSqft => set({ minSqft })}
-            options={[[null, "Any"], ...SIZES.map(s => [s, `${s.toLocaleString("en-US")}+`] as [number, string])]} />
-        </Section>
+        {/* The rarely deciding ones, folded (F20); open from the start when one is set. */}
+        <div className="py-5">
+          <button type="button" onClick={() => setMore(m => !m)} aria-expanded={more} aria-controls="more-filters"
+            className="flex w-full items-center justify-between gap-3 text-left">
+            <span className="flex items-start gap-3">
+              <span className="mt-0.5 text-gray-800 dark:text-gray-200"><PlusCircleIcon className="h-6 w-6" /></span>
+              <span>
+                <span className="block text-[17px] font-semibold text-gray-900 dark:text-white">More filters{moreSet ? ` (${moreSet})` : ""}</span>
+                <span className="block text-sm text-gray-500 dark:text-gray-400">Bathrooms, size, when listed</span>
+              </span>
+            </span>
+            <ChevronDownIcon className={`h-5 w-5 shrink-0 text-gray-500 transition-transform ${more ? "rotate-180" : ""}`} />
+          </button>
+          {more && (
+            <div id="more-filters" className="mt-5 border-t border-gray-100 dark:border-gray-800">
+              <Section icon={BathIcon} title="Bathrooms" onClear={draft.bathrooms ? () => set({ bathrooms: null }) : undefined}>
+                <OneOf cols="grid-cols-4" value={draft.bathrooms} onChange={bathrooms => set({ bathrooms })}
+                  options={[[null, "Any"], [1, "1+"], [2, "2+"], [3, "3+"]]} />
+              </Section>
 
-        <Section icon={ReceiptIcon} title="Lease duration" onClear={draft.lease ? () => set({ lease: "" }) : undefined}>
-          <OneOf cols="grid-cols-2" value={draft.lease} onChange={lease => set({ lease })}
-            options={[["", "Any"], ...LEASE_FILTERS.map(l => [l.value, l.label] as [SearchFilters["lease"], string])]} />
-        </Section>
+              <Section icon={RulerIcon} title="Size" hint="Square feet" onClear={draft.minSqft ? () => set({ minSqft: null }) : undefined}>
+                <OneOf cols="grid-cols-5" value={draft.minSqft} onChange={minSqft => set({ minSqft })}
+                  options={[[null, "Any"], ...SIZES.map(s => [s, `${s.toLocaleString("en-US")}+`] as [number, string])]} />
+              </Section>
 
-        <Section icon={NoSmokeIcon} title="Smoking" onClear={draft.smoking ? () => set({ smoking: "" }) : undefined}>
-          <OneOf cols="grid-cols-3" value={draft.smoking} onChange={smoking => set({ smoking })}
-            options={[["", "Any"], ["free", "Smoke-free"], ["allowed", "Allowed"]] as [SearchFilters["smoking"], string][]} />
-        </Section>
-
-        <Section icon={TagIcon} title="Fees" onClear={draft.noBrokerFee || draft.noApplicationFee ? () => set({ noBrokerFee: false, noApplicationFee: false }) : undefined}>
-          <div className="flex flex-wrap gap-2">
-            <Pill active={draft.noBrokerFee} onClick={() => set({ noBrokerFee: !draft.noBrokerFee })}>No broker fee</Pill>
-            <Pill active={draft.noApplicationFee} onClick={() => set({ noApplicationFee: !draft.noApplicationFee })}>No application fee</Pill>
-          </div>
-        </Section>
-
-        <Section icon={CalendarIcon} title="Listed" onClear={draft.listedWithin ? () => set({ listedWithin: null }) : undefined}>
-          <OneOf cols="grid-cols-2" value={draft.listedWithin} onChange={listedWithin => set({ listedWithin })}
-            options={[[null, "Any time"], ...LISTED_WITHIN.map(l => [l.value, l.label] as [number, string])]} />
-        </Section>
+              <Section icon={CalendarIcon} title="Listed" onClear={draft.listedWithin ? () => set({ listedWithin: null }) : undefined}>
+                <OneOf cols="grid-cols-2" value={draft.listedWithin} onChange={listedWithin => set({ listedWithin })}
+                  options={[[null, "Any time"], ...LISTED_WITHIN.map(l => [l.value, l.label] as [number, string])]} />
+              </Section>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="border-t border-gray-100 bg-white pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 dark:border-gray-800 dark:bg-gray-900">

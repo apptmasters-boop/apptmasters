@@ -2874,3 +2874,63 @@ Their screenshot: a conversation page let them type, and Send answered
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F20 — Filters in order of importance (2026-10-23)
+
+**What the owner asked:** "help me evaluate so we can move the more important
+one to the top. I believe that [lease] should not be at the bottom. If you have
+any other suggestions, let me know." Lease duration was 11th of 14 and Fees
+13th.
+
+**How the order is decided:** deal-breakers first, the filters that rule a
+place in or out whatever else it has (where, what kind, how much, when, for
+how long, for how many). Comforts and extras after.
+
+**The new order** (the owner chose it, with the three extras below):
+1. Location
+2. Property type
+3. Price range
+4. **Fees** (up from 13th: move-in costs matter in New York)
+5. **Move-in date** (up from 7th)
+6. **Lease duration** (up from 11th)
+7. Number of occupants
+8. Bedrooms
+9. **Pets & smoking** (new: Pets moved here from Additional options, next to
+   Smoking)
+10. Additional options
+11. What matters to you? (rooms only)
+12. **More filters**: Bathrooms · Size · Listed, folded
+
+**What changes**
+- **Same filters, same results:** only the order and grouping change. Every
+  filter sets the same address as before, so saved links and searches keep
+  working.
+- **Pets & smoking:** a **Pets allowed** choice next to the Smoking choices.
+  It is the same filter as the old "Pet friendly" (`amenities=petsAllowed`),
+  now only here, no longer in Additional options.
+- **What matters to you?** (the room lifestyle) shows only when Property type
+  is **All** or **Room**. Choosing a lifestyle still switches to Room;
+  choosing Apartment or House still clears it.
+- **More filters:** Bathrooms, Size and Listed sit under a **More filters**
+  line that opens on tap.
+  - It opens by itself when one of them is already set, so a filter in use is
+    never hidden.
+  - The line says how many are set, for example "More filters (1)".
+- Not chosen: Lease on the results' top row.
+
+- [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`filters-ui-check.mjs`: 188 checks on computer and phone: every filter from its new place, the new order, Pets allowed, the room lifestyle hidden for Apartment/House, More filters folded and opening by itself with its count)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Open **Find a Home** and press **Filters**. The sections read in the order
+   above, Lease duration 6th.
+2. **Pets & smoking:** press **Pets allowed**, then Show. Only pet-friendly
+   listings; Additional options no longer has "Pet friendly".
+3. Choose **Apartment**: "What matters to you?" disappears. Choose **Room** or
+   **All**: it comes back.
+4. Press **More filters**: Bathrooms, Size and Listed appear. Choose
+   **Bathrooms 2+**, Show, then open Filters again: More filters is already
+   open and says (1).
+5. **Reset all** clears everything as before.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
