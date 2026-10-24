@@ -2934,3 +2934,114 @@ how long, for how many). Comforts and extras after.
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+## Fair housing and languages (owner, 2026-10-23)
+
+**What the owner asked:** filters for Country of origin, Language, Ethnicity
+and Region, "to help the community be more together and easily find what they
+need".
+
+**The advice given:**
+- **No filters by ethnicity or country of origin**, on listings or on people.
+  - The Fair Housing Act (§ 3604(c)) forbids housing ads or notices that show
+    a preference by race, color, religion, sex, disability, family status or
+    national origin.
+  - New York State and City law protect more groups. NYC counts "ancestry,
+    birthplace, culture, or language" as national origin.
+  - The site itself can be held responsible for filters it builds
+    (Roommates.com, 2008).
+- **To confirm with a New York fair-housing lawyer before launch.**
+
+**The owner's choices:**
+- **F21:** reword the notes box, below.
+- **The whole site in French, Spanish and Arabic** (T1–T6), below.
+- Not chosen: an "advertiser speaks…" filter, a borough choice.
+
+### F21 — The notes box describes the home (2026-10-23)
+
+**Why:** the listing form for a room had a box "Language / cultural / religious
+notes", with the example "Fulani-speaking household, halal kitchen…". It sat
+under "Roommate you're looking for", and the listing showed it under "The
+roommate they're looking for".
+- Describing who lives there, or who should, by language, culture or religion
+  is what fair-housing rules warn about.
+- Describing the home itself ("halal kitchen") is generally treated
+  differently.
+
+**What changes**
+- **The listing form:** the box becomes **House customs (optional)**, in its
+  own place after "Roommate you're looking for".
+  - Example: "Halal kitchen, shoes off inside, quiet after 10 pm".
+  - Hint: "Describe the home and how it's run, not who may live there."
+- **The listing page:** the text shows under its own **House customs**
+  heading, no longer under "The roommate they're looking for".
+- No database change: the field stays as it is, and text already written stays.
+- **For the lawyer:** the roommate **age range** and **Student / Working
+  professional** choices. New York protects age, and NYC protects lawful
+  occupation, in housing; shared rooms may be exempt.
+
+- [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`f21-check.mjs`: 11 checks: the label, example, hint and place on the form; none for an apartment; House customs under its own heading on the listing)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100): sign in as
+`roommate@apptmasters.local` / `LocalTest-2026`.
+1. Go to **My listings** › **New listing** and choose **Room**. After
+   "Roommate you're looking for", the box is **House customs (optional)**,
+   with the new example and hint.
+2. Open a room listing that has house customs written: they show under
+   **House customs**.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+
+### Translation: ApptMasters in French, Spanish and Arabic (T1–T6, plan approved 2026-10-23)
+
+**The owner's choices**
+- The whole site in **French, Spanish and Arabic** (Arabic reads right to
+  left).
+- **Hidden on apptmasters.com until everything is translated.** The owner
+  tests each part on this PC.
+- **Privacy and Terms are translated**, with a note: "This translation is for
+  convenience; the English version is the binding one."
+- **Native speakers chosen by the owner** check the translations. For each
+  part, Claude prepares a side-by-side list.
+- **Changing the language** (the owner: "make sure that the user have an
+  option to change language because we have people that doesn't speak
+  English"):
+  - a globe button 🌐 with EN / FR / ES / ع in the top bar of every page,
+    signed in or not, including sign-up and log-in
+  - each language listed in its own words: English · Français · Español ·
+    العربية
+  - the first visit follows the phone's or browser's language
+  - the choice is remembered, and saved with the account once T5 is done
+  - also a Language row in Settings and on More
+
+**How**
+- `next-intl` (no `/fr/` addresses: the language comes from a cookie, then
+  the browser's language).
+- Message files `messages/en.json`, `fr.json`, `es.json`, `ar.json`.
+- `NEXT_PUBLIC_LANGUAGES` defaults to `en` in code, so the live site stays in
+  English until launch; this PC runs with all four.
+- Arabic: right-to-left layout with start/end classes, an Arabic font,
+  Western digits for prices.
+- **Not translated:** what people write (listings, messages, names), Admin,
+  and notifications already sent. Arabic PDFs stay English for now.
+
+**The parts** (each one: checklist, build, checks, push; the owner tests on
+this PC; deploy on "deploy")
+- [ ] **T1:** foundation, the language button, right-to-left layout, the
+  shared menus, the signed-out Home, log in, sign up, confirm email, Welcome,
+  forgot and reset password.
+- [ ] **T2:** Find a Home: search, Filters, cards, the listing page, Saved,
+  Messages.
+- [ ] **T3:** advertisers: the listing form, New / Edit / My listings /
+  Relist, invites.
+- [ ] **T4:** the household app, in three parts:
+  - T4a: Home, Household, Chat, Profile, Settings, Help, create, join
+  - T4b: Money
+  - T4c: the rest
+- [ ] **T5:** server text: a `User.locale` column (SQL only with the owner's
+  yes); API messages, notifications, push, the 10 emails, French and Spanish
+  PDFs.
+- [ ] **T6:** Privacy and Terms (English is binding), the manager portal.
+- [ ] **Launch:** after the native speakers' corrections, the four languages
+  are switched on for apptmasters.com, at the owner's "deploy".
+

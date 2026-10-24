@@ -447,12 +447,17 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Language / cultural / religious notes (optional)</label>
-            <textarea rows={2} value={form.roommateCulturalNotes} onChange={e => setForm(f => ({ ...f, roommateCulturalNotes: e.target.value }))}
-              placeholder="e.g. Fulani-speaking household, halal kitchen…"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand bg-white" />
-          </div>
+        </div>
+      )}
+
+      {/* F21 (2026-10-23): about the home and how it's run, never who may live there (fair housing). */}
+      {form.type === "ROOM_TO_SHARE" && (
+        <div>
+          <label htmlFor="house-customs" className="block text-xs font-medium text-gray-700 mb-1">House customs (optional)</label>
+          <p className="text-xs text-gray-500 mb-2">Describe the home and how it&apos;s run, not who may live there.</p>
+          <textarea id="house-customs" rows={2} value={form.roommateCulturalNotes} onChange={e => setForm(f => ({ ...f, roommateCulturalNotes: e.target.value }))}
+            placeholder="e.g. Halal kitchen, shoes off inside, quiet after 10 pm"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 focus:border-brand" />
         </div>
       )}
 

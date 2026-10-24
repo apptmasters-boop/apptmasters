@@ -235,7 +235,7 @@ export default function ListingDetailPage() {
   const size = listing.squareFeet ? `${listing.squareFeet.toLocaleString("en-US")} sq ft` : null;
   const lifestyleTags: string[] = (() => { try { return JSON.parse(listing.roommateLifestyleTags); } catch { return []; } })();
   const roommatePrefs = listing.type === "ROOM_TO_SHARE" && (listing.roommateGenderPref || listing.roommateAgeMin || listing.roommateAgeMax ||
-    listing.roommateOccupation || listing.roommateSmoking || listing.roommatePets || lifestyleTags.length > 0 || listing.roommateCulturalNotes);
+    listing.roommateOccupation || listing.roommateSmoking || listing.roommatePets || lifestyleTags.length > 0);
   const memberSince = listing.owner.createdAt ? new Date(listing.owner.createdAt).getFullYear() : null;
   const bedroomsText = listing.bedrooms === null ? null : listing.bedrooms === 0 ? "Studio" : `${listing.bedrooms} bedroom${listing.bedrooms === 1 ? "" : "s"}`;
   const bathroomsText = listing.bathrooms === null ? null : `${listing.bathrooms} bathroom${listing.bathrooms === 1 ? "" : "s"}`;
@@ -375,7 +375,14 @@ export default function ListingDetailPage() {
                   <Row label="Pets" value={listing.roommatePets === "NO" ? "No pets" : listing.roommatePets === "YES" ? "Pets ok" : null} />
                   {lifestyleTags.length > 0 && <Row label="Lifestyle" value={lifestyleTags.map(t => t.replace(/-/g, " ")).join(", ")} />}
                 </div>
-                {listing.roommateCulturalNotes && <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{listing.roommateCulturalNotes}</p>}
+              </section>
+            )}
+
+            {/* F21: the home's customs, apart from the roommate wishes. */}
+            {listing.type === "ROOM_TO_SHARE" && listing.roommateCulturalNotes && (
+              <section className="mt-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">House customs</h2>
+                <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{listing.roommateCulturalNotes}</p>
               </section>
             )}
 
