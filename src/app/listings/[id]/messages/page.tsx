@@ -26,6 +26,28 @@ interface Message {
 }
 type Listing = MarketListing & { owner: { id: string; name: string; createdAt?: string; photo?: string | null } };
 
+/**
+ * A message typed when the sign-in had expired (fix F19, 2026-10-23): kept in this
+ * browser for a day, put back in the box after signing in, gone once sent.
+ */
+const DRAFT_DAY_MS = 86_400_000;
+function saveDraft(key: string, text: string) {
+  try { localStorage.setItem(key, JSON.stringify({ text, at: Date.now() })); } catch { /* storage blocked */ }
+}
+function readDraft(key: string): string | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { text, at } = JSON.parse(raw) as { text?: string; at?: number };
+    if (typeof text === "string" && text.trim() && typeof at === "number" && Date.now() - at < DRAFT_DAY_MS) return text;
+    localStorage.removeItem(key);
+  } catch { /* storage blocked or bad data */ }
+  return null;
+}
+function clearDraft(key: string) {
+  try { localStorage.removeItem(key); } catch { /* storage blocked */ }
+}
+
 function MessagesThread() {
   const { id: listingId } = useParams<{ id: string }>();
   const router = useRouter();
@@ -39,11 +61,15 @@ function MessagesThread() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [draftBack, setDraftBack] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const conversations = useConversations(!!currentUserId);
   const filter = useConversationFilter(conversations);
 
   const query = withUserId ? `?with=${withUserId}` : "";
+  const draftKey = `am:draft:${listingId}:${withUserId ?? ""}`;
+  /** Not signed in, or the sign-in expired: sign up, then back here, the same way as Save (fix F19). */
+  const toSignUp = () => router.replace(`/signup?returnTo=${encodeURIComponent(`/listings/${listingId}/messages${query}`)}`);
   const myListing = !!listing && listing.owner.id === currentUserId;
 
   async function loadMessages() {
@@ -53,11 +79,14 @@ function MessagesThread() {
   }
 
   async function load() {
-    if (!getToken()) { router.replace(`/signup?returnTo=${encodeURIComponent(`/listings/${listingId}/messages${query}`)}`); return; }
+    if (!getToken()) { toSignUp(); return; }
     const [listingRes, meRes] = await Promise.all([apiFetch(`/api/listings/${listingId}`), apiFetch("/api/auth/me")]);
+    if (meRes.status === 401) { toSignUp(); return; } // the sign-in expired (apiFetch forgot it)
     if (listingRes.ok) setListing(await listingRes.json());
     if (meRes.ok) { const me = await meRes.json(); setCurrentUserId(me.id); }
     await loadMessages();
+    const draft = readDraft(draftKey);
+    if (draft) { setContent(draft); setDraftBack(true); }
     setLoading(false);
   }
 
@@ -83,7 +112,9 @@ function MessagesThread() {
     setSending(true);
     setSendError(null);
     const res = await apiFetch(`/api/listings/${listingId}/messages${query}`, { method: "POST", body: JSON.stringify({ content }) });
-    if (res.ok) { setContent(""); await loadMessages(); }
+    // The sign-in expired while typing: keep the message, sign in, come back to it (fix F19).
+    if (res.status === 401) { saveDraft(draftKey, content); toSignUp(); return; }
+    if (res.ok) { setContent(""); setDraftBack(false); clearDraft(draftKey); await loadMessages(); }
     // Say why it didn't go (e.g. a new message about a listing that just closed); the text stays.
     else setSendError((await res.json().catch(() => null))?.error ?? "Couldn't send. Try again.");
     setSending(false);
@@ -195,6 +226,7 @@ function MessagesThread() {
             ) : (
             <>
             {sendError && <p role="alert" className="border-t border-gray-100 px-4 pt-2 text-sm text-red-600 dark:border-gray-800">{sendError}</p>}
+            {draftBack && !sendError && <p role="status" className="border-t border-gray-100 px-4 pt-2 text-sm text-brand dark:border-gray-800 dark:text-emerald-300">Your message is still here: press Send.</p>}
             <form onSubmit={send} className="flex items-end gap-2 border-t border-gray-100 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 dark:border-gray-800">
               <label htmlFor="message" className="sr-only">Message</label>
               <textarea id="message" rows={1} placeholder="Type a message…" value={content} onChange={e => { setContent(e.target.value); setSendError(null); }}

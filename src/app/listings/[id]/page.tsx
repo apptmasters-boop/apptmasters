@@ -167,7 +167,8 @@ export default function ListingDetailPage() {
   }, [me, id]);
 
   function contact() {
-    if (!getToken()) { router.push(`/signup?returnTo=${encodeURIComponent(`/listings/${id}/messages`)}`); return; }
+    // Signed out, or the sign-in expired (useMe found nothing): sign up, then the conversation, like Save (F19).
+    if (!getToken() || me === null) { router.push(`/signup?returnTo=${encodeURIComponent(`/listings/${id}/messages`)}`); return; }
     router.push(`/listings/${id}/messages`);
   }
   function save() {

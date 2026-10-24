@@ -2834,3 +2834,43 @@ available listing still shows its "Available now".
 
 **Sign-off:** [ ] Approved on ____  · Issues found: ____
 
+### F19 — Contacting an advertiser when not signed in (2026-10-23)
+
+**What the owner asked:** "not logged in users should have access to contact
+the Advertiser, use the same way as 'Save' to direct them to the sign-up page."
+Their screenshot: a conversation page let them type, and Send answered
+**"Unauthorized"**.
+
+**Why:**
+- A sign-in lasts 7 days. After that, the browser still holds the expired
+  sign-in.
+- **Contact** and the conversation page only checked that a sign-in exists,
+  not that it still works. So the page opened, and sending failed.
+- A visitor who was never signed in was already sent to sign up.
+
+**What changes**
+- **An expired sign-in counts as signed out, everywhere:** when the server
+  answers "Unauthorized", the app forgets the old sign-in. The Log in and
+  two-step code screens are left out.
+- **Contact** (on a listing) takes a signed-out person to **sign up**, then back
+  to the conversation, the same way as Save. The sign-up page's "Already have
+  an account? Sign in" keeps the way back.
+- **The conversation page** checks the sign-in when it opens; if it expired,
+  the same sign-up / sign-in step.
+- **If it expires while typing,** Send keeps the message (in this browser, for
+  a day), sends them to sign in, and puts the text back in the box when they
+  return. They press Send.
+
+- [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`f19-check.mjs`: 13 checks: signed out and expired Contact, expired conversation page, a message kept across an expired sign-in)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Signed out, open a listing, press **Contact**: the sign-up page. Use "Sign
+   in" with `resident@apptmasters.local` / `LocalTest-2026`: you land on the
+   conversation, ready to write.
+2. An expired sign-in is hard to make by hand; the browser check makes one and
+   checks that Contact and Send behave as above, and that the typed message
+   comes back.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

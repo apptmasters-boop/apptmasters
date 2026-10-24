@@ -45,5 +45,10 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
       ...(options.headers ?? {}),
     },
   });
+  // A sign-in lasts 7 days; after that the stored one is stale. The server saying
+  // "Unauthorized" means it no longer works: forget it, so every page treats the
+  // person as signed out (fix F19, 2026-10-23). Not on the log-in and two-step code
+  // screens, where 401 means a wrong password or code.
+  if (res.status === 401 && token && !/^\/api\/auth\/(login|2fa)/.test(path)) clearToken();
   return res;
 }

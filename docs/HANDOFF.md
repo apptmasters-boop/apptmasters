@@ -17,6 +17,7 @@ from there."
    - O1's column `User.intent` was added to the live database with the
      owner's explicit yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`).
    - **Waiting for the owner's sign-off** on apptmasters.com.
+   - **F19 (2026-10-23): contacting an advertiser when signed out or when the 7-day sign-in expired goes to sign up and back, like Save; an expired sign-in is forgotten app-wide; a message typed when it expired is kept and comes back):** built and pushed, NOT deployed: the owner tests on this PC first (`f19-check.mjs`). No database change.
 2. **Approved:** Sprint 13, F1, **P1 backups** (2026-10-18), P2 budget alert.
 3. **Open questions for the owner:**
    - **The Home picture:** it was made with ChatGPT (OpenAI gpt-image,
