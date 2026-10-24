@@ -32,7 +32,8 @@ describe("homeNavState", () => {
     ["/members/u1", "household", "/members", "Members"],
     ["/rooms/r1", "household", "/rooms", "Rooms"],
   ])("%s belongs to %s and goes back to it", (path, tab, backPath, label) => {
-    expect(nav(path)).toEqual({ tab, isPrimary: false, back: { href: `/apartment/${A}${backPath}`, label } });
+    // `key` names the translated label (nav.<key> in messages/*.json, T1).
+    expect(nav(path)).toEqual({ tab, isPrimary: false, back: { href: `/apartment/${A}${backPath}`, label, key: label.toLowerCase() } });
   });
 
   it("keeps a direct-message thread under Chat", () => {

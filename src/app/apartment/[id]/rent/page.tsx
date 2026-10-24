@@ -164,7 +164,7 @@ export default function RentPage() {
                 {history.map(m => (
                   <li key={m.id}>
                     <button onClick={() => setOpenMonth(o => (o === m.id ? null : m.id))} aria-expanded={openMonth === m.id}
-                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50">
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-start hover:bg-gray-50">
                       <span className="text-sm font-medium text-gray-900">{m.label}</span>
                       <span className="flex items-center gap-2 text-sm">
                         {!m.landlordPaidAt && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">Landlord not paid</span>}
@@ -283,7 +283,7 @@ function MonthCard({ month, me, isAdmin, apartmentId, landlordName, onChange }: 
               {mine && payingId === m.paymentId && (
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <label className="text-xs text-gray-500">How
-                    <select value={method} onChange={e => setMethod(e.target.value)} className="ml-2 rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-900">
+                    <select value={method} onChange={e => setMethod(e.target.value)} className="ms-2 rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-900">
                       {Object.entries(METHODS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                     </select>
                   </label>

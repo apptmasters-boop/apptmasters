@@ -127,7 +127,7 @@ function FindAHome() {
       <div className="min-w-0">
         {/* Phones: where, how many, people and price, sort; then the quick buttons. */}
         <div className="flex items-center gap-3 lg:hidden">
-          <button type="button" onClick={() => router.back()} aria-label="Back" className="-ml-1 rounded-full p-1 text-gray-800 dark:text-gray-200"><ArrowLeftIcon className="h-6 w-6" /></button>
+          <button type="button" onClick={() => router.back()} aria-label="Back" className="-ms-1 rounded-full p-1 text-gray-800 dark:text-gray-200"><ArrowLeftIcon className="h-6 w-6" /></button>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-bold text-gray-900 dark:text-white">{where}</h1>
             <p className="truncate text-sm text-gray-500 dark:text-gray-400">{summary || "Searching…"}</p>

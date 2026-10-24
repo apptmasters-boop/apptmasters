@@ -381,11 +381,11 @@ export default function FinancePage() {
                     <div key={m.id} className="flex items-center gap-2">
                       <span className="text-sm text-gray-700 flex-1 truncate">{m.name}</span>
                       <div className="relative w-28">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                        <span className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                         <input type="number" min="0" step="0.01" placeholder="0.00"
                           value={customSplits[m.id] ?? ""}
                           onChange={e => setCustomSplits(s => ({ ...s, [m.id]: e.target.value }))}
-                          className="w-full border border-gray-300 rounded-lg pl-6 pr-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          className="w-full border border-gray-300 rounded-lg ps-6 pe-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       </div>
                     </div>
                   ))}
@@ -437,7 +437,7 @@ export default function FinancePage() {
               className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors relative ${tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
               {t}
               {t === "approvals" && editRequests.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+                <span className="absolute -top-1 -end-1 w-4 h-4 bg-blue-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
                   {editRequests.length}
                 </span>
               )}
@@ -615,7 +615,7 @@ export default function FinancePage() {
                         <div>
                           <div className="flex items-center gap-2">
                             <button onClick={() => { setViewingExpense(exp); setDetailTab("details"); }}
-                              className="font-medium text-gray-900 hover:text-blue-600 hover:underline text-left transition-colors">
+                              className="font-medium text-gray-900 hover:text-blue-600 hover:underline text-start transition-colors">
                               {exp.title}
                             </button>
                             {exp.receiptUrl && (
@@ -783,7 +783,7 @@ export default function FinancePage() {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400">Split between</span>
                       <span className="flex items-center gap-1.5">
-                        <span className="flex -space-x-2">
+                        <span className="flex -space-x-2 rtl:space-x-reverse">
                           {everyone.slice(0, 4).map(p => (
                             <span key={p.userId} className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-[10px] font-bold flex items-center justify-center border-2 border-white">
                               {p.user.name[0]?.toUpperCase()}
@@ -819,7 +819,7 @@ export default function FinancePage() {
                             {p.user.name[0]?.toUpperCase()}
                           </span>
                           <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{p.user.name}</span>
-                          <div className="text-right">
+                          <div className="text-end">
                             <p className="text-sm font-medium text-gray-900">${amount.toFixed(2)}</p>
                             <p className={`text-xs font-medium ${statusColor}`}>{statusLabel}{split?.method ? ` · ${split.method}` : ""}</p>
                           </div>

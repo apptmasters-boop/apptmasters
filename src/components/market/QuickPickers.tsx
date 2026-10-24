@@ -131,7 +131,7 @@ export default function QuickPickers({ pickers, filters, onPick, filtersHref, on
           className="mt-2 max-w-md rounded-2xl border border-gray-200 bg-white p-4 shadow-lg shadow-black/5 dark:border-gray-700 dark:bg-gray-900">
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="font-semibold text-gray-900 dark:text-white">{titles[open]}</p>
-            <button type="button" onClick={() => setOpen(null)} aria-label="Close" className="-mr-1 rounded-full p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <button type="button" onClick={() => setOpen(null)} aria-label="Close" className="-me-1 rounded-full p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
               <XIcon className="h-5 w-5" />
             </button>
           </div>

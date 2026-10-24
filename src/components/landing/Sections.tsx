@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ComponentType, ReactNode } from "react";
 import {
   ArrowRightIcon, ShieldCheckIcon, ClipboardCheckIcon, MessageIcon, FlagIcon, MailCheckIcon,
@@ -34,44 +35,43 @@ function SafetyItem({ icon: Icon, children }: { icon: Icon; children: ReactNode 
 
 // Every item here maps to something the app actually does today.
 export function SafetySection() {
+  const t = useTranslations("landing");
   return (
     <section className="grid gap-6 rounded-2xl border border-gray-200 bg-brand-soft/60 p-6 dark:bg-emerald-950/20 md:grid-cols-[1fr_auto] md:gap-10 md:p-8">
       <div className="flex gap-4">
         <ShieldCheckIcon className="h-8 w-8 shrink-0 text-brand dark:text-emerald-300" />
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand dark:text-emerald-300">Safety is not negotiable</p>
-          <h2 className="mt-1 text-xl font-bold text-gray-900 md:text-2xl">Your safety, our priority.</h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-600">
-            Every listing is reviewed by our team before it goes live. You can message people right in the app
-            without sharing your phone number, and report anything that doesn&apos;t look right.
-          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand dark:text-emerald-300">{t("safetyEyebrow")}</p>
+          <h2 className="mt-1 text-xl font-bold text-gray-900 md:text-2xl">{t("safetyTitle")}</h2>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-600">{t("safetyText")}</p>
         </div>
       </div>
-      <ul className="grid content-center gap-3 border-t border-gray-200 pt-5 sm:grid-cols-2 md:grid-cols-1 md:border-l md:border-t-0 md:pl-10 md:pt-0">
-        <SafetyItem icon={ClipboardCheckIcon}>Listings reviewed before publishing</SafetyItem>
-        <SafetyItem icon={MessageIcon}>Private in-app messaging</SafetyItem>
-        <SafetyItem icon={FlagIcon}>Report any listing</SafetyItem>
-        <SafetyItem icon={MailCheckIcon}>Two-factor sign-in available</SafetyItem>
+      <ul className="grid content-center gap-3 border-t border-gray-200 pt-5 sm:grid-cols-2 md:grid-cols-1 md:border-s md:border-t-0 md:ps-10 md:pt-0">
+        <SafetyItem icon={ClipboardCheckIcon}>{t("safetyReviewed")}</SafetyItem>
+        <SafetyItem icon={MessageIcon}>{t("safetyMessaging")}</SafetyItem>
+        <SafetyItem icon={FlagIcon}>{t("safetyReport")}</SafetyItem>
+        <SafetyItem icon={MailCheckIcon}>{t("safetyTwoFactor")}</SafetyItem>
       </ul>
     </section>
   );
 }
 
 export function CtaBand() {
+  const t = useTranslations("landing");
   return (
     <section className="bg-brand-dark text-white">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 py-12 text-center sm:px-6 md:flex-row md:justify-between md:text-left lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 py-12 text-center sm:px-6 md:flex-row md:justify-between md:text-start lg:px-8">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">Ready to find your next home?</p>
-          <h2 className="mt-1.5 text-xl font-semibold md:text-2xl">Join a community that feels like home.</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">{t("ctaEyebrow")}</p>
+          <h2 className="mt-1.5 text-xl font-semibold md:text-2xl">{t("ctaTitle")}</h2>
         </div>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/listings" className="inline-flex items-center gap-2 rounded-full bg-[#ffffff] px-6 py-2.5 text-sm font-semibold text-brand-dark hover:bg-white/90">
-            Find a Home
+            {t("ctaFind")}
             <ArrowRightIcon className="h-4 w-4" />
           </Link>
           <Link href="/listings/new" className="inline-flex items-center rounded-full border border-white/40 px-6 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
-            List your space
+            {t("ctaList")}
           </Link>
         </div>
       </div>

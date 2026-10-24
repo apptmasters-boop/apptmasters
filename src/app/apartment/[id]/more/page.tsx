@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { languagesOn } from "@/components/LanguageButton";
+import { LOCALE_NAMES } from "@/i18n/locales";
 import { apiFetch, clearToken } from "@/lib/api";
 import { HubPage, HubSection, type HubItem } from "@/components/home/HubPage";
 import { useApartment } from "@/components/home/useApartment";
 import {
   WrenchIcon, ScaleIcon, CalendarIcon, ChartIcon, StarIcon, ClipboardCheckIcon, SearchDocIcon,
-  BellIcon, SearchIcon, HomeIcon, UserIcon, SettingsIcon, LogOutIcon, MessageIcon, ShieldCheckIcon, HelpCircleIcon,
+  BellIcon, SearchIcon, HomeIcon, UserIcon, SettingsIcon, LogOutIcon, MessageIcon, ShieldCheckIcon, HelpCircleIcon, GlobeIcon,
 } from "@/components/landing/icons";
 
 // More tab (PRODUCT_LOGIC §17): secondary navigation, grouped. Also holds the
@@ -18,6 +21,8 @@ export default function MorePage() {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const { isAdmin: isHouseholdAdmin } = useApartment(id);
   const at = (path: string) => `/apartment/${id}/${path}`;
+  const language = useTranslations("language");
+  const locale = useLocale();
 
   useEffect(() => {
     apiFetch("/api/auth/me").then(async res => {
@@ -28,6 +33,8 @@ export default function MorePage() {
   const account: HubItem[] = [
     { href: "/profile", label: "My profile", description: "Your details and your homes", icon: UserIcon },
     { href: "/settings", label: "Settings", description: "Personal information, notifications, login & security", icon: SettingsIcon },
+    // The language (T1): household pages on phones have no top bar for the 🌐 button.
+    ...(languagesOn ? [{ href: "/settings/language", label: language("title"), description: LOCALE_NAMES[locale], icon: GlobeIcon }] : []),
     { href: at("notifications"), label: "Notifications", description: "Everything that happened for you", icon: BellIcon },
     // Phones have no footer since fix F16: Help is here.
     { href: "/help", label: "Help & support", description: "Answers to the questions people ask most", icon: HelpCircleIcon },

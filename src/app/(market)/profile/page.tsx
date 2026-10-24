@@ -19,7 +19,7 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
   return (
     <div className="flex items-start justify-between gap-4 py-3">
       <dt className="text-sm text-gray-500 dark:text-gray-400">{label}</dt>
-      <dd className="text-right text-sm font-medium text-gray-900 dark:text-white">{children}</dd>
+      <dd className="text-end text-sm font-medium text-gray-900 dark:text-white">{children}</dd>
     </div>
   );
 }

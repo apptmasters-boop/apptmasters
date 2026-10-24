@@ -36,7 +36,8 @@ await signIn("owner@apptmasters.local");
 await go("/more");
 const account = await page.evaluate(() => {
   const section = [...document.querySelectorAll("main section")].find(s => s.querySelector("h2")?.textContent.trim() === "Account");
-  return section ? [...section.querySelectorAll("a, button")].map(e => e.textContent.trim()) : [];
+  // The Language row (translation T1) shows while more than English is switched on; its own check is i18n-check.mjs.
+  return section ? [...section.querySelectorAll("a, button")].filter(e => e.getAttribute("href") !== "/settings/language").map(e => e.textContent.trim()) : [];
 });
 console.log("More › Account:", account.join(" | "));
 ok(JSON.stringify(account) === JSON.stringify(["Settings", "How It Works", "Help & support", "Log out"]), "Account: Settings, How It Works, Help & support, Log out");
@@ -52,7 +53,7 @@ await shot("more-m");
 await page.click('main a[aria-label="Settings"]');
 await wait(2000);
 ok(new URL(page.url()).pathname === "/settings" && await h1() === "Settings", "the gear lands on Settings");
-const settingsLinks = await page.$$eval("main a", as => as.map(a => [a.textContent.trim(), a.getAttribute("href")]).filter(([, h]) => h?.startsWith("/settings/")));
+const settingsLinks = await page.$$eval("main a", as => as.map(a => [a.textContent.trim(), a.getAttribute("href")]).filter(([, h]) => h?.startsWith("/settings/") && h !== "/settings/language"));
 console.log("Settings rows:", settingsLinks.map(l => l[1]).join(" "));
 ok(settingsLinks.length === 3 && ["personal-information", "notifications", "security"].every(p => settingsLinks.some(([, h]) => h === `/settings/${p}`)), "Settings has Personal information, Notifications, Login & security");
 ok(await visibleHref('main a[aria-label="More"]') === "/more", "Settings goes back to More");
@@ -128,7 +129,7 @@ await shot("settings-d", false);
 await go("/profile");
 await shot("profile-d", false);
 await go("/listings");
-await page.evaluate(() => [...document.querySelectorAll("header button")].find(b => b.offsetParent !== null && b.getAttribute("aria-expanded") !== null)?.click());
+await page.evaluate(() => [...document.querySelectorAll("header button")].find(b => b.offsetParent !== null && b.getAttribute("aria-expanded") !== null && !b.hasAttribute("data-language-button"))?.click());
 await wait(500);
 const menu = await page.$$eval("header a", as => as.map(a => [a.textContent.trim(), a.getAttribute("href")]));
 ok(menu.some(([t, h]) => t === "Profile" && h === "/profile") && menu.some(([t, h]) => t === "Settings" && h === "/settings"), "name menu: Profile → /profile, Settings → /settings");

@@ -279,11 +279,11 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-5 py-3 font-medium text-gray-600">User</th>
-                    <th className="text-left px-5 py-3 font-medium text-gray-600">Role</th>
-                    <th className="text-left px-5 py-3 font-medium text-gray-600">Apts</th>
-                    <th className="text-left px-5 py-3 font-medium text-gray-600">Signed up to</th>
-                    <th className="text-left px-5 py-3 font-medium text-gray-600">Joined</th>
+                    <th className="text-start px-5 py-3 font-medium text-gray-600">User</th>
+                    <th className="text-start px-5 py-3 font-medium text-gray-600">Role</th>
+                    <th className="text-start px-5 py-3 font-medium text-gray-600">Apts</th>
+                    <th className="text-start px-5 py-3 font-medium text-gray-600">Signed up to</th>
+                    <th className="text-start px-5 py-3 font-medium text-gray-600">Joined</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
@@ -346,10 +346,10 @@ export default function AdminPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left px-5 py-3 font-medium text-gray-600">Apartment</th>
-                  <th className="text-left px-5 py-3 font-medium text-gray-600">Manager</th>
-                  <th className="text-left px-5 py-3 font-medium text-gray-600">Members</th>
-                  <th className="text-left px-5 py-3 font-medium text-gray-600">Created</th>
+                  <th className="text-start px-5 py-3 font-medium text-gray-600">Apartment</th>
+                  <th className="text-start px-5 py-3 font-medium text-gray-600">Manager</th>
+                  <th className="text-start px-5 py-3 font-medium text-gray-600">Members</th>
+                  <th className="text-start px-5 py-3 font-medium text-gray-600">Created</th>
                   <th className="px-5 py-3" />
                 </tr>
               </thead>
@@ -367,7 +367,7 @@ export default function AdminPage() {
                     </td>
                     <td className="px-5 py-3 text-gray-600">{a._count.members}</td>
                     <td className="px-5 py-3 text-gray-400 text-xs">{new Date(a.createdAt).toLocaleDateString()}</td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-5 py-3 text-end">
                       <button
                         onClick={() => requestDelete(a)}
                         className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors">

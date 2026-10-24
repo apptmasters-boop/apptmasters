@@ -167,7 +167,7 @@ export default function DMPage() {
                 )}
                 <p className="text-[10px] text-gray-400 mt-0.5 mx-1">
                   {formatMessageTime(msg.createdAt)}
-                  {isMe && !isAudio && <span className="ml-1">{msg.read ? "· Read" : "· Sent"}</span>}
+                  {isMe && !isAudio && <span className="ms-1">{msg.read ? "· Read" : "· Sent"}</span>}
                 </p>
               </div>
             </div>

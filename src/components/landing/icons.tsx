@@ -1,6 +1,8 @@
 // Stroke icons for the marketplace landing page (24x24, lucide-style paths).
 type P = { className?: string };
 const base = "h-4 w-4";
+/** Arrows that point "forward" or "back" turn around in Arabic, which reads right to left (T1). */
+const flip = (p: P): P => ({ className: `${p.className ?? base} rtl:-scale-x-100` });
 
 function Svg({ className = base, children }: P & { children: React.ReactNode }) {
   return (
@@ -27,7 +29,7 @@ export const PawIcon = (p: P) => <Svg {...p}><circle cx="5.5" cy="10" r="1.8" />
 export const CapIcon = (p: P) => <Svg {...p}><path d="M2 9.5 12 5l10 4.5-10 4.5L2 9.5Z" /><path d="M6 11.5V16c2 1.5 4 2 6 2s4-.5 6-2v-4.5M22 9.5V15" /></Svg>;
 export const CalendarIcon = (p: P) => <Svg {...p}><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M8 3v4M16 3v4M3.5 10h17" /></Svg>;
 export const BathIcon = (p: P) => <Svg {...p}><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3ZM6 12V5.5A1.5 1.5 0 0 1 9 5.5M7 19l-1 2M17 19l1 2" /></Svg>;
-export const ArrowRightIcon = (p: P) => <Svg {...p}><path d="M5 12h14M13 6l6 6-6 6" /></Svg>;
+export const ArrowRightIcon = (p: P) => <Svg {...flip(p)}><path d="M5 12h14M13 6l6 6-6 6" /></Svg>;
 export const PlusCircleIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 8v8M8 12h8" /></Svg>;
 export const UserIcon = (p: P) => <Svg {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></Svg>;
 export const HeartHandIcon = (p: P) => <Svg {...p}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" /></Svg>;
@@ -42,10 +44,10 @@ export const EyeIcon = (p: P) => <Svg {...p}><path d="M2.5 12S6 5 12 5s9.5 7 9.5
 export const EyeOffIcon = (p: P) => <Svg {...p}><path d="M3 3l18 18M10.6 5.1A9.7 9.7 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-3 3.8M6.5 6.6C3.9 8.3 2.5 12 2.5 12s3.5 7 9.5 7a9.3 9.3 0 0 0 4.4-1.1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></Svg>;
 export const LogInIcon = (p: P) => <Svg {...p}><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M9 16l4-4-4-4M13 12H3" /></Svg>;
 export const UserPlusIcon = (p: P) => <Svg {...p}><circle cx="9" cy="8" r="4" /><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6" /></Svg>;
-export const ArrowLeftIcon = (p: P) => <Svg {...p}><path d="M19 12H5M11 6l-6 6 6 6" /></Svg>;
+export const ArrowLeftIcon = (p: P) => <Svg {...flip(p)}><path d="M19 12H5M11 6l-6 6 6 6" /></Svg>;
 export const CheckIcon = (p: P) => <Svg {...p}><path d="m5 12.5 4.5 4.5L19 7.5" /></Svg>;
 export const MoreIcon = (p: P) => <Svg {...p}><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></Svg>;
-export const ChevronRightIcon = (p: P) => <Svg {...p}><path d="m9 6 6 6-6 6" /></Svg>;
+export const ChevronRightIcon = (p: P) => <Svg {...flip(p)}><path d="m9 6 6 6-6 6" /></Svg>;
 export const BroomIcon = (p: P) => <Svg {...p}><path d="M19 3 11 11M8 12l4 4M5.5 13.5c-1.5 2-2 4.5-2.5 7 2.5-.5 5-1 7-2.5l3-3-4.5-4.5-3 3Z" /></Svg>;
 export const CartIcon = (p: P) => <Svg {...p}><circle cx="9" cy="20" r="1.4" /><circle cx="17" cy="20" r="1.4" /><path d="M3 4h2l2.4 11h10.3l2-8H6.2" /></Svg>;
 export const BoxIcon = (p: P) => <Svg {...p}><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5v-9Z" /><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9" /></Svg>;
@@ -85,6 +87,8 @@ export const ShowerIcon = (p: P) => <Svg {...p}><path d="M4 20V7a3 3 0 0 1 6 0" 
 export const TagIcon = (p: P) => <Svg {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><circle cx="7.5" cy="7.5" r="1.5" /></Svg>;
 export const ReceiptIcon = (p: P) => <Svg {...p}><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" /><path d="M9 8h6M9 12h6" /></Svg>;
 export const GridIcon = (p: P) => <Svg {...p}><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></Svg>;
+/** T1: the language button. */
+export const GlobeIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></Svg>;
 /** F20: Lease duration. */
 export const ClockIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Svg>;
 /** Sprint 13d: the options in the owner's filter picture. */

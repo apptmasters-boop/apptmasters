@@ -7,6 +7,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { BackLink } from "./MarketChrome";
 import { useMe } from "./useMe";
 import { ChevronRightIcon } from "@/components/landing/icons";
@@ -21,7 +22,11 @@ export function useSignedIn() {
   return me;
 }
 
-export const loading = <main className="py-16 text-center text-sm text-gray-400">Loading…</main>;
+function Loading() {
+  const common = useTranslations("common");
+  return <main className="py-16 text-center text-sm text-gray-400">{common("loading")}</main>;
+}
+export const loading = <Loading />;
 
 export function Row({ href, icon, label, description, badge, onClick, danger }: {
   href?: string; icon: React.ReactNode; label: string; description?: string; badge?: React.ReactNode; onClick?: () => void; danger?: boolean;
@@ -37,7 +42,7 @@ export function Row({ href, icon, label, description, badge, onClick, danger }: 
       <ChevronRightIcon className="h-5 w-5 shrink-0 text-gray-400" />
     </>
   );
-  const cls = "flex w-full items-center gap-4 px-4 py-3.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60";
+  const cls = "flex w-full items-center gap-4 px-4 py-3.5 text-start hover:bg-gray-50 dark:hover:bg-gray-800/60";
   return href ? <Link href={href} className={cls}>{inner}</Link> : <button type="button" onClick={onClick} className={cls}>{inner}</button>;
 }
 
@@ -65,7 +70,7 @@ export function Switch({ checked, onChange, label, disabled }: { checked: boolea
   return (
     <button type="button" role="switch" aria-checked={checked} aria-label={label} disabled={disabled} onClick={() => onChange(!checked)}
       className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${checked ? "bg-brand" : "bg-gray-300 dark:bg-gray-700"}`}>
-      <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : ""}`} />
+      <span className={`absolute start-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5 rtl:-translate-x-5" : ""}`} />
     </button>
   );
 }

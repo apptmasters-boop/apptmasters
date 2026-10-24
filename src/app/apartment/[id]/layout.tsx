@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { apiFetch } from "@/lib/api";
 import { HomeSidebar, HomeBottomBar, useChatUnread } from "@/components/home/HomeNav";
 
@@ -11,6 +12,7 @@ export default function ApartmentLayout({ children }: { children: React.ReactNod
   const { id } = useParams<{ id: string }>();
   const [apartmentName, setApartmentName] = useState("");
   const unread = useChatUnread(id);
+  const t = useTranslations("nav");
 
   useEffect(() => {
     apiFetch(`/api/apartments/${id}`).then(async res => {
@@ -20,8 +22,8 @@ export default function ApartmentLayout({ children }: { children: React.ReactNod
 
   return (
     <>
-      <HomeSidebar apartmentId={id} apartmentName={apartmentName || "My Home"} unread={unread} />
-      <div className="pb-16 md:pb-0 md:pl-64">
+      <HomeSidebar apartmentId={id} apartmentName={apartmentName || t("myHome")} unread={unread} />
+      <div className="pb-16 md:pb-0 md:ps-64">
         {children}
       </div>
       <HomeBottomBar apartmentId={id} unread={unread} />

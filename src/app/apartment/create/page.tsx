@@ -113,8 +113,8 @@ export default function CreateHomePage() {
           <div className="space-y-4">
             {found.length > 0 && (
               <Field id="found" label="Found it on ApptMasters?" optional hint="Pick the listing you messaged its owner about: its title and city fill in.">
-                <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500"><HomeIcon className="h-5 w-5" /></span>
-                <select id="found" value={listingId} onChange={e => pickListing(e.target.value)} className={`${inputClass} pl-11`}>
+                <span className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-gray-500"><HomeIcon className="h-5 w-5" /></span>
+                <select id="found" value={listingId} onChange={e => pickListing(e.target.value)} className={`${inputClass} ps-11`}>
                   <option value="">No, I found it elsewhere</option>
                   {found.map(f => <option key={f.listingId} value={f.listingId}>{f.title}{f.city ? ` · ${f.city}` : ""}</option>)}
                 </select>
@@ -126,17 +126,17 @@ export default function CreateHomePage() {
             <Field id="address" label="Address" icon={<PinIcon className="h-5 w-5" />}
               hint={listingId ? "Add the street and apartment number: the advertiser shares them in Messages." : undefined}>
               <input id="address" value={address} onChange={e => setAddress(e.target.value)} maxLength={200}
-                placeholder="123 Prospect Ave, Apt 3B, Brooklyn, NY 11216" autoComplete="street-address" className={`${inputClass} pl-11`} />
+                placeholder="123 Prospect Ave, Apt 3B, Brooklyn, NY 11216" autoComplete="street-address" className={`${inputClass} ps-11`} />
               {address && (
                 <button type="button" onClick={() => setAddress("")} aria-label="Clear address"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                  className="absolute end-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                   <XIcon className="h-4 w-4" />
                 </button>
               )}
             </Field>
             <Field id="movein" label="Your move-in date" optional icon={<CalendarIcon className="h-5 w-5" />}
               hint="Until then, rent, cleaning and shopping turns and shared expenses leave you out. Leave it empty if you already live there.">
-              <input id="movein" type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)} className={`${inputClass} pl-11`} />
+              <input id="movein" type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)} className={`${inputClass} ps-11`} />
             </Field>
           </div>
         </SetupCard>

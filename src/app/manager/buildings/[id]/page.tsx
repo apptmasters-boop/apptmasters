@@ -242,7 +242,7 @@ export default function BuildingPage() {
           <span className="text-gray-300">|</span>
           <div>
             <span className="font-bold text-gray-900">{building.name}</span>
-            <span className="text-xs text-gray-400 ml-2">{building.address}</span>
+            <span className="text-xs text-gray-400 ms-2">{building.address}</span>
           </div>
         </div>
       </header>

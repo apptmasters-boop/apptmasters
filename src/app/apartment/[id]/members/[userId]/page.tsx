@@ -184,7 +184,7 @@ export default function MemberProfilePage() {
                 <div className="h-full rounded-full bg-gray-300" style={{ width: "50%" }} />
               )}
             </div>
-            <div className="text-right">
+            <div className="text-end">
               <p className={`text-2xl font-bold ${tier.color}`}>
                 {member.score !== null ? member.score : "–"}
               </p>

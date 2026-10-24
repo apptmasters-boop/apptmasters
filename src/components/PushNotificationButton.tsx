@@ -90,7 +90,7 @@ export default function PushNotificationButton() {
           <span>{errorMsg}</span>
         </div>
         <button onClick={() => setState("unsubscribed")}
-          className="text-xs text-blue-600 hover:underline text-left">Try again</button>
+          className="text-xs text-blue-600 hover:underline text-start">Try again</button>
       </div>
     );
   }

@@ -85,14 +85,14 @@ export default function PhotoCarousel({ photos, alt, children }: { photos: { url
           {many && (
             <>
               <button type="button" onClick={() => show(index - 1)} aria-label="Previous photo"
-                className="absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow hover:bg-white sm:flex">
+                className="absolute start-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow hover:bg-white sm:flex">
                 <Chevron left />
               </button>
               <button type="button" onClick={() => show(index + 1)} aria-label="Next photo"
-                className="absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow hover:bg-white sm:flex">
+                className="absolute end-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow hover:bg-white sm:flex">
                 <Chevron />
               </button>
-              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+              <div className="absolute bottom-3 end-3 flex items-center gap-2">
                 <button type="button" onClick={() => setAuto(a => !a)} aria-label={auto ? "Pause photos" : "Play photos"}
                   className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white">
                   {auto ? (

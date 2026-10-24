@@ -109,7 +109,7 @@ function VoicePlayer({ src, isMe }: Props) {
           style={{ background: isMe ? "rgba(255,255,255,0.3)" : "#e5e7eb" }}
           onClick={seek}>
           <div
-            className="absolute left-0 top-0 h-full rounded-full transition-all duration-100"
+            className="absolute start-0 top-0 h-full rounded-full transition-all duration-100"
             style={{
               width: `${progress * 100}%`,
               background: isMe ? "white" : "#6366f1",

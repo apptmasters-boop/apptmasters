@@ -370,7 +370,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
       <video ref={remoteRef} autoPlay playsInline
         className={displayType === "VIDEO"
           ? "absolute inset-0 w-full h-full object-cover opacity-80"
-          : "absolute top-0 left-0 w-px h-px opacity-0 pointer-events-none"} />
+          : "absolute top-0 start-0 w-px h-px opacity-0 pointer-events-none"} />
 
       {/* Dedicated audio element for VOICE calls — always rendered, never display:none,
           so browsers don't block autoplay on hidden elements */}
@@ -395,7 +395,7 @@ export default function CallOverlay({ apartmentId, currentUserId, receiverId, ca
 
       {displayType === "VIDEO" && (
         <video ref={localRef} autoPlay playsInline muted
-          className="absolute bottom-32 right-4 w-28 h-36 rounded-xl object-cover border-2 border-white z-10" />
+          className="absolute bottom-32 end-4 w-28 h-36 rounded-xl object-cover border-2 border-white z-10" />
       )}
 
       <div className="relative z-10 flex items-center gap-4">

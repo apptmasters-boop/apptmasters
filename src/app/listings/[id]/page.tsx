@@ -61,7 +61,7 @@ function Row({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="flex justify-between gap-4 border-b border-gray-100 py-2.5 text-sm last:border-0 dark:border-gray-800">
       <span className="text-gray-500 dark:text-gray-400">{label}</span>
-      <span className="text-right font-medium text-gray-900 dark:text-white">{value}</span>
+      <span className="text-end font-medium text-gray-900 dark:text-white">{value}</span>
     </div>
   );
 }
@@ -277,16 +277,16 @@ export default function ListingDetailPage() {
           {/* Photos: across the top on phones (docs/mockups/listing-details-mobile.jpg). */}
           {/* Photos rotate on their own, stop when touched (step G1, owner 2026-10-18). */}
           <PhotoCarousel photos={photos} alt={listing.title}>
-            <Link href={backHref} aria-label="Back to results" className="absolute left-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 shadow lg:hidden">
+            <Link href={backHref} aria-label="Back to results" className="absolute start-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 shadow lg:hidden">
               <ArrowLeftIcon className="h-6 w-6 text-gray-900" />
             </Link>
-            <div className="absolute right-3 top-3 flex gap-2">
+            <div className="absolute end-3 top-3 flex gap-2">
               {!isOwner && <SaveButton listingId={id} large />}
               <button type="button" onClick={share} aria-label="Share" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/95 shadow">
                 <ShareIcon className="h-5 w-5 text-gray-900" />
               </button>
             </div>
-            {shared && <span className="absolute right-3 top-16 rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white">Link copied</span>}
+            {shared && <span className="absolute end-3 top-16 rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white">Link copied</span>}
           </PhotoCarousel>
 
           <div className="px-4 pt-5 lg:px-0">

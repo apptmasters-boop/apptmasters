@@ -177,7 +177,7 @@ function IssueCard({ issue: i, data, apartmentId, onChange }: { issue: Issue; da
       )}
 
       {i.comments.length > 0 && (
-        <ol className="mt-4 space-y-2 border-l-2 border-gray-100 pl-4">
+        <ol className="mt-4 space-y-2 border-s-2 border-gray-100 ps-4">
           {i.comments.map(e => (
             <li key={e.id} className="text-sm text-gray-800">
               {describe(e)} <span className="text-xs text-gray-400">· {when(e.createdAt)}</span>
@@ -197,7 +197,7 @@ function IssueCard({ issue: i, data, apartmentId, onChange }: { issue: Issue; da
             )}
             {canClose && (
               <button onClick={() => { const why = window.prompt("Close this issue? You can add a short reason (optional)."); if (why !== null) act("close", why); }}
-                disabled={busy} className="ml-auto text-xs font-medium text-gray-500 hover:text-red-600">Close issue</button>
+                disabled={busy} className="ms-auto text-xs font-medium text-gray-500 hover:text-red-600">Close issue</button>
             )}
           </div>
         </div>

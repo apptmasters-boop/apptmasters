@@ -469,7 +469,7 @@ export default function ListingForm({ form, setForm, onSubmit, submitting, submi
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt="" className="w-20 h-20 rounded-lg object-cover border border-gray-200" />
               <button type="button" onClick={() => removePhoto(url)}
-                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center">
+                className="absolute -top-1.5 -end-1.5 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center">
                 ×
               </button>
             </div>

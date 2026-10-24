@@ -133,18 +133,18 @@ export default function FilterPanel({ value, onApply, onClose }: {
     // A form, so Enter in the Location (e.g. a ZIP code) or price boxes shows the listings (fix F4).
     <form onSubmit={e => { e.preventDefault(); apply(); }} className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-800">
-        <button type="button" onClick={onClose} aria-label="Close filters" className="-ml-1 rounded-full p-1.5 text-gray-800 hover:bg-gray-100 dark:text-gray-200">
+        <button type="button" onClick={onClose} aria-label="Close filters" className="-ms-1 rounded-full p-1.5 text-gray-800 hover:bg-gray-100 dark:text-gray-200">
           <XIcon className="h-6 w-6" />
         </button>
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Filters</h2>
         <button type="button" onClick={() => { setDraft({ ...EMPTY_FILTERS, sort: draft.sort }); setPriceKey(k => k + 1); }} className="text-[15px] font-semibold text-brand hover:underline dark:text-emerald-300">Reset all</button>
       </div>
 
-      <div className="-mr-2 min-h-0 flex-1 overflow-y-auto pr-2">
+      <div className="-me-2 min-h-0 flex-1 overflow-y-auto pe-2">
         <Section icon={PinIcon} title="Location" hint="City, neighborhood, or ZIP code" onClear={draft.q ? () => set({ q: "" }) : undefined}>
           <div className="relative">
-            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input aria-label="Location" enterKeyHint="search" value={draft.q} onChange={e => set({ q: e.target.value })} placeholder="New York, Brooklyn, or 11226" className={`${inputClass} pl-10`} />
+            <SearchIcon className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input aria-label="Location" enterKeyHint="search" value={draft.q} onChange={e => set({ q: e.target.value })} placeholder="New York, Brooklyn, or 11226" className={`${inputClass} ps-10`} />
           </div>
         </Section>
 
@@ -176,8 +176,8 @@ export default function FilterPanel({ value, onApply, onClose }: {
 
         <Section icon={CalendarIcon} title="Move-in date" hint="Available by then" onClear={draft.moveIn ? () => set({ moveIn: "" }) : undefined}>
           <div className="relative">
-            <CalendarIcon className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
-            <input type="date" aria-label="Move-in date" value={draft.moveIn} onChange={e => set({ moveIn: e.target.value })} className={`${inputClass} pl-11`} />
+            <CalendarIcon className="pointer-events-none absolute start-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
+            <input type="date" aria-label="Move-in date" value={draft.moveIn} onChange={e => set({ moveIn: e.target.value })} className={`${inputClass} ps-11`} />
           </div>
         </Section>
 
@@ -233,7 +233,7 @@ export default function FilterPanel({ value, onApply, onClose }: {
         {/* The rarely deciding ones, folded (F20); open from the start when one is set. */}
         <div className="py-5">
           <button type="button" onClick={() => setMore(m => !m)} aria-expanded={more} aria-controls="more-filters"
-            className="flex w-full items-center justify-between gap-3 text-left">
+            className="flex w-full items-center justify-between gap-3 text-start">
             <span className="flex items-start gap-3">
               <span className="mt-0.5 text-gray-800 dark:text-gray-200"><PlusCircleIcon className="h-6 w-6" /></span>
               <span>

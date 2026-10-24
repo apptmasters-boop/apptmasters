@@ -240,14 +240,14 @@ export default function CalendarPage() {
             {/* Days */}
             <div className="grid grid-cols-7">
               {grid.map((day, i) => {
-                if (!day) return <div key={i} className="border-b border-r border-gray-50 p-1 min-h-[52px]" />;
+                if (!day) return <div key={i} className="border-b border-e border-gray-50 p-1 min-h-[52px]" />;
                 const dayEvents = eventsOnDate(day);
                 const iso = isoDate(day);
                 const isToday = iso === todayStr;
                 const isSelected = iso === selectedDate;
                 return (
                   <button key={i} onClick={() => setSelectedDate(isSelected ? null : iso)}
-                    className={`border-b border-r border-gray-50 p-1.5 min-h-[52px] text-left transition-colors hover:bg-gray-50 ${isSelected ? "bg-blue-50" : ""}`}>
+                    className={`border-b border-e border-gray-50 p-1.5 min-h-[52px] text-start transition-colors hover:bg-gray-50 ${isSelected ? "bg-blue-50" : ""}`}>
                     <span className={`text-xs font-medium inline-flex w-5 h-5 items-center justify-center rounded-full ${isToday ? "bg-blue-600 text-white" : "text-gray-700"}`}>
                       {day}
                     </span>

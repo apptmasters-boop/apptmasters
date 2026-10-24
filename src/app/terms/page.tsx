@@ -51,7 +51,7 @@ export default function TermsPage() {
               You agree to provide accurate, current, and complete information during registration and to
               keep your account information updated. You are responsible for:
             </p>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc ps-5 space-y-1">
               <li>Maintaining the confidentiality of your password and account credentials.</li>
               <li>All activity that occurs under your account, whether or not authorized by you.</li>
               <li>Notifying us immediately at <a href="mailto:apptmasters@gmail.com" className="text-blue-600 hover:underline">apptmasters@gmail.com</a> of any unauthorized use or security breach.</li>
@@ -116,7 +116,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Prohibited Conduct</h2>
             <p className="mb-2">You agree not to:</p>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc ps-5 space-y-1">
               <li>Use the Service for any unlawful purpose or in violation of any applicable laws or regulations.</li>
               <li>Harass, threaten, intimidate, or abuse other users through the Service.</li>
               <li>Upload or transmit viruses, malware, or any other harmful code.</li>

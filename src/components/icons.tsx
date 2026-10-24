@@ -175,7 +175,8 @@ export function AnnouncementIcon({ className = base }: IconProps) {
 }
 export function ChevronRightIcon({ className = base }: IconProps) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    // Points the other way in Arabic, which reads right to left (T1).
+    <svg className={`${className} rtl:-scale-x-100`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
   );

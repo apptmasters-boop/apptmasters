@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import PageWrapper from "./PageWrapper";
 
 interface ErrorPageProps {
@@ -18,20 +19,21 @@ export default function ErrorPage({
   homeHref = "/",
   reloadHref = ".",
 }: ErrorPageProps) {
+  const t = useTranslations("error");
   return (
     <PageWrapper>
       <div className="max-w-xl w-full rounded-3xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl shadow-black/20">
-        <h1 className="text-3xl font-semibold mb-4">Something went wrong</h1>
-        <p className="text-sm text-slate-400 mb-6">Sorry, we couldn't load this page right now.</p>
+        <h1 className="text-3xl font-semibold mb-4">{t("title")}</h1>
+        <p className="text-sm text-slate-400 mb-6">{t("text")}</p>
 
         <div className="space-y-2 mb-6 text-xs text-slate-500 break-words">
-          <p className="font-semibold text-slate-200">{error?.name ?? "Error"}</p>
-          <p>{error?.message ?? "Unknown error"}</p>
+          <p className="font-semibold text-slate-200">{error?.name ?? t("name")}</p>
+          <p>{error?.message ?? t("unknown")}</p>
         </div>
 
         {!isProduction && error?.stack ? (
-          <details className="mb-6 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-left text-xs text-slate-300">
-            <summary className="cursor-pointer font-semibold text-slate-100">Show stack trace</summary>
+          <details className="mb-6 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-start text-xs text-slate-300">
+            <summary className="cursor-pointer font-semibold text-slate-100">{t("stack")}</summary>
             <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-[11px] leading-5">{error.stack}</pre>
           </details>
         ) : null}
@@ -41,7 +43,7 @@ export default function ErrorPage({
             href={homeHref}
             className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white text-center hover:bg-white/10 transition"
           >
-            Go home
+            {t("goHome")}
           </Link>
           {reset ? (
             <button
@@ -49,14 +51,14 @@ export default function ErrorPage({
               onClick={reset}
               className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white bg-white/5 hover:bg-white/10 transition"
             >
-              Reload page
+              {t("reload")}
             </button>
           ) : (
             <a
               href={reloadHref}
               className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white text-center hover:bg-white/10 transition"
             >
-              Reload page
+              {t("reload")}
             </a>
           )}
         </div>

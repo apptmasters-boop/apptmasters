@@ -47,7 +47,7 @@ function useMenu() {
   }, [open]);
   return { open, setOpen, ref };
 }
-const menuItem = "flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800";
+const menuItem = "flex w-full items-center gap-2.5 px-4 py-2.5 text-start text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800";
 
 /** "…" on a card: View details, Share, Remove from Saved. */
 function CardMenu({ listing }: { listing: MarketListing }) {
@@ -67,7 +67,7 @@ function CardMenu({ listing }: { listing: MarketListing }) {
         <MoreIcon className="h-5 w-5" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+        <div className="absolute end-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900">
           <Link href={`/listings/${listing.id}`} className={menuItem}><HomeIcon className="h-4 w-4" />View details</Link>
           <button type="button" onClick={share} className={menuItem}><ShareIcon className="h-4 w-4" />{copied ? "Link copied" : "Share"}</button>
           <button type="button" onClick={() => toggleSaved(listing.id)} className={`${menuItem} text-red-600 dark:text-red-400`}>
@@ -89,7 +89,7 @@ function SortMenu({ sort, onSort }: { sort: Sort; onSort: (s: Sort) => void }) {
         <MoreIcon className="h-6 w-6" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-1 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+        <div className="absolute end-0 top-full z-30 mt-1 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900">
           <p className="flex items-center gap-2 px-4 pb-1 pt-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><SortIcon className="h-3.5 w-3.5" />Sort</p>
           {SORTS.map(([value, label]) => (
             <button key={value} type="button" onClick={() => { onSort(value); setOpen(false); }}
@@ -165,9 +165,9 @@ export default function SavedPage() {
   const subtitle = rows === null ? "Loading…" : `Your saved listings (${kept.length})`;
   const searchBox = (
     <label className="relative block">
-      <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <SearchIcon className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
       <input value={text} onChange={e => setText(e.target.value)} placeholder="Search your saved listings" aria-label="Search your saved listings"
-        className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 dark:border-gray-700 dark:bg-gray-900" />
+        className="w-full rounded-xl border border-gray-200 bg-white py-2.5 ps-9 pe-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 dark:border-gray-700 dark:bg-gray-900" />
     </label>
   );
 
@@ -182,7 +182,7 @@ export default function SavedPage() {
               <li key={label}>
                 <button type="button" onClick={() => setKind(value)} aria-pressed={kind === value}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${kind === value ? "bg-brand-soft text-brand dark:bg-brand/25 dark:text-emerald-200" : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"}`}>
-                  <Icon className="h-5 w-5" /><span className="flex-1 text-left">{label}</span>
+                  <Icon className="h-5 w-5" /><span className="flex-1 text-start">{label}</span>
                   <span className={`rounded-full px-2 py-0.5 text-xs ${kind === value ? "bg-brand text-white" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"}`}>{count(value)}</span>
                 </button>
               </li>
@@ -280,7 +280,7 @@ export default function SavedPage() {
 function SavedActions({ row }: { row: SavedRow }) {
   const gone = row.listing.status !== "APPROVED";
   return (
-    <div className="grid grid-cols-2 gap-2 px-2.5 pb-2.5 sm:ml-auto sm:w-96 sm:px-3 sm:pb-3">
+    <div className="grid grid-cols-2 gap-2 px-2.5 pb-2.5 sm:ms-auto sm:w-96 sm:px-3 sm:pb-3">
       {gone ? (
         <button type="button" onClick={() => toggleSaved(row.listing.id)}
           className="col-span-2 rounded-xl border border-gray-300 py-2.5 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-200">

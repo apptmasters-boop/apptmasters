@@ -229,8 +229,8 @@ export default function ShoppingPage() {
           <ol className="mt-3 space-y-1.5">
             {(orderDraft ?? state.order).map((p, i, list) => (
               <li key={p.id} className="flex items-center gap-2 text-sm text-gray-800">
-                <span className="w-5 text-right text-xs text-gray-400">{i + 1}.</span>
-                <span className="flex-1">{p.name}{p.id === shopper?.id && !orderDraft && <span className="ml-2 text-xs text-brand">current turn</span>}</span>
+                <span className="w-5 text-end text-xs text-gray-400">{i + 1}.</span>
+                <span className="flex-1">{p.name}{p.id === shopper?.id && !orderDraft && <span className="ms-2 text-xs text-brand">current turn</span>}</span>
                 {orderDraft && (
                   <>
                     <button onClick={() => setOrderDraft(d => d && swap(d, i, i - 1))} disabled={i === 0} aria-label={`Move ${p.name} up`} className="rounded border border-gray-200 px-2 text-xs disabled:opacity-30">↑</button>
@@ -396,7 +396,7 @@ function InventoryStep({ apartmentId, items, busy, onAction, onAdd }: {
               })}
             </ul>
             {rest.length > 0 && (
-              <button onClick={() => setShowAll(v => !v)} className="w-full border-t border-gray-100 px-4 py-2.5 text-left text-xs font-medium text-brand">
+              <button onClick={() => setShowAll(v => !v)} className="w-full border-t border-gray-100 px-4 py-2.5 text-start text-xs font-medium text-brand">
                 {showAll ? "Show only low and out" : `Show everything else (${rest.length})`}
               </button>
             )}
@@ -494,7 +494,7 @@ function StoreStep({ trip, items, meId, busy, splitOptions, onAction, onTick }: 
         {items.length === 0 && <li className="px-4 py-4 text-sm text-gray-500">The list is empty.</li>}
         {[...toGet, ...inCart].map(item => (
           <li key={item.id}>
-            <button onClick={() => onTick(item, !item.purchased)} className="flex w-full items-center gap-3 px-4 py-3.5 text-left">
+            <button onClick={() => onTick(item, !item.purchased)} className="flex w-full items-center gap-3 px-4 py-3.5 text-start">
               <span className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border-2 ${item.purchased ? "border-brand bg-brand text-white" : "border-gray-300"}`}>
                 {item.purchased && <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
               </span>

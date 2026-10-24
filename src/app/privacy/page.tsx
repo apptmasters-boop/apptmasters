@@ -92,7 +92,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">3. How We Use Your Information</h2>
             <p className="mb-2">We use your information to:</p>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc ps-5 space-y-1">
               <li>Provide, operate, and maintain the Service.</li>
               <li>Process and display expense records, balances, and chore assignments.</li>
               <li>Send notifications (email and push) about activity in your apartment group.</li>
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
               We may share your information with trusted third-party service providers who assist us in
               operating the Service, subject to confidentiality agreements. These may include:
             </p>
-            <ul className="list-disc pl-5 space-y-1 mt-2">
+            <ul className="list-disc ps-5 space-y-1 mt-2">
               <li><strong>Hosting:</strong> Our servers are hosted on Amazon Web Services (AWS).</li>
               <li><strong>Email delivery:</strong> We use Resend to send transactional emails.</li>
               <li><strong>Database:</strong> Your data is stored in a PostgreSQL database on our servers.</li>
@@ -164,7 +164,7 @@ export default function PrivacyPage() {
             <p>
               We implement industry-standard security measures to protect your information, including:
             </p>
-            <ul className="list-disc pl-5 space-y-1 mt-2">
+            <ul className="list-disc ps-5 space-y-1 mt-2">
               <li>HTTPS/TLS encryption for all data transmitted between your device and our servers.</li>
               <li>Passwords stored using bcrypt hashing (never stored in plaintext).</li>
               <li>JWT-based authentication with secure token handling.</li>
@@ -190,7 +190,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Your Rights and Choices</h2>
             <p className="mb-2">You have the right to:</p>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc ps-5 space-y-1">
               <li><strong>Access:</strong> Request a copy of the personal data we hold about you.</li>
               <li><strong>Correction:</strong> Update or correct inaccurate information in your profile settings.</li>
               <li><strong>Deletion:</strong> Request deletion of your account and associated personal data.</li>

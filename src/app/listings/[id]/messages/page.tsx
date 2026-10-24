@@ -156,7 +156,7 @@ function MessagesThread() {
       {/* The chat */}
       <section className="flex h-full min-h-0 flex-col bg-white lg:rounded-2xl lg:border lg:border-gray-200 dark:bg-gray-900 lg:dark:border-gray-800">
         <header className="flex items-center gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
-          <Link href="/listings/inbox" aria-label="Back to messages" className="-ml-1 rounded-full p-1 text-gray-800 lg:hidden dark:text-gray-200"><ArrowLeftIcon className="h-6 w-6" /></Link>
+          <Link href="/listings/inbox" aria-label="Back to messages" className="-ms-1 rounded-full p-1 text-gray-800 lg:hidden dark:text-gray-200"><ArrowLeftIcon className="h-6 w-6" /></Link>
           <Avatar name={name || "?"} photo={contact?.photo} />
           <div className="min-w-0">
             <p className="truncate text-lg font-semibold text-gray-900 dark:text-white">{name || "…"}</p>
@@ -200,7 +200,7 @@ function MessagesThread() {
                           {formatMessageTime(msg.createdAt)}
                           {isMe && (
                             <span className={`inline-flex ${msg.read ? "text-brand" : "text-gray-400"}`} aria-label={msg.read ? "Read" : "Sent"}>
-                              <CheckIcon className="h-3.5 w-3.5" />{msg.read && <CheckIcon className="-ml-2 h-3.5 w-3.5" />}
+                              <CheckIcon className="h-3.5 w-3.5" />{msg.read && <CheckIcon className="-ms-2 h-3.5 w-3.5" />}
                             </span>
                           )}
                         </p>

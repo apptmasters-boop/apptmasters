@@ -151,7 +151,7 @@ function JoinFlow() {
           <HomeTogetherArt className="h-40 w-full" />
         </div>
         <button type="button" onClick={() => setStage("code")}
-          className="mt-5 flex w-full items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-brand/40 dark:border-gray-800 dark:bg-gray-900">
+          className="mt-5 flex w-full items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 text-start shadow-sm transition-colors hover:border-brand/40 dark:border-gray-800 dark:bg-gray-900">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand dark:bg-brand/30 dark:text-emerald-200"><LinkIcon className="h-6 w-6" /></span>
           <span className="min-w-0 flex-1">
             <span className="block font-semibold text-gray-900 dark:text-white">Join with an invite code</span>
@@ -191,7 +191,7 @@ function JoinFlow() {
                 className={`${inputClass} font-mono text-base uppercase tracking-[0.25em]`} />
               {code && (
                 <button type="button" onClick={() => setCode("")} aria-label="Clear code"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                  className="absolute end-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                   <XIcon className="h-4 w-4" />
                 </button>
               )}
@@ -235,7 +235,7 @@ function JoinFlow() {
             <div className="space-y-5">
               <Field id="movein" label="Your move-in date" optional icon={<CalendarIcon className="h-5 w-5" />}
                 hint="Until then, rent, cleaning and shopping turns and shared expenses leave you out. Leave it empty if you already live there.">
-                <input id="movein" type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)} className={`${inputClass} pl-11`} />
+                <input id="movein" type="date" value={moveInDate} onChange={e => setMoveInDate(e.target.value)} className={`${inputClass} ps-11`} />
               </Field>
               <fieldset>
                 <legend className="mb-1.5 text-sm font-medium text-gray-800 dark:text-gray-200">Joining as</legend>

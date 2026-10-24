@@ -2,26 +2,35 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { apiFetch } from "@/lib/api";
 import { safeReturnTo } from "@/lib/returnTo";
 import AuthShell from "@/components/auth/AuthShell";
+import FullPageLoading from "@/components/FullPageLoading";
 import { AuthField, PasswordField, FormError, PrimaryButton } from "@/components/auth/AuthFields";
 import { MailIcon, LockIcon, UserIcon, UserPlusIcon, CheckIcon } from "@/components/landing/icons";
 
 // Keep in sync with the schema in src/app/api/listings/signup/route.ts
 const PASSWORD_RULES = [
-  { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
-  { label: "A letter", test: (p: string) => /[A-Za-z]/.test(p) },
-  { label: "A number", test: (p: string) => /[0-9]/.test(p) },
-];
+  { key: "rule8", test: (p: string) => p.length >= 8 },
+  { key: "ruleLetter", test: (p: string) => /[A-Za-z]/.test(p) },
+  { key: "ruleNumber", test: (p: string) => /[0-9]/.test(p) },
+] as const;
 
-const HERO = {
-  heroTitle: "Create your account",
-  heroText: <><p>Join ApptMasters and find your next home.</p><p className="mt-4">Safe. Simple. Community-driven.</p></>,
-};
+/** The big title and lines beside the form on computers. */
+function useHero() {
+  const t = useTranslations("auth.signup");
+  return {
+    heroTitle: t("heroTitle"),
+    heroText: <><p>{t("heroText")}</p><p className="mt-4">{t("heroTagline")}</p></>,
+  };
+}
 
 /** Shown after sign-up: the account only works once the emailed link is clicked. */
 function CheckYourEmail({ email }: { email: string }) {
+  const t = useTranslations("auth");
+  const common = useTranslations("common");
+  const hero = useHero();
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
 
   async function resend() {
@@ -31,23 +40,22 @@ function CheckYourEmail({ email }: { email: string }) {
   }
 
   return (
-    <AuthShell title="Check your email" subtitle="One last step to create your account" {...HERO}>
+    <AuthShell title={t("checkEmail.title")} subtitle={t("checkEmail.subtitle")} {...hero}>
       <div className="space-y-5">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-brand">
           <MailIcon className="h-7 w-7" />
         </div>
         <p className="text-sm leading-relaxed text-gray-700">
-          We sent a confirmation link to <strong className="text-gray-900">{email}</strong>.
-          Click it to confirm your email and finish creating your account. The link expires in 24 hours.
+          {t.rich("checkEmail.sent", { email, strong: chunks => <strong className="text-gray-900"><bdi>{chunks}</bdi></strong> })}
         </p>
-        <p className="text-sm text-gray-500">Can&apos;t find it? Check your spam folder.</p>
+        <p className="text-sm text-gray-500">{t("checkEmail.spam")}</p>
         <button type="button" onClick={resend} disabled={state !== "idle"}
           className="w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 disabled:opacity-60">
-          {state === "sending" ? "Sending…" : state === "sent" ? "New link sent" : "Resend the link"}
+          {state === "sending" ? common("sending") : state === "sent" ? t("checkEmail.newLinkSent") : t("checkEmail.resend")}
         </button>
       </div>
       <p className="mt-8 text-center text-sm text-gray-600">
-        Already confirmed? <Link href="/login" className="font-semibold text-brand hover:underline">Sign in</Link>
+        {t("checkEmail.alreadyConfirmed")} <Link href="/login" className="font-semibold text-brand hover:underline">{t("signIn")}</Link>
       </p>
     </AuthShell>
   );
@@ -55,6 +63,8 @@ function CheckYourEmail({ email }: { email: string }) {
 
 function SignupForm() {
   const searchParams = useSearchParams();
+  const t = useTranslations("auth");
+  const hero = useHero();
   // What they were doing (a listing, a save, Post a listing…); empty when they just pressed Sign up.
   // It travels in the confirmation link; "What brings you…" comes after confirming (/welcome, step O1).
   const returnTo = safeReturnTo(searchParams.get("returnTo"), "");
@@ -67,14 +77,14 @@ function SignupForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!passwordOk) { setError("Please choose a password that meets all the requirements."); return; }
+    if (!passwordOk) { setError(t("signup.chooseBetter")); return; }
     setLoading(true);
     setError("");
     const res = await apiFetch("/api/listings/signup", { method: "POST", body: JSON.stringify({ ...form, returnTo }) });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) {
-      setError(data.error ?? "Something went wrong");
+      setError(data.error ?? t("signup.failed"));
       return;
     }
     setPendingEmail(data.email);
@@ -83,27 +93,27 @@ function SignupForm() {
   if (pendingEmail) return <CheckYourEmail email={pendingEmail} />;
 
   return (
-    <AuthShell title="Create your account" subtitle="Start your journey with ApptMasters" {...HERO}>
+    <AuthShell title={t("signup.title")} subtitle={t("signup.subtitle")} {...hero}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <FormError>{error}</FormError>}
-        <AuthField icon={<UserIcon className="h-5 w-5" />} label="Full name"
-          type="text" required maxLength={80} autoComplete="name" placeholder="John Doe"
+        <AuthField icon={<UserIcon className="h-5 w-5" />} label={t("signup.fullName")}
+          type="text" required maxLength={80} autoComplete="name" placeholder={t("signup.namePlaceholder")}
           value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-        <AuthField icon={<MailIcon className="h-5 w-5" />} label="Email"
-          type="email" required autoComplete="email" placeholder="you@example.com"
+        <AuthField icon={<MailIcon className="h-5 w-5" />} label={t("email")}
+          type="email" required autoComplete="email" placeholder={t("emailPlaceholder")} dir="ltr"
           value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
         <div>
-          <PasswordField icon={<LockIcon className="h-5 w-5" />} label="Password"
-            required autoComplete="new-password" placeholder="At least 8 characters"
+          <PasswordField icon={<LockIcon className="h-5 w-5" />} label={t("password")}
+            required autoComplete="new-password" placeholder={t("signup.passwordPlaceholder")}
             value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
-          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 px-1 text-xs" aria-label="Password requirements">
+          <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 px-1 text-xs" aria-label={t("signup.requirements")}>
             {PASSWORD_RULES.map(rule => {
               const met = rule.test(form.password);
               return (
-                <li key={rule.label} className={`inline-flex items-center gap-1 ${met ? "text-brand" : "text-gray-500"}`}>
+                <li key={rule.key} className={`inline-flex items-center gap-1 ${met ? "text-brand" : "text-gray-500"}`}>
                   <CheckIcon className={`h-3.5 w-3.5 ${met ? "opacity-100" : "opacity-30"}`} />
-                  {rule.label}
-                  <span className="sr-only">{met ? "(done)" : "(missing)"}</span>
+                  {t(`signup.${rule.key}`)}
+                  <span className="sr-only">{met ? t("signup.ruleDone") : t("signup.ruleMissing")}</span>
                 </li>
               );
             })}
@@ -111,14 +121,14 @@ function SignupForm() {
         </div>
 
         <PrimaryButton loading={loading} icon={<UserPlusIcon className="h-4 w-4" />}>
-          {loading ? "Creating account…" : "Create account"}
+          {loading ? t("signup.creating") : t("signup.create")}
         </PrimaryButton>
-        <p className="text-center text-xs text-gray-500">We&apos;ll email you a link to confirm your address.</p>
+        <p className="text-center text-xs text-gray-500">{t("signup.weEmail")}</p>
       </form>
 
       <p className="mt-8 text-center text-sm text-gray-600">
-        Already have an account?{" "}
-        <Link href={returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login"} className="font-semibold text-brand hover:underline">Sign in</Link>
+        {t("signup.haveAccount")}{" "}
+        <Link href={returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login"} className="font-semibold text-brand hover:underline">{t("signIn")}</Link>
       </p>
     </AuthShell>
   );
@@ -126,7 +136,7 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-gray-400">Loading…</div>}>
+    <Suspense fallback={<FullPageLoading />}>
       <SignupForm />
     </Suspense>
   );

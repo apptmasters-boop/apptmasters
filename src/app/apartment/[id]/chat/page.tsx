@@ -188,7 +188,7 @@ export default function ChatPage() {
 
       {/* DM sidebar */}
       {showDMs && (
-        <div className="absolute top-14 right-4 z-40 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute top-14 end-4 z-40 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
           <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Direct messages</p>
           {otherMembers.length === 0 ? (
             <p className="px-4 py-3 text-sm text-gray-400">No other members</p>
@@ -224,9 +224,9 @@ export default function ChatPage() {
           return (
             <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"} group`}>
               <div className={`max-w-[75%] ${isMe ? "items-end" : "items-start"} flex flex-col`}>
-                {!isMe && <p className="text-[10px] text-gray-400 mb-1 ml-1">{msg.sender.name}</p>}
+                {!isMe && <p className="text-[10px] text-gray-400 mb-1 ms-1">{msg.sender.name}</p>}
                 {msg.replyTo && (
-                  <div className={`text-[10px] px-2 py-1 rounded-lg mb-1 border-l-2 ${isMe ? "border-blue-300 bg-blue-50 text-blue-600" : "border-gray-300 bg-gray-100 text-gray-500"}`}>
+                  <div className={`text-[10px] px-2 py-1 rounded-lg mb-1 border-s-2 ${isMe ? "border-blue-300 bg-blue-50 text-blue-600" : "border-gray-300 bg-gray-100 text-gray-500"}`}>
                     <span className="font-medium">{msg.replyTo.sender.name}:</span>{" "}
                     {msg.replyTo.type === "AUDIO" ? "🎙 Voice message" : msg.replyTo.content.slice(0, 60)}{msg.replyTo.content.length > 60 && msg.replyTo.type !== "AUDIO" ? "…" : ""}
                   </div>
@@ -234,7 +234,7 @@ export default function ChatPage() {
                 {isAudio ? (
                   <div className="relative group">
                     <VoiceMessage src={msg.content} isMe={isMe} />
-                    <div className="absolute -top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute -top-1 end-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => setReplyTo(msg)}
                         className="text-[9px] text-gray-400 hover:text-gray-600 bg-white border border-gray-200 px-1 rounded shadow-sm">↩</button>
                       {(isMe || isAdmin) && (
@@ -248,9 +248,9 @@ export default function ChatPage() {
                     isEmergency ? "bg-red-500 text-white font-semibold" :
                     isMe ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"
                   }`}>
-                    {isEmergency && <span className="mr-1">🚨</span>}
+                    {isEmergency && <span className="me-1">🚨</span>}
                     {msg.content}
-                    <div className="absolute bottom-1 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-1 end-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => setReplyTo(msg)}
                         className="text-[9px] text-gray-300 hover:text-gray-500 bg-white px-1 rounded">↩</button>
                       {(isMe || isAdmin) && (
@@ -277,7 +277,7 @@ export default function ChatPage() {
             Replying to <span className="font-semibold">{replyTo.sender.name}</span>:{" "}
             {replyTo.type === "AUDIO" ? "🎙 Voice message" : replyTo.content.slice(0, 50) + "…"}
           </p>
-          <button onClick={() => setReplyTo(null)} className="text-xs text-blue-400 hover:text-blue-600 ml-2">×</button>
+          <button onClick={() => setReplyTo(null)} className="text-xs text-blue-400 hover:text-blue-600 ms-2">×</button>
         </div>
       )}
 

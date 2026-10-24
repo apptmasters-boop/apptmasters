@@ -1,5 +1,6 @@
 "use client";
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { EyeIcon, EyeOffIcon } from "@/components/landing/icons";
 
 type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "id">;
@@ -23,11 +24,12 @@ export function AuthField({ icon, label, trailing, ...input }: InputProps & { ic
 /** AuthField for passwords, with a show/hide toggle. */
 export function PasswordField(props: InputProps & { icon: ReactNode; label: string }) {
   const [visible, setVisible] = useState(false);
+  const t = useTranslations("auth");
   return (
     <AuthField {...props} type={visible ? "text" : "password"}
       trailing={
         <button type="button" onClick={() => setVisible(v => !v)}
-          aria-label={visible ? "Hide password" : "Show password"} aria-pressed={visible}
+          aria-label={visible ? t("hidePassword") : t("showPassword")} aria-pressed={visible}
           className="shrink-0 rounded-md p-1 text-gray-400 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30">
           {visible ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
         </button>

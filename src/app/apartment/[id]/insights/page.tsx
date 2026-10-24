@@ -167,7 +167,7 @@ function MonthChart({ months }: { months: Month[] }) {
                 <span className="mb-1 text-[11px] tabular-nums text-gray-600">{m.total > 0 ? compact(m.total) : ""}</span>
                 <span className="block w-full max-w-6 rounded-t bg-chart" style={{ height: Math.round((m.total / max) * PLOT) }} />
                 {active === m.month && (
-                  <span className="pointer-events-none absolute bottom-full z-10 mb-1 w-max rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-xs shadow-sm">
+                  <span className="pointer-events-none absolute bottom-full z-10 mb-1 w-max rounded-lg border border-gray-200 bg-white px-3 py-2 text-start text-xs shadow-sm">
                     <span className="block font-semibold text-gray-900">{money(m.total)} household</span>
                     <span className="block text-gray-700">{money(m.mine)} your share</span>
                     <span className="block text-gray-500">{m.label}</span>
@@ -195,7 +195,7 @@ function CategoryBars({ categories }: { categories: { category: string; total: n
         <li key={c.category} className="flex items-center gap-3 text-sm">
           <span className="w-24 shrink-0 text-gray-700">{CATEGORY[c.category] ?? c.category}</span>
           <span className="flex min-w-0 flex-1 items-center gap-2">
-            <span className="block h-3 rounded-r bg-chart" style={{ width: `${Math.max(2, (c.total / max) * 100)}%` }} />
+            <span className="block h-3 rounded-e bg-chart" style={{ width: `${Math.max(2, (c.total / max) * 100)}%` }} />
             <span className="shrink-0 tabular-nums text-xs text-gray-700">{money(c.total)} · {Math.round((c.total / sum) * 100)}%</span>
           </span>
         </li>
@@ -209,14 +209,14 @@ function Table({ head, rows, bare = false }: { head: string[]; rows: string[][];
     <div className={bare ? "overflow-x-auto" : "overflow-x-auto rounded-2xl border border-gray-200 bg-white"}>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
-            {head.map((h, i) => <th key={i} className={`px-4 py-2 font-medium ${i > 0 ? "text-right" : ""}`}>{h}</th>)}
+          <tr className="border-b border-gray-100 text-start text-xs text-gray-500">
+            {head.map((h, i) => <th key={i} className={`px-4 py-2 font-medium ${i > 0 ? "text-end" : ""}`}>{h}</th>)}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
           {rows.map((r, i) => (
             <tr key={i}>
-              {r.map((cell, j) => <td key={j} className={`px-4 py-2.5 ${j > 0 ? "text-right tabular-nums text-gray-700" : "font-medium text-gray-900"}`}>{cell}</td>)}
+              {r.map((cell, j) => <td key={j} className={`px-4 py-2.5 ${j > 0 ? "text-end tabular-nums text-gray-700" : "font-medium text-gray-900"}`}>{cell}</td>)}
             </tr>
           ))}
         </tbody>

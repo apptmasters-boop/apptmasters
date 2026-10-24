@@ -60,13 +60,13 @@ export default function PriceRange({ min, max, onChange }: { min: number | null;
       <div className="mt-2 flex justify-between px-1 text-xs text-gray-500 dark:text-gray-400"><span>$0</span><span>{money(PRICE_MAX)}+</span></div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <label className="relative">
-          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
-          <input inputMode="numeric" aria-label="Minimum price" value={minText} placeholder="Min" className={`${inputClass} pl-7`}
+          <span className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+          <input inputMode="numeric" aria-label="Minimum price" value={minText} placeholder="Min" className={`${inputClass} ps-7`}
             onChange={e => { setMinText(e.target.value); onChange(parseAmount(e.target.value), max); }} />
         </label>
         <label className="relative">
-          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
-          <input inputMode="numeric" aria-label="Maximum price" value={maxText} placeholder="Max" className={`${inputClass} pl-7`}
+          <span className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+          <input inputMode="numeric" aria-label="Maximum price" value={maxText} placeholder="Max" className={`${inputClass} ps-7`}
             onChange={e => { setMaxText(e.target.value); onChange(min, parseAmount(e.target.value)); }} />
         </label>
       </div>

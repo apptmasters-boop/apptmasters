@@ -78,9 +78,9 @@ export function useConversationFilter(conversations: Conversation[] | null) {
 export function ConversationSearch({ value, onChange, autoFocus = false }: { value: string; onChange: (v: string) => void; autoFocus?: boolean }) {
   return (
     <label className="relative block">
-      <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <SearchIcon className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
       <input value={value} onChange={e => onChange(e.target.value)} placeholder="Search conversations…" aria-label="Search conversations" autoFocus={autoFocus}
-        className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
+        className="w-full rounded-xl border border-gray-200 bg-white py-2.5 ps-10 pe-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 dark:border-gray-700 dark:bg-gray-950 dark:text-white" />
     </label>
   );
 }
@@ -167,7 +167,7 @@ export interface Contact { name: string; photo?: string | null; role: string; si
 function QuickAction({ icon: Icon, children, onClick, href, danger = false }: {
   icon: (p: { className?: string }) => React.ReactNode; children: React.ReactNode; onClick?: () => void; href?: string; danger?: boolean;
 }) {
-  const className = `flex w-full items-center gap-3 border-b border-gray-100 py-3 text-left text-sm last:border-0 dark:border-gray-800 ${
+  const className = `flex w-full items-center gap-3 border-b border-gray-100 py-3 text-start text-sm last:border-0 dark:border-gray-800 ${
     danger ? "text-red-600 dark:text-red-400" : "text-gray-800 hover:text-brand dark:text-gray-200"}`;
   return href
     ? <Link href={href} className={className}><Icon className="h-5 w-5" />{children}</Link>
@@ -234,7 +234,7 @@ export function ListingContext({ listing, variant, contact, mine = false }: {
         <div className="relative aspect-[16/10] bg-gray-100 dark:bg-gray-800">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {photo ? <img src={photo} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-gray-300"><HomeIcon className="h-10 w-10" /></div>}
-          {listing.photos.length > 1 && <span className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2.5 py-0.5 text-xs text-white">1/{listing.photos.length}</span>}
+          {listing.photos.length > 1 && <span className="absolute bottom-2 end-2 rounded-full bg-black/70 px-2.5 py-0.5 text-xs text-white">1/{listing.photos.length}</span>}
         </div>
         <div className="space-y-2 p-4">
           {closedBadge}

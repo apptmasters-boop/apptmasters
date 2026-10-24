@@ -8,20 +8,17 @@
  */
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { apiFetch, getToken } from "@/lib/api";
 import { safeReturnTo } from "@/lib/returnTo";
 import { signInPath } from "@/lib/housing";
 import { afterSignup, intentFromReturnTo, type Intent } from "@/lib/intent";
 import { forgetMe } from "@/components/market/useMe";
 import AuthShell from "@/components/auth/AuthShell";
+import FullPageLoading from "@/components/FullPageLoading";
 import IntentChoice from "@/components/auth/IntentChoice";
 import { FormError, PrimaryButton } from "@/components/auth/AuthFields";
 import { ArrowRightIcon } from "@/components/landing/icons";
-
-const HERO = {
-  heroTitle: "Welcome to ApptMasters",
-  heroText: <><p>Find a place, share a home, or rent one out.</p><p className="mt-4">Safe. Simple. Community-driven.</p></>,
-};
 
 function Welcome() {
   const router = useRouter();
@@ -30,6 +27,12 @@ function Welcome() {
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const t = useTranslations("auth.welcome");
+  const common = useTranslations("common");
+  const hero = {
+    heroTitle: t("heroTitle"),
+    heroText: <><p>{t("heroText")}</p><p className="mt-4">{t("heroTagline")}</p></>,
+  };
 
   // Signed in only; someone who already answered goes straight on.
   useEffect(() => {
@@ -52,7 +55,7 @@ function Welcome() {
     setError("");
     const res = await apiFetch("/api/users/intent", { method: "POST", body: JSON.stringify({ intent }) });
     if (!res.ok && res.status !== 409) {
-      setError((await res.json().catch(() => null))?.error ?? "Something went wrong. Try again.");
+      setError((await res.json().catch(() => null))?.error ?? common("somethingWrong"));
       setSaving(false);
       return;
     }
@@ -60,15 +63,15 @@ function Welcome() {
     router.replace(afterSignup(intent, returnTo));
   }
 
-  if (!ready) return <div className="flex min-h-screen items-center justify-center text-sm text-gray-400">Loading…</div>;
+  if (!ready) return <FullPageLoading />;
 
   return (
-    <AuthShell title="Welcome!" subtitle="One question, then you're in" {...HERO}>
+    <AuthShell title={t("title")} subtitle={t("subtitle")} {...hero}>
       <form onSubmit={submit} className="space-y-5">
         {error && <FormError>{error}</FormError>}
         <IntentChoice value={intent} onChange={setIntent} />
         <PrimaryButton loading={saving} disabled={!intent} icon={<ArrowRightIcon className="h-4 w-4" />}>
-          {saving ? "Saving…" : intent ? "Continue" : "Choose one to continue"}
+          {saving ? common("saving") : intent ? common("continue") : t("chooseOne")}
         </PrimaryButton>
       </form>
     </AuthShell>
@@ -77,7 +80,7 @@ function Welcome() {
 
 export default function WelcomePage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-sm text-gray-400">Loading…</div>}>
+    <Suspense fallback={<FullPageLoading />}>
       <Welcome />
     </Suspense>
   );

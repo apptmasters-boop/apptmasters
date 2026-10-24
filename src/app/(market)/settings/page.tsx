@@ -4,30 +4,38 @@
  * setting"): one place for everything you change. Each part has its own page,
  * as on Airbnb; Dark mode is a single switch, so it stays here.
  */
+import { useLocale, useTranslations } from "next-intl";
 import { useDarkMode } from "@/components/DarkModeProvider";
+import { languagesOn } from "@/components/LanguageButton";
+import { LOCALE_NAMES } from "@/i18n/locales";
 import { Group, PageTitle, Row, SwitchRow, loading, pageWidth, useSignedIn } from "@/components/market/SettingsList";
-import { BellIcon, LockIcon, MoonIcon, UserIcon } from "@/components/landing/icons";
+import { BellIcon, GlobeIcon, LockIcon, MoonIcon, UserIcon } from "@/components/landing/icons";
 
 export default function SettingsPage() {
   const me = useSignedIn();
   const [dark, toggleDark] = useDarkMode();
+  const t = useTranslations("settings");
+  const nav = useTranslations("nav");
+  const language = useTranslations("language");
+  const locale = useLocale();
   if (!me) return loading;
 
   return (
     <main className={pageWidth}>
-      <PageTitle back={{ href: "/more", label: "More" }} title="Settings" subtitle="Your account and how ApptMasters looks for you." />
+      <PageTitle back={{ href: "/more", label: nav("more") }} title={t("title")} subtitle={t("subtitle")} />
 
-      <Group title="Account">
-        <Row href="/settings/personal-information" icon={<UserIcon className="h-5 w-5" />} label="Personal information"
-          description="Name, photo and email" />
-        <Row href="/settings/notifications" icon={<BellIcon className="h-5 w-5" />} label="Notifications"
-          description="Push and email, topic by topic" />
-        <Row href="/settings/security" icon={<LockIcon className="h-5 w-5" />} label="Login & security"
-          description="Password, two-step sign-in, recent sign-ins" />
+      <Group title={t("groupAccount")}>
+        <Row href="/settings/personal-information" icon={<UserIcon className="h-5 w-5" />} label={t("personal")}
+          description={t("personalText")} />
+        <Row href="/settings/notifications" icon={<BellIcon className="h-5 w-5" />} label={t("notifications")}
+          description={t("notificationsText")} />
+        <Row href="/settings/security" icon={<LockIcon className="h-5 w-5" />} label={t("security")}
+          description={t("securityText")} />
       </Group>
 
-      <Group title="Preferences">
-        <SwitchRow icon={<MoonIcon className="h-5 w-5" />} label="Dark mode" description="Easier on the eyes at night"
+      <Group title={t("groupPreferences")}>
+        {languagesOn && <Row href="/settings/language" icon={<GlobeIcon className="h-5 w-5" />} label={language("title")} description={LOCALE_NAMES[locale]} />}
+        <SwitchRow icon={<MoonIcon className="h-5 w-5" />} label={t("darkMode")} description={t("darkModeText")}
           checked={dark} onChange={toggleDark} />
       </Group>
     </main>

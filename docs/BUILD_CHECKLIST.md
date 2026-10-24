@@ -3045,3 +3045,68 @@ this PC; deploy on "deploy")
 - [ ] **Launch:** after the native speakers' corrections, the four languages
   are switched on for apptmasters.com, at the owner's "deploy".
 
+### T1 — The language button, right to left, and the first pages everyone sees (2026-10-23)
+
+**What changes**
+- **The language button 🌐** shows the current language (EN, FR, ES or ع)
+  and lists the four languages in their own words: English · Français ·
+  Español · العربية.
+  - **Where:**
+    - the top bar on computers (every Find a Home page) and on Home (phone
+      and computer)
+    - the household side menu on computers
+    - the sign-up, log-in, confirm-email, welcome and password pages
+  - **On phones, pages without a top bar** (household pages, Saved,
+    Messages…) have a **Language** row on **More**, which is in every phone
+    bar.
+  - **Also** a **Language** row in **Settings**, and a Language page
+    (`/settings/language`) that works signed in or not.
+- **First visit:** a phone or browser set to French, Spanish or Arabic opens
+  ApptMasters in that language. The choice is remembered on that device
+  (a cookie, `am_lang`).
+- **Arabic reads right to left:**
+  - the whole layout mirrors (menus, back arrows, side menu on the right)
+  - an Arabic font (Noto Sans Arabic)
+  - digits stay 0–9
+- **Translated in T1:**
+  - the menus (top bar, phone bar, household side menu and bar)
+  - the signed-out Home and the signed-in Home without a household
+  - log in (with the two-step code), sign up, check your email, confirm
+    email, Welcome ("What brings you…"), forgot and reset password
+  - More (with and without an account), Settings, the notification bell,
+    the error page
+- **Not yet:** every other page stays in English until its part (T2–T6).
+  Messages that come from the server (for example "wrong password") come in
+  T5.
+- **The live site is unchanged.** Only English is switched on there until
+  launch, so the button doesn't show. On this PC all four languages are on.
+- **Review sheets for the native speakers:** `docs/translations/review-fr.csv`,
+  `review-es.csv` and `review-ar.csv` (English, translation, and an empty
+  "Correction" column; they open in Excel or Google Sheets).
+- **Deploy note:** this part adds the `next-intl` package, so the server runs
+  `npm ci` before building.
+- **Phones, sign-in pages:** the "Back to home" link shows its arrow only
+  (the words no longer fit beside the language button; the logo goes Home
+  too). From tablet width up, the words stay.
+- **Seen while building, for T2:** in Arabic, the listing cards on Home show
+  "mo/$1,800", and English titles are cut off on the wrong side. T2
+  isolates prices and what people write (their own direction).
+
+- [x] Type check (message keys are typed: a mistyped key fails it) · [x] Tests (384, with `tests/i18n.test.ts`: every key in all four files, same placeholders, language choice) · [x] Lint (46, one fewer) · [x] Browser check (`i18n-check.mjs`: 263 checks: first visit in the browser's language, the button and its menu, every T1 page in French, Spanish and Arabic on phone and computer with no English left and no sideways scrolling, Arabic mirrored, English unchanged) · [x] Existing checks still pass in English (filters 188, F19, F21, F13; the F13 check now skips the new Language row and button)
+- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+
+**Your test on this PC** (http://localhost:3100)
+1. Signed out, open **Home**. Top right: **🌐 EN**. Press it and choose
+   **Français**: Home, the menus and the bottom bar switch to French.
+2. Choose **العربية**: the page mirrors (logo on the right, text from the
+   right), in Arabic.
+3. Go to **Sign up** and **Log in**: the button is there too, and the forms
+   are in the chosen language. Log in as `resident@apptmasters.local` /
+   `LocalTest-2026`.
+4. On a phone (or a narrow window): **More › Language** changes it too.
+5. Back to **English**: everything is as before.
+6. Pages not translated yet show English text. In Arabic their layout is
+   already mirrored.
+
+**Sign-off:** [ ] Approved on ____  · Issues found: ____
+

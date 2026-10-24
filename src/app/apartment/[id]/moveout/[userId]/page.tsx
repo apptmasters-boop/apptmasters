@@ -156,7 +156,7 @@ export default function MoveOutReportPage() {
                     <p className="text-sm font-medium text-gray-900">{p.rentCycle.month}</p>
                     <p className="text-xs text-gray-400">{p.paidAt ? `Paid ${new Date(p.paidAt).toLocaleDateString()}` : "Not paid"}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <p className="text-sm font-semibold text-gray-900">${p.amount.toFixed(2)}</p>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${p.status === "CONFIRMED" ? "bg-emerald-100 text-emerald-700" : p.status === "PAID" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
                       {p.status}
@@ -181,7 +181,7 @@ export default function MoveOutReportPage() {
                     <p className="text-sm font-medium text-gray-900">{s.expense.title}</p>
                     <p className="text-xs text-gray-400">{new Date(s.expense.date).toLocaleDateString()}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <p className="text-sm font-semibold text-gray-900">${s.amount.toFixed(2)}</p>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${s.status === "PAID" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
                       {s.status}

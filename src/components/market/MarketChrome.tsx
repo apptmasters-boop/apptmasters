@@ -20,9 +20,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { apiFetch, clearToken } from "@/lib/api";
 import { HomeSidebar, HomeBottomBar, useChatUnread } from "@/components/home/HomeNav";
 import { Logo } from "@/components/landing/SiteChrome";
+import LanguageButton from "@/components/LanguageButton";
 import { useMe, forgetMe, initials, type Me } from "./useMe";
 import { loadSaved, completeSaveIntent, useSavedIds } from "./saved";
 import {
@@ -84,7 +86,7 @@ function Dropdown({ label, children }: { label: React.ReactNode; children: React
       </button>
       {open && (
         <div onClick={() => setOpen(false)}
-          className="absolute right-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          className="absolute end-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg dark:border-gray-800 dark:bg-gray-900">
           {children}
         </div>
       )}
@@ -94,10 +96,11 @@ function Dropdown({ label, children }: { label: React.ReactNode; children: React
 const menuItem = "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800";
 
 /** The round back arrow that starts a phone page without the logo bar. */
-export function BackLink({ href, label = "Back", className = "" }: { href: string; label?: string; className?: string }) {
+export function BackLink({ href, label, className = "" }: { href: string; label?: string; className?: string }) {
+  const t = useTranslations("common");
   return (
-    <Link href={href} aria-label={label}
-      className={`-ml-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-900 hover:bg-gray-100 lg:hidden dark:text-white dark:hover:bg-gray-800 ${className}`}>
+    <Link href={href} aria-label={label ?? t("back")}
+      className={`-ms-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-900 hover:bg-gray-100 lg:hidden dark:text-white dark:hover:bg-gray-800 ${className}`}>
       <ArrowLeftIcon className="h-6 w-6" />
     </Link>
   );
@@ -106,7 +109,7 @@ export function BackLink({ href, label = "Back", className = "" }: { href: strin
 /** A number beside a menu item: red for unread messages, gray for a count. */
 function Count({ n, alert = false }: { n: number; alert?: boolean }) {
   if (n <= 0) return null;
-  return <span className={`ml-auto rounded-full px-2 text-xs font-semibold ${alert ? "bg-red-500 text-white" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"}`}>{n}</span>;
+  return <span className={`ms-auto rounded-full px-2 text-xs font-semibold ${alert ? "bg-red-500 text-white" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"}`}>{n}</span>;
 }
 const menuRow = `${menuItem} flex items-center gap-2`;
 const menuDivider = <div className="my-1.5 border-t border-gray-100 dark:border-gray-800" role="separator" />;
@@ -115,45 +118,48 @@ export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | u
   const pathname = usePathname();
   const router = useRouter();
   const savedCount = useSavedIds().size;
+  const t = useTranslations("nav");
 
   return (
     <header className={`sticky top-0 z-30 border-b border-gray-200/80 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95 ${onPhone ? "" : "hidden lg:block"}`}>
       <div className="mx-auto flex h-16 max-w-[96rem] items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
         <MarketLogo />
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* The language, for everyone (translation T1); hidden while only English is on. */}
+          <LanguageButton />
           {me === undefined ? (
             <span className="h-9 w-24" aria-hidden />
           ) : me ? (
             <>
-              <Link href="/more" className="relative lg:hidden" aria-label="Your account">
+              <Link href="/more" className="relative lg:hidden" aria-label={t("yourAccount")}>
                 <Avatar me={me} />
-                {unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500" aria-label={`${unread} unread`} />}
+                {unread > 0 && <span className="absolute -end-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500" aria-label={t("unread", { count: unread })} />}
               </Link>
               <div className="hidden lg:block">
                 <Dropdown label={
                   <span className="flex items-center gap-2">
                     <span className="relative">
                       <Avatar me={me} />
-                      {unread > 0 && <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500" aria-label={`${unread} unread`} />}
+                      {unread > 0 && <span className="absolute -end-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-500" aria-label={t("unread", { count: unread })} />}
                     </span>
                     <span className="max-w-32 truncate text-gray-800 dark:text-gray-100">{me.name.split(" ")[0]}</span>
                   </span>
                 }>
-                  <Link href="/listings" className={menuRow}>Find a Home</Link>
-                  <Link href="/listings/inbox" className={menuRow}>Messages<Count n={unread} alert /></Link>
-                  <Link href="/saved" className={menuRow}>Saved<Count n={savedCount} /></Link>
+                  <Link href="/listings" className={menuRow}>{t("findAHome")}</Link>
+                  <Link href="/listings/inbox" className={menuRow}>{t("messages")}<Count n={unread} alert /></Link>
+                  <Link href="/saved" className={menuRow}>{t("saved")}<Count n={savedCount} /></Link>
                   {menuDivider}
-                  <Link href="/profile" className={menuItem}>Profile</Link>
-                  <Link href="/settings" className={menuItem}>Settings</Link>
+                  <Link href="/profile" className={menuItem}>{t("profile")}</Link>
+                  <Link href="/settings" className={menuItem}>{t("settings")}</Link>
                   {menuDivider}
-                  <Link href="/apartment/create" className={menuItem}>Create a Home</Link>
-                  <Link href="/apartment/join" className={menuItem}>Join a Home</Link>
-                  <Link href="/listings/mine" className={menuItem}>My listings</Link>
-                  <Link href="/listings/new" className={menuItem}>Post a listing</Link>
+                  <Link href="/apartment/create" className={menuItem}>{t("createAHome")}</Link>
+                  <Link href="/apartment/join" className={menuItem}>{t("joinAHome")}</Link>
+                  <Link href="/listings/mine" className={menuItem}>{t("myListings")}</Link>
+                  <Link href="/listings/new" className={menuItem}>{t("postAListing")}</Link>
                   {menuDivider}
-                  <Link href="/how-it-works" className={menuItem}>How It Works</Link>
-                  <Link href="/help" className={menuItem}>Help</Link>
-                  <button type="button" onClick={() => signOut(router)} className={`${menuItem} w-full text-left text-red-600`}>Sign out</button>
+                  <Link href="/how-it-works" className={menuItem}>{t("howItWorks")}</Link>
+                  <Link href="/help" className={menuItem}>{t("help")}</Link>
+                  <button type="button" onClick={() => signOut(router)} className={`${menuItem} w-full text-start text-red-600`}>{t("signOut")}</button>
                 </Dropdown>
               </div>
             </>
@@ -161,11 +167,11 @@ export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | u
             <>
               <Link href={`/login?returnTo=${encodeURIComponent(pathname)}`}
                 className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-100">
-                Log in
+                {t("logIn")}
               </Link>
               <Link href={`/signup?returnTo=${encodeURIComponent(pathname)}`}
                 className="hidden rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark sm:block">
-                Sign up
+                {t("signUp")}
               </Link>
             </>
           )}
@@ -180,11 +186,12 @@ export function MarketHeader({ me, unread, onPhone = true }: { me: Me | null | u
  * since F12; not on phones since F16, owner 2026-10-18: phones reach Help from More).
  */
 export function MarketFooter() {
+  const t = useTranslations("nav");
   const link = "hover:text-gray-900 hover:underline dark:hover:text-white";
   return (
     <footer className="mt-10 hidden border-t border-gray-200 lg:block dark:border-gray-800">
       <div className="mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-gray-500 sm:px-6 lg:px-8 dark:text-gray-400">
-        <Link href="/help" className={link}>Help</Link>
+        <Link href="/help" className={link}>{t("help")}</Link>
         <span>© {new Date().getFullYear()} ApptMasters</span>
       </div>
     </footer>
@@ -193,25 +200,26 @@ export function MarketFooter() {
 
 export function MarketBottomNav({ me, unread }: { me: Me | null | undefined; unread: number }) {
   const pathname = usePathname();
+  const t = useTranslations("nav");
   const tabs = me
     ? [
-        { href: "/", label: "Home", icon: HomeIcon },
-        { href: "/saved", label: "Saved", icon: HeartIcon },
-        { href: "/listings/inbox", label: "Messages", icon: MessageIcon, dot: unread > 0 },
-        { href: "/more", label: "More", icon: MoreIcon },
+        { href: "/", label: t("home"), icon: HomeIcon },
+        { href: "/saved", label: t("saved"), icon: HeartIcon },
+        { href: "/listings/inbox", label: t("messages"), icon: MessageIcon, dot: unread > 0 },
+        { href: "/more", label: t("more"), icon: MoreIcon },
       ]
     : [
-        { href: "/", label: "Home", icon: HomeIcon },
-        { href: "/listings", label: "Find a Home", icon: SearchIcon },
-        { href: "/saved", label: "Saved", icon: HeartIcon },
-        { href: "/more", label: "More", icon: MoreIcon },
+        { href: "/", label: t("home"), icon: HomeIcon },
+        { href: "/listings", label: t("findAHome"), icon: SearchIcon },
+        { href: "/saved", label: t("saved"), icon: HeartIcon },
+        { href: "/more", label: t("more"), icon: MoreIcon },
       ];
   const isActive = (href: string) =>
     href === "/" ? pathname === "/"
       : href === "/listings/inbox" ? pathname.startsWith(href) || /^\/listings\/[^/]+\/messages/.test(pathname)
       : pathname.startsWith(href);
   return (
-    <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden dark:border-gray-800 dark:bg-gray-950">
+    <nav aria-label={t("main")} className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden dark:border-gray-800 dark:bg-gray-950">
       <ul className="grid grid-cols-4">
         {tabs.map(({ href, label, icon: Icon, ...t }) => (
           <li key={href}>
@@ -219,7 +227,7 @@ export function MarketBottomNav({ me, unread }: { me: Me | null | undefined; unr
               className={`relative flex flex-col items-center gap-1 pb-2.5 pt-2.5 text-xs font-medium ${isActive(href) ? "text-brand dark:text-emerald-300" : "text-gray-500 dark:text-gray-400"}`}>
               <span className="relative">
                 <Icon className="h-6 w-6" />
-                {"dot" in t && t.dot && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500" />}
+                {"dot" in t && t.dot && <span className="absolute -end-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500" />}
               </span>
               {label}
               {isActive(href) && <span className="absolute bottom-1 h-[3px] w-10 rounded-full bg-brand" />}
@@ -251,6 +259,7 @@ export function MarketShell({ children }: { children: React.ReactNode }) {
   const me = useMe();
   const unread = useMarketUnread(!!me);
   const [toast, setToast] = useState("");
+  const t = useTranslations("nav");
 
   useEffect(() => {
     if (!me) return;
@@ -258,11 +267,11 @@ export function MarketShell({ children }: { children: React.ReactNode }) {
     async function finish() {
       await loadSaved(true);
       const saved = await completeSaveIntent();
-      if (saved && current) { setToast("Saved"); setTimeout(() => setToast(""), 2500); }
+      if (saved && current) { setToast(t("savedToast")); setTimeout(() => setToast(""), 2500); }
     }
     finish();
     return () => { current = false; };
-  }, [me]);
+  }, [me, t]);
 
   const home = me?.homes[0];
   // A conversation uses the whole phone screen: no phone bar under it (Sprint 13g).
@@ -270,7 +279,7 @@ export function MarketShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white lg:bg-gray-50 dark:bg-gray-950">
       {home && <ResidentNav home={home} bottomBar={!inConversation} />}
-      <div className={home ? `${inConversation ? "" : "pb-16"} md:pb-0 md:pl-64` : inConversation ? "" : "pb-20 lg:pb-0"}>
+      <div className={home ? `${inConversation ? "" : "pb-16"} md:pb-0 md:ps-64` : inConversation ? "" : "pb-20 lg:pb-0"}>
         <MarketHeader me={me} unread={unread} onPhone={pathname === "/"} />
         {children}
         {!inConversation && <MarketFooter />}

@@ -434,7 +434,7 @@ export default function CleaningPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photoPreview} alt="Preview" className="h-40 w-full rounded-xl border border-gray-200 object-cover" />
                   <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }} aria-label="Remove photo"
-                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-xs text-white">×</button>
+                    className="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-xs text-white">×</button>
                 </div>
               ) : (
                 <button onClick={() => fileRef.current?.click()} className="w-full rounded-xl border-2 border-dashed border-gray-300 py-6 text-sm font-medium text-gray-500 hover:border-brand hover:text-brand">

@@ -134,7 +134,7 @@ export default function NotificationsPage() {
 
         {notifications.map(n => (
           <button key={n.id} onClick={() => handleNotificationClick(n)}
-            className={`w-full text-left bg-white border rounded-xl px-5 py-4 flex items-start gap-4 transition-colors ${n.read ? "border-gray-100 opacity-60" : "border-gray-200 hover:border-blue-200"}`}>
+            className={`w-full text-start bg-white border rounded-xl px-5 py-4 flex items-start gap-4 transition-colors ${n.read ? "border-gray-100 opacity-60" : "border-gray-200 hover:border-blue-200"}`}>
             <span className="text-2xl flex-shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? "🔔"}</span>
             <div className="flex-1 min-w-0">
               <p className={`text-sm ${n.read ? "text-gray-500" : "text-gray-900 font-semibold"}`}>{n.title}</p>

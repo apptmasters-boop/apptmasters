@@ -171,7 +171,7 @@ function RequestCard({ request: r, data, apartmentId, onChange }: { request: Req
       )}
 
       {r.updates.length > 0 && (
-        <ol className="mt-4 space-y-2 border-l-2 border-gray-100 pl-4">
+        <ol className="mt-4 space-y-2 border-s-2 border-gray-100 ps-4">
           {r.updates.map(u => (
             <li key={u.id} className="text-sm">
               <p className="text-gray-900">

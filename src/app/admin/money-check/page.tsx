@@ -95,13 +95,13 @@ export default function MoneyCheckPage() {
 
                   {h.expenseDifferences.length > 0 && (
                     <table className="mt-3 w-full text-sm">
-                      <thead><tr className="text-left text-xs text-gray-500"><th className="font-medium">Who owes whom</th><th className="text-right font-medium">Money page today</th><th className="text-right font-medium">New ledger</th></tr></thead>
+                      <thead><tr className="text-start text-xs text-gray-500"><th className="font-medium">Who owes whom</th><th className="text-end font-medium">Money page today</th><th className="text-end font-medium">New ledger</th></tr></thead>
                       <tbody>
                         {h.expenseDifferences.map(d => (
                           <tr key={`${d.from}-${d.to}`} className="border-t border-gray-100">
                             <td className="py-1.5">{d.fromName} → {d.toName}</td>
-                            <td className="py-1.5 text-right">{money(d.current)}</td>
-                            <td className="py-1.5 text-right">{money(d.ledger)}</td>
+                            <td className="py-1.5 text-end">{money(d.current)}</td>
+                            <td className="py-1.5 text-end">{money(d.ledger)}</td>
                           </tr>
                         ))}
                       </tbody>

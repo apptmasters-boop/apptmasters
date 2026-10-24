@@ -16,7 +16,7 @@ export function SetupPage({ children }: { children: React.ReactNode }) {
   );
 }
 
-const backClass = "-ml-1 mt-1 rounded-full p-1 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800";
+const backClass = "-ms-1 mt-1 rounded-full p-1 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800";
 
 /** Back arrow, title and subtitle. `onBack` goes one step back; otherwise the arrow links to `backHref`. */
 export function SetupHeader({ title, subtitle, onBack, backHref = "/listings" }: {
@@ -46,7 +46,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
         const active = i === current;
         return (
           <li key={label} className="relative flex flex-1 flex-col items-center" aria-current={active ? "step" : undefined}>
-            {i > 0 && <span aria-hidden className={`absolute right-1/2 top-4 h-0.5 w-full ${i <= current ? "bg-brand" : "bg-gray-200 dark:bg-gray-700"}`} />}
+            {i > 0 && <span aria-hidden className={`absolute end-1/2 top-4 h-0.5 w-full ${i <= current ? "bg-brand" : "bg-gray-200 dark:bg-gray-700"}`} />}
             <span className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${
               done || active ? "bg-brand text-white" : "bg-white text-gray-500 ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700"}`}>
               {done ? <CheckIcon className="h-4 w-4" /> : i + 1}
@@ -87,7 +87,7 @@ export function Field({ id, label, optional, hint, icon, children }: {
         {label}{optional && <span className="font-normal text-gray-400"> (optional)</span>}
       </label>
       <div className="relative">
-        {icon && <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500">{icon}</span>}
+        {icon && <span className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-gray-500">{icon}</span>}
         {children}
       </div>
       {hint && <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
@@ -115,7 +115,7 @@ export function RequestTimeline({ requestedAt }: { requestedAt: string | Date })
     <ol className="space-y-0">
       {steps.map((s, i) => (
         <li key={s.title} className="relative flex gap-3 pb-5 last:pb-0">
-          {i < steps.length - 1 && <span aria-hidden className={`absolute left-[11px] top-6 h-full w-0.5 ${steps[i + 1].done ? "bg-brand" : "bg-gray-200 dark:bg-gray-700"}`} />}
+          {i < steps.length - 1 && <span aria-hidden className={`absolute start-[11px] top-6 h-full w-0.5 ${steps[i + 1].done ? "bg-brand" : "bg-gray-200 dark:bg-gray-700"}`} />}
           <span className={`relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
             s.done ? "bg-brand text-white" : "border-2 border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-900"}`}>
             {s.done && <CheckIcon className="h-3.5 w-3.5" />}

@@ -1,7 +1,10 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Logo } from "@/components/landing/SiteChrome";
+import LanguageButton from "@/components/LanguageButton";
 import { ArrowLeftIcon, ClipboardCheckIcon, UsersIcon, ShieldCheckIcon } from "@/components/landing/icons";
 
 /**
@@ -9,8 +12,8 @@ import { ArrowLeftIcon, ClipboardCheckIcon, UsersIcon, ShieldCheckIcon } from "@
  *
  * Desktop (lg+): photo panel on the left with the marketing message and trust
  * badges, form on the right. Mobile: the photo becomes a short header with the
- * page title, and the form card overlaps it. The header only offers
- * "Back to home" so the form stays the focus.
+ * page title, and the form card overlaps it. The header offers the language
+ * (translation T1) and "Back to home", so the form stays the focus.
  */
 export default function AuthShell({ title, subtitle, heroTitle, heroText, children }: {
   title: string;
@@ -19,15 +22,20 @@ export default function AuthShell({ title, subtitle, heroTitle, heroText, childr
   heroText: ReactNode;
   children: ReactNode;
 }) {
+  const t = useTranslations("auth");
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Logo />
-          <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">
-            <ArrowLeftIcon className="h-4 w-4" />
-            Back to home
-          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageButton />
+            {/* Phones: the arrow only (with the language button, the words no longer fit; the logo goes Home too). */}
+            <Link href="/" aria-label={t("backToHome")} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full p-1.5 text-sm font-medium text-brand hover:underline sm:p-0">
+              <ArrowLeftIcon className="h-5 w-5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">{t("backToHome")}</span>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -46,9 +54,9 @@ export default function AuthShell({ title, subtitle, heroTitle, heroText, childr
                 <h2 className="max-w-md text-4xl font-bold leading-[1.1]">{heroTitle}</h2>
                 <div className="mt-4 max-w-md text-base leading-relaxed text-white/90">{heroText}</div>
                 <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/90">
-                  <li className="inline-flex items-center gap-2"><ClipboardCheckIcon className="h-4 w-4" />Reviewed listings</li>
-                  <li className="inline-flex items-center gap-2"><UsersIcon className="h-4 w-4" />Trusted community</li>
-                  <li className="inline-flex items-center gap-2"><ShieldCheckIcon className="h-4 w-4" />Safe &amp; secure</li>
+                  <li className="inline-flex items-center gap-2"><ClipboardCheckIcon className="h-4 w-4" />{t("badgeReviewed")}</li>
+                  <li className="inline-flex items-center gap-2"><UsersIcon className="h-4 w-4" />{t("badgeCommunity")}</li>
+                  <li className="inline-flex items-center gap-2"><ShieldCheckIcon className="h-4 w-4" />{t("badgeSafe")}</li>
                 </ul>
               </div>
             </div>
@@ -68,4 +76,10 @@ export default function AuthShell({ title, subtitle, heroTitle, heroText, childr
       </main>
     </div>
   );
+}
+
+/** The two lines under the big title on the sign-in pages ("Temporary housing…"). */
+export function HeroLines() {
+  const t = useTranslations("auth");
+  return <p>{t.rich("heroText", { br: () => <br /> })}</p>;
 }
