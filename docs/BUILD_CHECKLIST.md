@@ -2862,7 +2862,7 @@ Their screenshot: a conversation page let them type, and Send answered
   return. They press Send.
 
 - [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`f19-check.mjs`: 13 checks: signed out and expired Contact, expired conversation page, a message kept across an expired sign-in)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-24 (ff32fe0, F19 + F20 + F21 + T1 together, at the owner's "deploy")
 
 **Your test on this PC** (http://localhost:3100)
 1. Signed out, open a listing, press **Contact**: the sign-up page. Use "Sign
@@ -2918,7 +2918,7 @@ how long, for how many). Comforts and extras after.
 - Not chosen: Lease on the results' top row.
 
 - [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`filters-ui-check.mjs`: 188 checks on computer and phone: every filter from its new place, the new order, Pets allowed, the room lifestyle hidden for Apartment/House, More filters folded and opening by itself with its count)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-24 (ff32fe0, with F19, F21 and T1; the live filters check passed)
 
 **Your test on this PC** (http://localhost:3100)
 1. Open **Find a Home** and press **Filters**. The sections read in the order
@@ -2980,7 +2980,7 @@ roommate they're looking for".
   occupation, in housing; shared rooms may be exempt.
 
 - [x] Type check · [x] Tests (372) · [x] Lint (47) · [x] Browser check (`f21-check.mjs`: 11 checks: the label, example, hint and place on the form; none for an apartment; House customs under its own heading on the listing)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-24 (ff32fe0, with F19, F20 and T1; no database change)
 
 **Your test on this PC** (http://localhost:3100): sign in as
 `roommate@apptmasters.local` / `LocalTest-2026`.
@@ -3093,7 +3093,7 @@ this PC; deploy on "deploy")
   isolates prices and what people write (their own direction).
 
 - [x] Type check (message keys are typed: a mistyped key fails it) · [x] Tests (384, with `tests/i18n.test.ts`: every key in all four files, same placeholders, language choice) · [x] Lint (46, one fewer) · [x] Browser check (`i18n-check.mjs`: 263 checks: first visit in the browser's language, the button and its menu, every T1 page in French, Spanish and Arabic on phone and computer with no English left and no sideways scrolling, Arabic mirrored, English unchanged) · [x] Existing checks still pass in English (filters 188, F19, F21, F13; the F13 check now skips the new Language row and button)
-- [ ] Deployed to apptmasters.com: **not yet: the owner tests on this PC first**
+- [x] Deployed to apptmasters.com on 2026-10-24 (ff32fe0, with F19, F20 and F21; `npm install` on the server for next-intl). **The live site stays English** (only English is switched on outside `next dev`): `live-english-check.mjs` checks it.
 
 **Your test on this PC** (http://localhost:3100)
 1. Signed out, open **Home**. Top right: **🌐 EN**. Press it and choose

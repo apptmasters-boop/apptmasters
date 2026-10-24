@@ -1,7 +1,6 @@
 # Where we continue
 
-**Updated 2026-10-18, end of day (the owner: "save everything, see you
-tomorrow").** Read this first, on any PC. Notes that Claude Code keeps on one PC
+**Updated 2026-10-24 (F19, F20, F21 and T1 deployed at the owner's "deploy").** Read this first, on any PC. Notes that Claude Code keeps on one PC
 don't move to another PC; this file does.
 
 **On a new PC, tell Claude Code:** "Read `docs/HANDOFF.md` and continue
@@ -9,18 +8,18 @@ from there."
 
 ## Next time, start here
 
-1. **Everything built is live** (the last deploy: 2026-10-18, commit
-   `944e66e`):
-   - F2–F18, L2 (Rented → Relist, which replaced L1), O1 (the "What brings
+1. **Everything built is live** (the last deploy: 2026-10-24, commit
+   `ff32fe0`):
+   - F2–F21, T1 (translation foundation; the live site stays English), L2 (Rented → Relist, which replaced L1), O1 (the "What brings
      you to ApptMasters?" question after confirming the email) and G1
      (listing photos rotate).
    - O1's column `User.intent` was added to the live database with the
      owner's explicit yes (`prisma/manual-sql/2026-10-18-o1-signup-intent.sql`).
    - **Waiting for the owner's sign-off** on apptmasters.com.
-   - **F19 (2026-10-23): contacting an advertiser when signed out or when the 7-day sign-in expired goes to sign up and back, like Save; an expired sign-in is forgotten app-wide; a message typed when it expired is kept and comes back):** built and pushed, NOT deployed: the owner tests on this PC first (`f19-check.mjs`). No database change.
-   - **F20 (2026-10-23): Filters in order of importance** (the owner chose the order): Location, Property type, Price, **Fees**, **Move-in date**, **Lease duration**, Number of occupants, Bedrooms, **Pets & smoking** (Pets moved from Additional options, still `amenities=petsAllowed`), Additional options, What matters to you? (only when All or Room), then **More filters** (Bathrooms · Size · Listed, folded; opens by itself with a count when one is set). Same filters, same addresses. Built and pushed, NOT deployed: the owner tests on this PC first (`filters-ui-check.mjs`). No database change.
-   - **F21 (2026-10-23): the listing form's "Language / cultural / religious notes" box became "House customs (optional)"** (describe the home, not who may live there), in its own place; the listing shows it under its own heading. Built and pushed, NOT deployed (`f21-check.mjs`). No database change. Why: the owner asked for Country of origin / Language / Ethnicity / Region filters; advised against ethnicity and country-of-origin filters (Fair Housing Act § 3604(c), NY State and City law; NYC counts language as part of national origin). **For a NY fair-housing lawyer:** that advice, the roommate age range and Student/Professional choices, the translated legal pages.
-   - **Translation project T1–T6 (plan approved 2026-10-23):** the whole site in French, Spanish and Arabic; see BUILD_CHECKLIST.md "Translation". Hidden on the live site until done (`NEXT_PUBLIC_LANGUAGES` defaults to en); a 🌐 language button in every top bar; native speakers chosen by the owner check it. **T1 built and pushed, NOT deployed** (the owner tests on this PC: 🌐 button, Arabic right to left, menus, Home, sign-up/log-in/passwords, More, Settings in French/Spanish/Arabic; `i18n-check.mjs`). **Deploy note: T1 adds the `next-intl` package: on the server run `npm ci` after `git pull` and before the build.** The live site stays English (NEXT_PUBLIC_LANGUAGES defaults to en outside `next dev`). Review sheets for the native speakers: `docs/translations/review-{fr,es,ar}.csv` (regenerate with `node scripts/i18n/review-sheets.mjs`). **Next: T2** (Find a Home; also isolate prices and user-written titles in Arabic).
+   - **F19 (2026-10-23): contacting an advertiser when signed out or when the 7-day sign-in expired goes to sign up and back, like Save; an expired sign-in is forgotten app-wide; a message typed when it expired is kept and comes back):** LIVE since 2026-10-24 (`f19-check.mjs` locally; signed-out Contact checked on the live site). No database change.
+   - **F20 (2026-10-23): Filters in order of importance** (the owner chose the order): Location, Property type, Price, **Fees**, **Move-in date**, **Lease duration**, Number of occupants, Bedrooms, **Pets & smoking** (Pets moved from Additional options, still `amenities=petsAllowed`), Additional options, What matters to you? (only when All or Room), then **More filters** (Bathrooms · Size · Listed, folded; opens by itself with a count when one is set). Same filters, same addresses. LIVE since 2026-10-24 (`filters-ui-check.mjs` passed on the live site). No database change.
+   - **F21 (2026-10-23): the listing form's "Language / cultural / religious notes" box became "House customs (optional)"** (describe the home, not who may live there), in its own place; the listing shows it under its own heading. LIVE since 2026-10-24 (`f21-check.mjs`). No database change. Why: the owner asked for Country of origin / Language / Ethnicity / Region filters; advised against ethnicity and country-of-origin filters (Fair Housing Act § 3604(c), NY State and City law; NYC counts language as part of national origin). **For a NY fair-housing lawyer:** that advice, the roommate age range and Student/Professional choices, the translated legal pages.
+   - **Translation project T1–T6 (plan approved 2026-10-23):** the whole site in French, Spanish and Arabic; see BUILD_CHECKLIST.md "Translation". Hidden on the live site until done (`NEXT_PUBLIC_LANGUAGES` defaults to en); a 🌐 language button in every top bar; native speakers chosen by the owner check it. **T1 LIVE since 2026-10-24** (🌐 button, Arabic right to left, menus, Home, sign-up/log-in/passwords, More, Settings in French/Spanish/Arabic; test them on this PC: `i18n-check.mjs`). The server got `npm install` for next-intl. **The live site stays English** (NEXT_PUBLIC_LANGUAGES defaults to en outside `next dev`; `live-english-check.mjs` checks it on apptmasters.com). Review sheets for the native speakers: `docs/translations/review-{fr,es,ar}.csv` (regenerate with `node scripts/i18n/review-sheets.mjs`). **Next: T2** (Find a Home; also isolate prices and user-written titles in Arabic).
 2. **Approved:** Sprint 13, F1, **P1 backups** (2026-10-18), P2 budget alert.
 3. **Open questions for the owner:**
    - **The Home picture:** it was made with ChatGPT (OpenAI gpt-image,
